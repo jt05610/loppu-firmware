@@ -1,0 +1,150 @@
+cmake_minimum_required(VERSION 3.1)
+
+project(drivers)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 99)
+
+set(drivers_version_major 1)
+set(drivers_version_minor 0)
+
+set(PACKAGE_VERSION "${drivers_version_major}.${drivers_version_minor}")
+
+include(GNUInstallDirs)
+
+option(drivers/tests "Compile and run driver tests?" ON)
+
+set(SERIAL_LIB "serial")
+set(GPIO_LIB "gpio")
+set(TIMER_LIB "timer")
+set(STEPPER_LIB "stepper")
+
+set(DRIVERS_ROOT_DIR drivers)
+
+set(
+    DRIVER_TEST_INC
+    ${DRIVERS_ROOT_DIR}/tests/gpio/mocks/inc
+    ${DRIVERS_ROOT_DIR}/tests/serial/fakes/inc
+    ${DRIVERS_ROOT_DIR}/tests/serial/spies/inc
+    ${DRIVERS_ROOT_DIR}/tests/timer/fakes/inc
+    ${DRIVERS_ROOT_DIR}/tests/stepper/fakes/inc
+)
+
+set(INC_INSTALL_DIR ${CMAKE_INSTALL_FULL_INCLUDEDIR})
+set(LIB_INSTALL_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
+
+set(DRIVERS_LIBRARY_TYPE STATIC)
+
+set(DRIVERS_PKGCONFIG_FILE drivers.pc)
+
+set(DRIVERS_PKGCONFIG_PATH ${CMAKE_CURRENT_BINARY_DIR}/${DRIVERS_PKGCONFIG_FILE})
+
+configure_file(
+    "${DRIVERS_ROOT_DIR}/library_config/drivers.pc.in"
+    "${DRIVERS_PKGCONFIG_PATH}"
+)
+
+install(
+    FILES "${DRIVERS_PKGCONFIG_PATH}"
+    DESTINATION "${LIB_INSTALL_DIR}/pkgconfig"
+)
+
+include_directories(${DRIVERS_ROOT_DIR}/../inc)
+
+file(
+    GLOB_RECURSE
+    DRIVER_SOURCE
+    "${DRIVERS_ROOT_DIR}/src/*.c"
+)
+
+add_subdirectory(src/serial)
+add_subdirectory(src/gpio)
+add_subdirectory(src/timer)
+add_subdirectory(src/stepper)
+
+install(
+    EXPORT "${SERIAL_LIB}"
+    DESTINATION "${LIB_INSTALL_DIR}/cmake/drivers"
+)
+
+install(
+    EXPORT "${GPIO_LIB}"
+    DESTINATION "${LIB_INSTALL_DIR}/cmake/drivers"
+)
+
+install(
+    EXPORT "${TIMER_LIB}"
+    DESTINATION "${LIB_INSTALL_DIR}/cmake/drivers"
+)
+
+target_include_directories(
+    ${SERIAL_LIB}
+    PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+)
+
+target_include_directories(
+    ${GPIO_LIB}
+    PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+)
+
+target_include_directories(
+    ${TIMER_LIB}
+    PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+)
+
+if (drivers/tests)
+    include(FetchContent)
+    fetchcontent_declare(
+        CppUTest
+        GIT_REPOSITORY https://github.com/cpputest/cpputest.git
+        GIT_TAG latest-passing-build
+    )
+
+    set(drivers/tests OFF CACHE BOOL "Switch off CPPUTest Test build")
+    fetchcontent_makeavailable(CppUTest)
+
+    set(SERIAL_TEST_LIB "${SERIAL_LIB}_test")
+    set(TIMER_TEST_LIB "${TIMER_LIB}_test")
+    set(GPIO_TEST_LIB "${GPIO_LIB}_test")
+    set(STEPPER_TEST_LIB "${STEPPER_LIB}_test")
+
+    file(
+        GLOB
+        DRIVER_TEST_SOURCE
+        "timer/fakes/src/fake_timer.c"
+        "serial/fakes/src/fake_serial.c"
+        "serial/spies/src/serial_spy.c"
+        "stepper/fakes/src/fake_stepper.c"
+    )
+    set(
+        DRIVER_TEST_LIBS
+        ${SERIAL_TEST_LIB}
+        ${TIMER_TEST_LIB}
+        ${GPIO_TEST_LIB}
+        ${STEPPER_TEST_LIB}
+    )
+    add_subdirectory(drivers/tests)
+endif (drivers/tests)
+
+configure_file(
+    "${DRIVERS_ROOT_DIR}/library_config/driversConfig.cmake.in"
+    ${PROJECT_BINARY_DIR}/driversConfig.cmake
+    @ONLY
+)
+
+configure_file(
+    "${DRIVERS_ROOT_DIR}/library_config/driversConfigVersion.cmake.in"
+    ${PROJECT_BINARY_DIR}/driversConfigVersion.cmake
+    @ONLY
+)
+
+install(
+    FILES
+    ${PROJECT_BINARY_DIR}/driversConfig.cmake
+    ${PROJECT_BINARY_DIR}/driversConfigVersion.cmake
+    DESTINATION "${LIB_INSTALL_DIR}/cmake/drivers"
+
+)

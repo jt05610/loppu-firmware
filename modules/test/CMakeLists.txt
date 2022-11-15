@@ -1,0 +1,41 @@
+message("loading tests")
+if (CMAKE_BUILD_TYPE MATCHES Local)
+    include(FetchContent)
+    fetchcontent_declare(
+        CppUTest
+        GIT_REPOSITORY https://github.com/cpputest/cpputest.git
+        GIT_TAG latest-passing-build
+    )
+
+    fetchcontent_makeavailable(CppUTest)
+
+    set(SERIAL_TEST_LIB "${SERIAL_LIB}_test")
+    set(TIMER_TEST_LIB "${TIMER_LIB}_test")
+    set(GPIO_TEST_LIB "${GPIO_LIB}_test")
+    set(STEPPER_TEST_LIB "${STEPPER_LIB}_test")
+    set(BUTTONS_TEST_LIB "${BUTTONS_LIB}_test")
+
+    file(
+        GLOB
+        DRIVER_TEST_SOURCE
+        "timer/fakes/src/fake_timer.c"
+        "serial/fakes/src/fake_serial.c"
+        "serial/spies/src/serial_spy.c"
+        "stepper/fakes/src/fake_stepper.c"
+    )
+    set(
+        DRIVER_TEST_LIBS
+        ${SERIAL_TEST_LIB}
+        ${TIMER_TEST_LIB}
+        ${GPIO_TEST_LIB}
+        ${STEPPER_TEST_LIB}
+    )
+    include_directories(
+        ${CppUTest_SOURCE_DIR}/include
+    )
+    add_subdirectory(gpio)
+    add_subdirectory(buttons)
+    add_executable(all_tests all_tests.cpp)
+
+    target_link_libraries(all_tests ${DRIVER_TEST_LIBS} CppUTest CppUTestExt)
+endif()

@@ -1,0 +1,22 @@
+#ifdef STM32G031xx
+#include "stm32g0xx_ll_gpio.h"
+#endif
+
+#cmakedefine A4988_CONFIG
+#cmakedefine MS1_PIN @MS1_PIN@
+#cmakedefine MS2_PIN @MS2_PIN@
+#cmakedefine MS3_PIN @MS3_PIN@
+#cmakedefine DIR_PIN @DIR_PIN@
+#cmakedefine STEP_PIN @STEP_PIN@
+#cmakedefine SLEEP_PIN @SLEEP_PIN@
+#cmakedefine RESET_PIN @RESET_PIN@
+#cmakedefine ENABLE_PIN @ENABLE_PIN@
+#cmakedefine LIMIT_PIN @LIMIT_PIN@
+
+#cmakedefine MS_PORT @MS_PORT@
+#cmakedefine DIR_PORT @DIR_PORT@
+#cmakedefine STEP_PORT @STEP_PORT@
+#cmakedefine SLEEP_PORT @SLEEP_PORT@
+#cmakedefine RESET_PORT @RESET_PORT@
+#cmakedefine ENABLE_PORT @ENABLE_PORT@
+#cmakedefine LIMIT_PORT @LIMIT_PORT@

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/Drivers/TMC-API" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-local/_deps/cpputest-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/modules/TMC-API" vcs="Git" />
+  </component>
+</project>
