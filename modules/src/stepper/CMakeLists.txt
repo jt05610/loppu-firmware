@@ -7,12 +7,12 @@ file(
 )
 
 include_directories(
-    ${CMAKE_CURRENT_BINARY_DIR}
+    ${DRIVERS_ROOT_DIR}/inc
 )
 set(
     STEPPER_HEADERS
     ${STEPPER_INC_DIR}/.private/stepper_private.h
-    ${STEPPER_INC_DIR}/stepper.h
+    ${STEPPER_INC_DIR}/stepper_driver.h
 )
 
 add_library(
@@ -20,29 +20,4 @@ add_library(
     "${DRIVERS_LIBRARY_TYPE}"
     "${STEPPER_HEADERS}"
     "${STEPPER_SOURCES}"
-)
-
-target_include_directories(
-    ${STEPPER_LIB}
-    PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../inc>
-    $<INSTALL_INTERFACE:inc>
-)
-
-set_target_properties(
-    "${STEPPER_LIB}" PROPERTIES
-    PUBLIC_HEADER "${STEPPER_HEADERS}"
-)
-
-target_link_libraries(
-    ${STEPPER_LIB} ${GPIO_LIB} ${TIMER_LIB}
-)
-
-install(
-    TARGETS "${STEPPER_LIB}"
-    EXPORT "${STEPPER_LIB}"
-    LIBRARY DESTINATION "${LIB_INSTALL_DIR}"
-    ARCHIVE DESTINATION "${LIB_INSTALL_DIR}"
-    INCLUDES DESTINATION "${INC_INSTALL_DIR}/stepper"
-    PUBLIC_HEADER DESTINATION "${INC_INSTALL_DIR}/stepper"
 )

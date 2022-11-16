@@ -16,18 +16,16 @@
 #ifndef INJECTOR_BUTTONS_H
 #define INJECTOR_BUTTONS_H
 
+#ifdef STM32G0
 #include <stdint-gcc.h>
+#else
+#include <stdint.h>
+#endif
 
 typedef struct buttons_t * Buttons;
-typedef struct buttons_interface_t * ButtonsInterface;
 
-typedef void (*button_handler_t)();
-
-void buttons_create(Buttons self, button_handler_t * handlers, uint8_t n_handlers);
-void buttons_rising_handler(Buttons self, uint8_t button);
-void buttons_falling_handler(Buttons self, uint8_t button);
+void buttons_create(Buttons self, uint32_t bit_mask, uint8_t n_buttons);
 void buttons_handle(Buttons self, uint8_t state_flag);
-void buttons_update(Buttons self);
 
 #include ".private/buttons_private.h"
 

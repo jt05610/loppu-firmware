@@ -32,13 +32,16 @@ include_directories(
     ${DRIVERS_ROOT_DIR}/inc/
     fakes/inc
     ${CMAKE_CURRENT_BINARY_DIR}
+    ../gpio/fakes/inc
 )
 
 target_link_libraries(
     "${STEPPER_TEST_LIB}"
-    "${GPIO_LIB}"
-    "${TIMER_LIB}"
+    "${STEPPER_LIB}"
+    "${GPIO_TEST_LIB}"
+    "${TIMER_TEST_LIB}"
 )
+
 add_executable(StepperTests all_tests.cpp)
 
 target_link_libraries(

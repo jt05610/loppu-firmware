@@ -32,5 +32,8 @@ void stm32_gpio_create(GPIO base);
 
 void stm32_gpio_init_pin(pin_init_t * init);
 
+void stm32_gpio_clear_interrupt_flags();
+uint8_t stm32_gpio_read_interrupt_flags();
+
 #endif /*__STM32_GPIO_H__ */
 

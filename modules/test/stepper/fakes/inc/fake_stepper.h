@@ -16,10 +16,8 @@
 #ifndef DRIVERS_FAKE_STEPPER_H
 #define DRIVERS_FAKE_STEPPER_H
 
-#include "stepper/stepper.h"
+#include "stepper/stepper_driver.h"
 
-void fake_stepper_create(Stepper base, Timer time, PWM pwm);
-
-StepperParams fake_stepper_current();
+void fake_stepper_create(Stepper base, gpio_t *gpio);
 
 #endif //DRIVERS_FAKE_STEPPER_H

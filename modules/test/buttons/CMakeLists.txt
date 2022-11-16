@@ -19,6 +19,7 @@ include_directories(
 
 target_link_libraries(
     "${BUTTONS_TEST_LIB}"
+    "${BUTTONS_LIB}"
     "${GPIO_LIB}"
     "${TIMER_LIB}"
 )

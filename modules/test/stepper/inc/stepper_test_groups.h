@@ -19,6 +19,7 @@
 #include "CppUTest/CommandLineTestRunner.h"
 
 IMPORT_TEST_GROUP(stepper);
+IMPORT_TEST_GROUP(stepper_controller);
 IMPORT_TEST_GROUP(a4988_stepper);
 
 #endif //DRIVERS_STEPPER_TESTS_H

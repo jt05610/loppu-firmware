@@ -14,134 +14,70 @@
   */
 
 #include "fake_stepper.h"
-#include "fake_timer.h"
-#include "fake_pwm.h"
+#include "gpio/gpio.h"
 
-#define SYSTEM_TICK 16000000
 
 static struct fake_stepper
 {
     Stepper          base;
-    stepper_params_t current;
-    timer_param_t    pwm_params;
-    uint32_t         last_accel;
-    uint32_t         planned_steps;
-    uint32_t         steps;
+    bool enabled;
+    bool is_forward;
+    int32_t position;
+    microstep_t microstep;
 } self = {0};
 
 static inline void
-fake_stepper_step()
+step(Stepper base)
 {
-    if (self.steps >= self.planned_steps)
-    {
-        self.pwm_params.pulse  = 0;
-        self.pwm_params.period = 0;
-        return;
-    }
-    if (Forward == self.current.dir)
-        self.current.position++;
-    else
-        self.current.position--;
-    self.steps++;
+    self.position += (self.is_forward) ? 1 : -1;
+    gpio_toggle(base->gpio, 0, 0);
 }
 
 static void
-run(void)
+set_dir(Stepper base, dir_t dir)
 {
-
-}
-
-static bool
-is_idle(void)
-{
-    return self.steps == self.planned_steps;
-}
-
-static pwm_callback_t callback = {0x01, fake_stepper_step};
-
-static inline void
-calculate_speed()
-{
-    self.pwm_params.period = calculate_period(
-            SYSTEM_TICK, self.pwm_params.prescaler, self.current.speed
-    );
-    self.pwm_params.pulse  = calculate_pulse(self.pwm_params.period, 50);
+    self.is_forward = dir == Forward;
+    if (self.is_forward)
+        gpio_set_pin(base->gpio, 0, 0);
+    else
+        gpio_reset_pin(base->gpio, 0, 0);
 }
 
 static inline void
-update_pwm()
+set_microstep(Stepper base, microstep_t microstep)
 {
-    if (self.current.speed < self.base->target->speed)
-    {
-        if (timer_micros(self.base->time) - self.last_accel
-            >= self.current.accel)
-        {
-            self.current.speed++;
-            self.last_accel = timer_micros(self.base->time);
-            calculate_speed();
-        }
-    }
-    fake_pwm_increment_counter(self.base->pwm);
-    pwm_run_callbacks(self.base->pwm);
+    self.microstep = microstep;
 }
 
 static inline void
-set_course()
+enable(Stepper base)
 {
-    if (self.base->target->accel == 0)
-    {
-        self.current.speed = self.base->target->speed;
-        self.current.accel = 0;
-    } else
-    {
-        self.current.accel = self.base->target->accel;
-    }
-    if (self.base->target->position > self.current.position)
-    {
+    self.enabled = true;
+}
 
-        self.base->target->dir = Forward;
-
-        self.planned_steps =
-                self.base->target->position - self.current.position;
-    } else
-    {
-        self.base->target->dir = Backward;
-
-        self.planned_steps =
-                self.current.position - self.base->target->position;
-    }
-    self.steps = 0;
-    calculate_speed();
+static inline void
+disable(Stepper base)
+{
+    self.enabled = false;
 }
 
 static stepper_interface_t fake_stepper_interface = {
-        .set_course = set_course,
-        .run = run,
-        .is_idle = is_idle
+        .step = step,
+        .set_dir = set_dir,
+        .set_microstep = set_microstep,
+        .enable = enable,
+        .disable = disable,
+
 };
 
 void
-fake_stepper_create(Stepper base, Timer time, PWM pwm)
+fake_stepper_create(Stepper base, gpio_t * gpio)
 {
     base->vtable = &fake_stepper_interface;
-    base->pwm    = pwm;
-    base->time   = time;
-    fake_timer_create(time);
-    self.pwm_params.prescaler = calculate_prescaler(SYSTEM_TICK, 1000000);
-    fake_pwm_create(pwm, &self.pwm_params);
-    pwm_register_callback(pwm, &callback);
-    fake_timer_register_interrupt(update_pwm);
-    fake_timer_set_interrupt_period(1);
-    self.base             = base;
-    self.current.speed    = 0;
-    self.current.accel    = 0;
-    self.current.position = 0;
-    self.steps            = 0;
+    base->gpio = gpio;
+    self.base = base;
+    self.enabled = false;
+    self.position = 0;
+    self.microstep = FULL_STEP;
+    self.is_forward = true;
 }
-
-StepperParams
-fake_stepper_current()
-{
-    return &self.current;
-}
-

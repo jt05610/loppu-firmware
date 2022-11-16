@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file   stepperTest.cpp
+  * @file   config.h
   * @author Jonathan Taylor
-  * @date   7/11/22
-  * @brief  Tests for stepper module.
+  * @date   11/15/22
+  * @brief  DESCRIPTION
   ******************************************************************************
   * @attention
   *
@@ -13,24 +13,14 @@
   ******************************************************************************
   */
 
-#include "CppUTest/TestHarness.h"
+#ifndef INJECTOR_CONFIG_H
+#define INJECTOR_CONFIG_H
 
-extern "C"
-{
-#include "fake_stepper.h"
-#include "fake_pwm.h"
-#include "fake_timer.h"
-}
+#define EXTI_0_1_BIT_MASK 0x03
 
-TEST_GROUP(stepper)
-{
-    stepper_t        stepper;
+#define BLINKY_UPDATE_FREQ 1000 // Hz
 
-    void setup() override
-    {
-    }
+#define BLINKY_DEFAULT_DELAY_MS 1000
 
-    void teardown() override
-    {
-    }
-};
+#define BLINKY_DEFAULT_DELAY_US (1000 * BLINKY_DEFAULT_DELAY_MS)
+#endif //INJECTOR_CONFIG_H

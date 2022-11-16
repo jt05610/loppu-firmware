@@ -20,10 +20,9 @@
 
 typedef struct buttons_t
 {
-    uint8_t state;
-    volatile uint8_t update_flag;
-    button_handler_t * handlers;
-    uint8_t n_handlers;
+    volatile uint32_t state;
+    uint32_t bit_mask;
+    uint8_t n_buttons;
 } buttons_t;
 
 

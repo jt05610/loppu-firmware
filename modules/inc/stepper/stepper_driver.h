@@ -17,22 +17,35 @@
 #define DRIVERS_STEPPER_H
 
 #include "sized_array.h"
+#include "gpio/gpio.h"
 
 typedef struct stepper_t           * Stepper;
 typedef struct stepper_interface_t * StepperInterface;
-typedef struct stepper_params_t    * StepperParams;
 
-void stepper_set_target(Stepper base, StepperParams params);
+typedef enum dir_t
+{
+    Backward,
+    Forward,
+} dir_t;
 
-StepperParams stepper_get_target(Stepper base);
+typedef enum microstep_t
+{
+    FULL_STEP,
+    HALF_STEP,
+    QUARTER_STEP,
+    EIGHTH_STEP,
+    SIXTEENTH_STEP
+} microstep_t;
 
-void stepper_set_course(Stepper base);
+void stepper_set_dir(Stepper base, dir_t dir);
 
-void stepper_run(Stepper base);
+void stepper_step(Stepper base);
 
-bool stepper_is_idle(Stepper base);
+void stepper_set_microstep(Stepper base, microstep_t microstep);
 
-void stepper_set_position(Stepper base, uint32_t pos);
+void stepper_enable(Stepper base);
+
+void stepper_disable(Stepper base);
 
 #endif //DRIVERS_STEPPER_H
 

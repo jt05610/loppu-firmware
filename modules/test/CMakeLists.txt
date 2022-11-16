@@ -1,5 +1,7 @@
 message("loading tests")
-if (CMAKE_BUILD_TYPE MATCHES Local)
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
     include(FetchContent)
     fetchcontent_declare(
         CppUTest
@@ -22,7 +24,25 @@ if (CMAKE_BUILD_TYPE MATCHES Local)
         "serial/fakes/src/fake_serial.c"
         "serial/spies/src/serial_spy.c"
         "stepper/fakes/src/fake_stepper.c"
+        "gpio/mocks/src/mock_gpio_c.c"
+        "gpio/mocks/src/mock_gpio.cpp"
     )
+
+    include_directories(
+        ${CppUTest_SOURCE_DIR}/include
+        timer/fakes/inc/
+        timer/inc/
+        stepper/inc
+        stepper/fakes
+        gpio/mocks/inc
+        gpio/inc
+    )
+    add_subdirectory(gpio)
+    add_subdirectory(timer)
+    add_subdirectory(buttons)
+    add_subdirectory(stepper)
+    add_executable(all_tests all_tests.cpp)
+
     set(
         DRIVER_TEST_LIBS
         ${SERIAL_TEST_LIB}
@@ -30,12 +50,6 @@ if (CMAKE_BUILD_TYPE MATCHES Local)
         ${GPIO_TEST_LIB}
         ${STEPPER_TEST_LIB}
     )
-    include_directories(
-        ${CppUTest_SOURCE_DIR}/include
-    )
-    add_subdirectory(gpio)
-    add_subdirectory(buttons)
-    add_executable(all_tests all_tests.cpp)
-
+    
     target_link_libraries(all_tests ${DRIVER_TEST_LIBS} CppUTest CppUTestExt)
 endif()

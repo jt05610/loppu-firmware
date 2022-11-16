@@ -16,35 +16,17 @@
 #include "buttons.h"
 
 void
-buttons_create(Buttons self, button_handler_t * handlers, uint8_t n_handlers)
+buttons_create(Buttons self, uint32_t bit_mask, uint8_t n_buttons)
 {
     self->state = 0;
-    self->handlers = handlers;
-    self->n_handlers = n_handlers;
-    self->update_flag = 0;
-}
-
-void
-buttons_rising_handler(Buttons self, uint8_t button)
-{
-    self->state |= (0x01 << button);
-}
-
-void
-buttons_falling_handler(Buttons self, uint8_t button)
-{
-    self->state &= ~(0x01 << button);
+    self->bit_mask = bit_mask;
+    self->n_buttons = n_buttons;
 }
 
 void
 buttons_handle(Buttons self, uint8_t state_flag)
 {
-    self->update_flag = state_flag;
+    self->state |= (state_flag & self->bit_mask);
+    self->state &= ~(state_flag >> self->n_buttons);
 }
 
-void
-buttons_update(Buttons self)
-{
-    if (self->update_flag)
-        self->handlers[self->update_flag]();
-}

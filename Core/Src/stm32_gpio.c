@@ -1,14 +1,16 @@
 #include "stm32g0xx_ll_exti.h"
 #include "stm32g0xx_ll_bus.h"
 #include "stm32g0xx_ll_gpio.h"
-#include "stm32g0xx_it.h"
 #include "stm32_gpio.h"
+#include "config.h"
 
 #define EXTI_PORT(port) \
 ((port == GPIO_PORT_A)) ? LL_EXTI_CONFIG_PORTA : LL_EXTI_CONFIG_PORTB
 
 #define PERIPH(port) \
 ((port) == GPIO_PORT_A) ? LL_IOP_GRP1_PERIPH_GPIOA : LL_IOP_GRP1_PERIPH_GPIOB
+
+#define MASK_REG(REG, MASK) ((REG) & (MASK))
 
 static struct
 {
@@ -50,11 +52,11 @@ stm32_gpio_create(GPIO base)
     base->vtable = &interface;
 }
 
-
 void
 stm32_gpio_init_pin(pin_init_t * init)
 {
     if (validate_pin_init(init))
+    {
         switch (init->type)
         {
             case NormalPin:
@@ -64,6 +66,7 @@ stm32_gpio_init_pin(pin_init_t * init)
                 init_exti(init);
                 break;
         }
+    }
 }
 
 static inline bool
@@ -73,7 +76,6 @@ validate_pin_init(pin_init_t * init)
            && IS_LL_GPIO_PIN(init->pin_mask)
            && IS_LL_GPIO_MODE(init->mode);
 }
-
 
 static inline void
 init_single_pin(uint32_t current_pin, pin_init_t * init)
@@ -107,12 +109,13 @@ init_normal_pin(pin_init_t * init)
     {
         current_pin = init->pin_mask & (0x01U << pin_pos);
         if (0x00U != current_pin)
+        {
             init_single_pin(current_pin, init);
+        }
 
         pin_pos++;
     }
 }
-
 
 static inline void
 init_exti(pin_init_t * init)
@@ -170,12 +173,15 @@ toggle(gpio_port_t port, gpio_pin_t pin)
 }
 
 void
-EXTI4_15_IRQHandler(void)
+stm32_gpio_clear_interrupt_flags()
 {
-    if (LL_EXTI_IsActiveRisingFlag_0_31(LL_EXTI_LINE_8) != RESET)
-    {
-        LL_EXTI_ClearRisingFlag_0_31(LL_EXTI_LINE_8);
-        if (self.gpio_interrupt)
-            self.gpio_interrupt();
-    }
+    EXTI->RPR1 = EXTI_0_1_BIT_MASK;
+    EXTI->FPR1 = EXTI_0_1_BIT_MASK;
+}
+
+uint8_t
+stm32_gpio_read_interrupt_flags()
+{
+    return (MASK_REG(EXTI->FPR1, EXTI_0_1_BIT_MASK) |
+            (MASK_REG(EXTI->RPR1, EXTI_0_1_BIT_MASK) << 2));
 }
