@@ -16,8 +16,9 @@
 #ifndef DRIVERS_STEPPER_CONTROLLER_H
 #define DRIVERS_STEPPER_CONTROLLER_H
 #include "stepper_driver.h"
+#include "timer/timer.h"
 
-#define UPDATE_FREQUENCY 1000 //Hz
+#define UPDATE_FREQUENCY 10000 //Hz
 
 typedef struct stepper_controller_t * StepperController;
 
@@ -36,7 +37,7 @@ typedef enum stepper_state_t
     STEPPER_STOPPING,
 } stepper_state_t;
 
-void stepper_controller_create(StepperController base, uint32_t update_freq);
+void stepper_controller_create(StepperController base, uint32_t update_freq, Timer timer);
 
 void stepper_controller_set_target(StepperController base, stepper_kinematics_t *target);
 stepper_kinematics_t * stepper_controller_get_target(StepperController base);

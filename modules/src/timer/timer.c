@@ -31,3 +31,21 @@ time_amount_t timer_millis(Timer self)
     else
         return 0;
 }
+
+void timer_set_pwm_freq(Timer self, uint32_t freq)
+{
+    if (self && self->vtable && self->vtable->set_pwm_freq)
+        self->vtable->set_pwm_freq(freq);
+}
+
+void timer_start_pwm(Timer self)
+{
+    if (self && self->vtable && self->vtable->start_pwm)
+        self->vtable->start_pwm();
+}
+void timer_stop_pwm(Timer self)
+{
+    if (self && self->vtable && self->vtable->stop_pwm)
+        self->vtable->stop_pwm();
+
+}

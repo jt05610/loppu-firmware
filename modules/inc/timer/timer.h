@@ -26,6 +26,11 @@ time_amount_t timer_micros(Timer self);
 
 time_amount_t timer_millis(Timer self);
 
+void timer_set_pwm_freq(Timer self, uint32_t freq);
+
+void timer_start_pwm(Timer self);
+void timer_stop_pwm(Timer self);
+
 #include "timer/.private/timer_private.h"
 
 #endif //VALVECONTROLLER_TIMESERVICE_H

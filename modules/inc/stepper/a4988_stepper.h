@@ -15,17 +15,11 @@
 #define MS1_PIN 1
 #define MS2_PIN 2
 #define MS3_PIN 3
-#define DIR_PIN 1
-#define STEP_PIN 1
 #define SLEEP_PIN 1
 #define RESET_PIN 1
-#define ENABLE_PIN 1
 #define MS_PORT GPIO_PORT_A
 #define RESET_PORT GPIO_PORT_A
 #define SLEEP_PORT GPIO_PORT_A
-#define ENABLE_PORT GPIO_PORT_A
-#define DIR_PORT GPIO_PORT_A
-#define STEP_PORT GPIO_PORT_A
 #endif
 
 #ifndef SYS_TICK
@@ -50,6 +44,16 @@ typedef struct a4988_init_t
 {
     Stepper  base;
     GPIO     gpio;
+    gpio_pin_t step_pin;
+    gpio_pin_t dir_pin;
+    gpio_port_t step_port;
+    gpio_port_t dir_port;
+    gpio_pin_t enable_pin;
+    gpio_port_t enable_port;
+    gpio_pin_t sleep_pin;
+    gpio_port_t sleep_port;
+    gpio_pin_t reset_pin;
+    gpio_port_t reset_port;
 } a4988_init_t;
 
 void a4988_stepper_create(a4988_init_t * params);

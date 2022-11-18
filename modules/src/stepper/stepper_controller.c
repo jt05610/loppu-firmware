@@ -15,9 +15,10 @@
 
 #include <stdlib.h>
 #include "stepper/stepper_controller.h"
+#include "timer/timer.h"
 
 #define MAX_POSITION 20000  // steps
-#define MAX_VELOCITY 500    // steps / s
+#define MAX_VELOCITY  300   // steps / s
 #define STOP_VELOCITY 5     // steps / ms
 #define HOMING_DISTANCE 5   // steps
 
@@ -29,13 +30,16 @@
 #endif
 
 void
-stepper_controller_create(StepperController base, uint32_t update_freq)
+stepper_controller_create(
+        StepperController base, uint32_t update_freq, Timer timer)
 {
     base->target.position     = 0;
     base->target.velocity     = 0;
     base->target.acceleration = 0;
     base->acceleration_steps  = 0;
-    base->updated = false;
+    base->current_position    = 0;
+    base->timer               = timer;
+    base->updated             = false;
     base->state               = STEPPER_IDLE;
 }
 
@@ -60,6 +64,10 @@ stepper_controller_set_target(
         base->target.position     = target->position;
         base->target.velocity     = target->velocity;
         base->target.acceleration = target->acceleration;
+        base->planned_steps       = (target->velocity > 0) ?
+                                    target->position - base->current_position
+                                                           :
+                                    base->current_position - target->position;
     }
 }
 
@@ -72,14 +80,18 @@ stepper_controller_get_target(StepperController base)
 static inline void
 idle_handler(StepperController base)
 {
-    if (base->ramp.velocity == 0)
-    {
-        base->acceleration_steps = 0;
-    }
-
     if (base->ramp.position != base->target.position)
     {
-        base->state = STEPPER_MOVING;
+        base->planned_steps    = abs(
+                base->target.position - (int32_t) base->ramp.position);
+        base->current_position = 0;
+        base->state            = STEPPER_MOVING;
+        if (base->target.acceleration == 0)
+        {
+            timer_set_pwm_freq(base->timer, base->target.velocity);
+            base->ramp.velocity = base->target.velocity;
+        }
+        timer_start_pwm(base->timer);
     }
 }
 
@@ -106,7 +118,15 @@ moving_handler(StepperController base)
     if (base->acceleration_steps + bias >= delta_position(base))
     {
         base->target.velocity = 0;
-        base->state           = STEPPER_STOPPING;
+        if (bias)
+        {
+            base->state = STEPPER_STOPPING;
+        } else
+        {
+            timer_stop_pwm(base->timer);
+            base->ramp.velocity = 0;
+            base->state         = STEPPER_IDLE;
+        }
     } else
     {
         base->target.velocity = (base->target.position > base->ramp.position) ?
@@ -146,6 +166,7 @@ stopping_handler(StepperController base)
             base->ramp.velocity   = 0;
             base->target.velocity = 0;
             base->state           = STEPPER_IDLE;
+            timer_stop_pwm(base->timer);
         }
     }
 }
@@ -203,29 +224,26 @@ stepper_update_velocity(StepperController base)
 void
 stepper_update(StepperController base)
 {
-    if (base->updated) {
+    if (base->updated)
+    {
         stepper_update_position(base);
-        int32_t dx      = stepper_update_velocity(base);
-        bool    forward = dx > 0;
-        if (base->current_position != base->ramp.position)
-        {
-            stepper_set_dir(base->stepper, forward);
-            stepper_step(base->stepper);
-            base->current_position += forward ? 1 : -1;
-        }
+        stepper_update_velocity(base);
+        base->is_forward = (base->ramp.velocity > 0);
+        stepper_set_dir(base->stepper, base->is_forward);
+        timer_set_pwm_freq(base->timer, abs(base->ramp.velocity));
         base->updated = false;
-    }
 
+    }
 }
 
 void stepper_controller_enable(StepperController base)
 {
-
+    stepper_enable(base->stepper);
 }
 
 void stepper_controller_disable(StepperController base)
 {
-
+    stepper_disable(base->stepper);
 }
 
 void

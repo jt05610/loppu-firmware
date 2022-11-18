@@ -17,6 +17,11 @@ typedef struct timer_interface_t
 
     time_amount_t (* millis)();
 
+    void (* set_pwm_freq)(uint32_t freq_Hz);
+
+    void (*start_pwm)();
+    void (*stop_pwm)();
+
 } timer_interface_t;
 
 typedef struct timer_t

@@ -17,6 +17,7 @@
 #define STM32_IMPL_STM32_TIMER_H
 
 #include "stm32g0xx_ll_tim.h"
+#include "stm32_gpio.h"
 #include "timer/timer.h"
 #include "timer/pwm.h"
 
@@ -26,7 +27,6 @@ typedef struct stm32_timer_init_t      * STM32TimerInit;
 typedef struct stm32_adv_timer_init_t  * AdvancedTimerInit;
 typedef struct stm32_gen_timer_init_t  * GeneralTimerInit;
 typedef union stm32_timer_init_union_t * STM32TimerInitUnion;
-
 typedef enum timer_type_t
 {
     GeneralTimer,
@@ -80,4 +80,5 @@ void stm32_pwm_create(
 
 void stm32_set_event_delay(uint16_t delay);
 
+void stm32_timer_set_pwm_frequency(TIM_TypeDef * timer, uint32_t freq_Hz);
 #endif //STM32_IMPL_STM32_TIMER_H

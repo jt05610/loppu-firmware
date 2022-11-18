@@ -15,6 +15,7 @@
 
 #include <math.h>
 #include "stepper/linear_axis.h"
+#include "stm32g0xx_ll_exti.h"
 
 void
 linear_axis_create(
@@ -24,6 +25,11 @@ linear_axis_create(
     axis->steps_per_mm = steps_per_mm;
     axis->controller = controller;
     axis->state = AXIS_DISABLED;
+    axis->target = 0;
+    axis->velocity = 0;
+    axis->accel = 0;
+    axis->new_position = false;
+    axis->keep_moving = false;
 }
 
 void
@@ -59,14 +65,27 @@ handle_idle(LinearAxis axis)
         };
         stepper_controller_set_target(axis->controller, &target);
         axis->state = AXIS_MOVING;
+        axis->new_position = false;
     }
 }
 
 static inline void
 handle_moving(LinearAxis axis)
 {
-    if (axis->controller->ramp.velocity == 0)
+    if (axis->new_position) {
+        stepper_kinematics_t target = {
+                mm_to_steps(axis, axis->target),
+                mm_to_steps(axis, axis->velocity),
+                axis->accel
+        };
+        stepper_controller_set_target(axis->controller, &target);
+        axis->state = AXIS_MOVING;
+        axis->new_position = false;
+    }
+    if (axis->controller->state == STEPPER_IDLE) {
+
         axis->state = AXIS_IDLE;
+    }
 }
 
 static inline void
@@ -108,6 +127,7 @@ void
 linear_axis_update(LinearAxis axis)
 {
     handlers[axis->state](axis);
+    stepper_update(axis->controller);
 }
 
 void
@@ -152,4 +172,9 @@ void
 linear_axis_home_interrupt(LinearAxis axis)
 {
     axis->state = AXIS_HOME_TRIGGERED;
+}
+
+void linear_axis_set_velocity(LinearAxis axis, double velocity)
+{
+    axis->velocity = velocity;
 }

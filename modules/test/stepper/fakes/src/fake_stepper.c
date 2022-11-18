@@ -78,6 +78,6 @@ fake_stepper_create(Stepper base, gpio_t * gpio)
     self.base = base;
     self.enabled = false;
     self.position = 0;
-    self.microstep = FULL_STEP;
+    self.microstep = MS_FULL;
     self.is_forward = true;
 }

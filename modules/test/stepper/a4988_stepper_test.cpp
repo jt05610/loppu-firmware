@@ -39,7 +39,7 @@ TEST(a4988_stepper, full_microstep)
     uint32_t current = 0x01 | ~(0x01 << MS1_PIN);
     mock_gpio_expect_read_port(MS_PORT, current);
     mock_gpio_expect_write_port(MS_PORT, 0x01);
-    stepper_set_microstep(&stepper, FULL_STEP);
+    stepper_set_microstep(&stepper, MS_FULL);
 }
 
 TEST(a4988_stepper, half_microstep)
@@ -47,7 +47,7 @@ TEST(a4988_stepper, half_microstep)
     uint32_t expected = 0x01 << MS1_PIN;
     mock_gpio_expect_read_port(MS_PORT, 0x00);
     mock_gpio_expect_write_port(MS_PORT, expected);
-    stepper_set_microstep(&stepper, HALF_STEP);
+    stepper_set_microstep(&stepper, MS_2);
 }
 
 TEST(a4988_stepper, quarter_microstep)
@@ -56,7 +56,7 @@ TEST(a4988_stepper, quarter_microstep)
     uint32_t expected = 0x01 << MS2_PIN;
     mock_gpio_expect_read_port(MS_PORT, current);
     mock_gpio_expect_write_port(MS_PORT, expected);
-    stepper_set_microstep(&stepper, QUARTER_STEP);
+    stepper_set_microstep(&stepper, MS_4);
 }
 
 TEST(a4988_stepper, eighth_microstep)
@@ -65,7 +65,7 @@ TEST(a4988_stepper, eighth_microstep)
     uint32_t expected = (0x01 << MS2_PIN) | (0x01 << MS1_PIN);
     mock_gpio_expect_read_port(MS_PORT, current);
     mock_gpio_expect_write_port(MS_PORT, expected);
-    stepper_set_microstep(&stepper, EIGHTH_STEP);
+    stepper_set_microstep(&stepper, MS_8);
 }
 
 TEST(a4988_stepper, sixteenth_microstep)
@@ -78,7 +78,7 @@ TEST(a4988_stepper, sixteenth_microstep)
 
     mock_gpio_expect_read_port(MS_PORT, current);
     mock_gpio_expect_write_port(MS_PORT, expected);
-    stepper_set_microstep(&stepper, SIXTEENTH_STEP);
+    stepper_set_microstep(&stepper, MS_16);
 }
 
 TEST(a4988_stepper, reset)

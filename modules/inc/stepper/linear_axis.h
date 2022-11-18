@@ -37,12 +37,14 @@ typedef struct linear_axis_t {
     double velocity;     // mm / s
     double accel;        // mm / s^2
     bool new_position;
+    bool keep_moving;
 } linear_axis_t;
 
 void linear_axis_home_interrupt(LinearAxis axis);
 void linear_axis_update(LinearAxis axis);
 void linear_axis_create(LinearAxis axis, StepperController controller, double steps_per_mm);
 void linear_axis_go_to(LinearAxis axis, double position);
+void linear_axis_set_velocity(LinearAxis axis, double velocity);
 void linear_axis_enable(LinearAxis axis);
 void linear_axis_disable(LinearAxis axis);
 void linear_axis_home(LinearAxis axis);

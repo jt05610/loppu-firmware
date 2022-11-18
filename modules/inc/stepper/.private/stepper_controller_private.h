@@ -19,17 +19,19 @@
 
 typedef struct stepper_controller_t
 {
-    Stepper stepper;
-    uint32_t current_position;
-    stepper_kinematics_t ramp;
-    stepper_kinematics_t target;
-    stepper_kinematics_t accumulator;
-    int32_t acceleration_steps;
-    stepper_state_t state;
-    uint32_t max_pos;
-    uint32_t max_velocity;
+    volatile Stepper stepper;
+    volatile Timer timer;
+    volatile uint32_t current_position;
+    volatile stepper_kinematics_t ramp;
+    volatile stepper_kinematics_t target;
+    volatile stepper_kinematics_t accumulator;
+    volatile int32_t acceleration_steps;
+    volatile stepper_state_t state;
+    volatile uint32_t max_pos;
+    volatile uint32_t max_velocity;
+    volatile uint32_t planned_steps;
     volatile bool updated;
-
+    volatile uint8_t is_forward;
 } stepper_controller_t;
 
 #endif //INJECTOR_STEPPER_CONTROLLER_PRIVATE_H

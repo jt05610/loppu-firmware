@@ -30,11 +30,15 @@ typedef enum dir_t
 
 typedef enum microstep_t
 {
-    FULL_STEP,
-    HALF_STEP,
-    QUARTER_STEP,
-    EIGHTH_STEP,
-    SIXTEENTH_STEP
+    MS_FULL,
+    MS_2,
+    MS_4,
+    MS_8,
+    MS_16,
+    MS_32,
+    MS_64,
+    MS_128,
+    MS_256
 } microstep_t;
 
 void stepper_set_dir(Stepper base, dir_t dir);

@@ -25,7 +25,8 @@
 #define INST(base) pwm_container.instances[(base)->instance].pwm
 #define TIM_INST(base) pwm_container.instances[(base)->instance].timer
 
-#define PWM_FREQ 1000000
+#define PWM_FREQ (uint32_t) 1e5
+
 static struct stm32_timer_t
 {
     TIM_TypeDef * timer;
@@ -64,12 +65,37 @@ static ErrorStatus adv_tim_init(TIM_TypeDef * timer, AdvancedTimerInit params);
 
 static void apb_setup(const TIM_TypeDef * timer);
 
+static void
+set_pwm_freq(uint32_t freq_Hz)
+{
+    // TODO dont hardcode tim2
+    LL_TIM_SetAutoReload(TIM2, PWM_FREQ / freq_Hz);
+    LL_TIM_OC_SetCompareCH1(TIM2, PWM_FREQ / (2*freq_Hz));
+}
+
+static void
+start_pwm()
+{
+    LL_TIM_EnableCounter(TIM2);
+
+}
+
+static void
+stop_pwm()
+{
+    LL_TIM_DisableCounter(TIM2);
+}
+
 static timer_interface_t interface = {
         .delay=delay,
         .delay_micros=delay_micros,
         .micros=micros,
-        .millis=millis
+        .millis=millis,
+        .set_pwm_freq=set_pwm_freq,
+        .start_pwm=start_pwm,
+        .stop_pwm=stop_pwm
 };
+
 
 static pwm_interface_t pwm_interface = {
         .set_period = set_period,
@@ -107,24 +133,24 @@ pwm_tim_init(
 
     /* USER CODE BEGIN TIM2_Init 1 */
 
+    NVIC_SetPriority(TIM2_IRQn, 0);
+    NVIC_EnableIRQ(TIM2_IRQn);
     /* USER CODE END TIM2_Init 1 */
-    tim_init.Prescaler     = calculate_prescaler(SystemCoreClock, PWM_FREQ);
+    tim_init.Prescaler     = __LL_TIM_CALC_PSC(SystemCoreClock, PWM_FREQ);
     tim_init.CounterMode   = LL_TIM_COUNTERMODE_UP;
-    tim_init.Autoreload    = calculate_period(
-            SystemCoreClock, tim_init.Prescaler, params->period
-    );
+    tim_init.Autoreload    = PWM_FREQ / params->period;  // unit 10µs^-1
     tim_init.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
     LL_TIM_Init(timer, &tim_init);
     LL_TIM_DisableARRPreload(timer);
     LL_TIM_SetClockSource(timer, LL_TIM_CLOCKSOURCE_INTERNAL);
-    LL_TIM_OC_EnablePreload(timer, LL_TIM_CHANNEL_CH2);
+    LL_TIM_OC_EnablePreload(timer, LL_TIM_CHANNEL_CH1);
     tim_oc_init.OCMode       = LL_TIM_OCMODE_PWM1;
     tim_oc_init.OCState      = LL_TIM_OCSTATE_ENABLE;
     tim_oc_init.OCNState     = LL_TIM_OCSTATE_DISABLE;
     tim_oc_init.CompareValue = calculate_pulse(tim_init.Autoreload, 50);
     tim_oc_init.OCPolarity   = LL_TIM_OCPOLARITY_HIGH;
-    LL_TIM_OC_Init(timer, LL_TIM_CHANNEL_CH2, &tim_oc_init);
-    LL_TIM_OC_DisableFast(timer, LL_TIM_CHANNEL_CH2);
+    LL_TIM_OC_Init(timer, LL_TIM_CHANNEL_CH1, &tim_oc_init);
+    LL_TIM_OC_DisableFast(timer, LL_TIM_CHANNEL_CH1);
     LL_TIM_SetTriggerOutput(timer, LL_TIM_TRGO_RESET);
     LL_TIM_DisableMasterSlaveMode(timer);
 
@@ -139,10 +165,6 @@ pwm_tim_init(
     gpio_init.Pull       = LL_GPIO_PULL_NO;
     gpio_init.Alternate  = LL_GPIO_AF_2;
     LL_GPIO_Init(STM_PORT(port), &gpio_init);
-
-    NVIC_SetPriority(TIM2_IRQn, 0);
-    NVIC_EnableIRQ(TIM2_IRQn);
-
 }
 
 void
@@ -162,7 +184,7 @@ stm32_pwm_create(
         INST(base)     = base;
         TIM_INST(base) = timer;
         pwm_tim_init(timer, port, pin, params);
-        LL_TIM_EnableIT_CC2(TIM2);
+        LL_TIM_EnableIT_UPDATE(TIM2);
     }
 }
 

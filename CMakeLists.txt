@@ -48,6 +48,9 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
         add_compile_options(-Og -g)
     endif ()
 
+    set(TMC_DIR modules/TMC-API)
+    set(TMC_IC_DIR ${TMC_DIR}/tmc/ic/TMC2209)
+
     add_subdirectory(modules)
 
     include_directories(
@@ -61,11 +64,10 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
         modules/inc/buttons
         modules/inc/gpio
         modules/inc/timer
+        ${TMC_DIR}
+        ${TMC_IC_DIR}
     )
 
-    set(TMC_DIR ${CMAKE_SOURCE_DIR}/modules/TMC-API)
-    set(TMC_IC_DIR ${TMC_DIR}/tmc/ic/TMC2300)
-    include_directories(${TMC_DIR} ${TMC_IC_DIR})
 
     add_definitions(-DDEBUG -DSTM32G031xx -DUSE_FULL_LL_DRIVER)
 
@@ -74,9 +76,7 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
         SOURCES
         "Core/*.*"
         "Drivers/*.*"
-        ${TMC_DIR}/tmc/helpers/*.*
-        ${TMC_IC_DIR}/*.*
-        ${TMC_DIR}/tmc/ramp/*.*
+
         modules/src/*.*
     )
 message(${SOURCES})

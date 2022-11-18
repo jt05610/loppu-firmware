@@ -121,19 +121,23 @@ static inline void
 init_exti(pin_init_t * init)
 {
     LL_EXTI_InitTypeDef exti_init;
-    exti_init.Line_0_31   = LL_EXTI_LINE_8;
+    exti_init.Line_0_31   = LL_EXTI_LINE_1;
     exti_init.LineCommand = ENABLE;
     exti_init.Mode        = LL_EXTI_MODE_IT;
     exti_init.Trigger     = init->trigger;
 
-    LL_EXTI_SetEXTISource(EXTI_PORT(init->port), LL_EXTI_CONFIG_LINE8);
+    LL_EXTI_SetEXTISource(EXTI_PORT(init->port), LL_EXTI_CONFIG_LINE0);
+    LL_EXTI_Init(&exti_init);
+    exti_init.Line_0_31 = LL_EXTI_LINE_0;
     LL_EXTI_Init(&exti_init);
     LL_GPIO_SetPinPull(STM_PORT(init->port), init->pin_mask, LL_GPIO_PULL_NO);
     LL_GPIO_SetPinMode(STM_PORT(init->port), init->pin_mask, init->mode);
-    self.gpio_interrupt = init->handler;
-    NVIC_SetPriority(EXTI4_15_IRQn, 0);
-    NVIC_EnableIRQ(EXTI4_15_IRQn);
-    LL_EXTI_EnableIT_0_31(LL_EXTI_CONFIG_LINE8);
+    LL_EXTI_SetEXTISource(EXTI_PORT(init->port), LL_EXTI_CONFIG_LINE1);
+    NVIC_SetPriority(EXTI0_1_IRQn, 0);
+    NVIC_EnableIRQ(EXTI0_1_IRQn);
+    LL_EXTI_EnableIT_0_31(LL_EXTI_CONFIG_LINE0);
+    LL_EXTI_EnableIT_0_31(LL_EXTI_CONFIG_LINE1);
+
 }
 
 static inline void
