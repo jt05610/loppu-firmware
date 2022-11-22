@@ -8,6 +8,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
         GIT_REPOSITORY https://github.com/cpputest/cpputest.git
         GIT_TAG latest-passing-build
     )
+    set(TESTS OFF CACHE BOOL "Switch off CPPUTest Test build")
 
     fetchcontent_makeavailable(CppUTest)
 

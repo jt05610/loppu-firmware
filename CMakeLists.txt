@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 
+include_directories(
+    inc
+)
+
 if (CMAKE_BUILD_TYPE MATCHES Embedded)
 
     set(CMAKE_SYSTEM_NAME Generic)
@@ -64,6 +68,7 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
         modules/inc/buttons
         modules/inc/gpio
         modules/inc/timer
+        modules/stModbus/include
         ${TMC_DIR}
         ${TMC_IC_DIR}
     )
@@ -76,9 +81,10 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
         SOURCES
         "Core/*.*"
         "Drivers/*.*"
-
         modules/src/*.*
+        modules/stModbus/src/*.*
     )
+
 message(${SOURCES})
     set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32G031F6PX_FLASH.ld)
 
@@ -87,7 +93,6 @@ message(${SOURCES})
     add_link_options(-T ${LINKER_SCRIPT})
 
     add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
-
     set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
     set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
 

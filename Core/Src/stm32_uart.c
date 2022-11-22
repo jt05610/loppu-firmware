@@ -26,8 +26,8 @@
 
 static struct stm32_serial_t
 {
-    uint8_t       dma_buffer[10];
-    sized_array_t rx_buffer;
+    uint8_t          * tx_buffer;
+    volatile uint8_t * rx_buffer;
 } self = {0};
 
 static bool stm32_serial_read(sized_array_t * data);
@@ -48,15 +48,16 @@ static serial_interface_t stm32_serial_interface = {
         .write = stm32_serial_write
 };
 
+
 void
 stm32_serial_create(Serial base, uint8_t * rx_buffer)
 {
-    base->vtable         = &stm32_serial_interface;
-    base->baud           = BAUD;
-    self.rx_buffer.bytes = rx_buffer;
+    base->vtable   = &stm32_serial_interface;
+    base->baud     = BAUD;
+    self.rx_buffer = rx_buffer;
     stm32_serial_gpio_init();
     stm32_serial_dma_init(RX_CHANNEL);
-    //stm32_serial_dma_init(self, TX_CHANNEL);
+    //stm32_serial_dma_init(TX_CHANNEL);
     stm32_serial_nvic_init();
     stm32_serial_uart_init();
     LL_GPIO_ResetOutputPin(DE_PORT, RE_PIN);
@@ -65,23 +66,13 @@ stm32_serial_create(Serial base, uint8_t * rx_buffer)
 uint16_t
 stm32_serial_received_len()
 {
-    self.rx_buffer.size = 100
-                          - LL_DMA_GetDataLength(
-                                  DMA1,
-                                  RX_CHANNEL
-                          );
-
-    return self.rx_buffer.size;
+    return RX_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, RX_CHANNEL);
 }
 
 static bool
 stm32_serial_read(sized_array_t * data)
 {
-    data->size      = self.rx_buffer.size;
-    for (uint16_t i = 0; i < data->size; i++)
-        self.rx_buffer.bytes[i] = self.dma_buffer[i];
-    data->bytes = self.rx_buffer.bytes;
-    return data->size > 0;
+    return 0;
 }
 
 static bool
@@ -91,13 +82,9 @@ stm32_serial_write(const sized_array_t * data)
     while (!LL_GPIO_IsOutputPinSet(DE_PORT, RE_PIN));
     for (uint16_t i = 0; i < data->size; i++)
     {
-        uint8_t v = data->bytes[i];
-        LL_USART_TransmitData8(USART1, v);
+        LL_USART_TransmitData8(USART1, data->bytes[i]);
         while (!LL_USART_IsActiveFlag_TXE_TXFNF(USART1));
     }
-    while (!LL_USART_IsActiveFlag_TC(USART1));
-    LL_GPIO_ResetOutputPin(DE_PORT, RE_PIN);
-    while (LL_GPIO_IsOutputPinSet(DE_PORT, RE_PIN));
     return true;
 }
 
@@ -146,7 +133,7 @@ stm32_serial_uart_init()
     usart_params.Parity              = LL_USART_PARITY_NONE;
     usart_params.TransferDirection   = LL_USART_DIRECTION_TX_RX;
     usart_params.HardwareFlowControl = LL_USART_HWCONTROL_NONE;
-    usart_params.OverSampling        = LL_USART_OVERSAMPLING_16;
+    usart_params.OverSampling        = LL_USART_OVERSAMPLING_8;
 
     LL_USART_Init(USART1, &usart_params);
 
@@ -158,18 +145,22 @@ stm32_serial_uart_init()
     LL_USART_DisableFIFO(USART1);
     LL_USART_ConfigAsyncMode(USART1);
     LL_USART_EnableDMAReq_RX(USART1);
+    //LL_USART_EnableDMAReq_TX(USART1);
 
     LL_USART_Enable(USART1);
     while ((!(LL_USART_IsActiveFlag_TEACK(USART1)))
-           || (!(LL_USART_IsActiveFlag_REACK(USART1))));
+           || (!(LL_USART_IsActiveFlag_REACK(USART1))))
+    {}
+    LL_USART_SetRxTimeout(USART1, RX_TIMEOUT);
     LL_USART_EnableRxTimeout(USART1);
-
-    LL_USART_SetRxTimeout(USART1, 100);
     LL_USART_ClearFlag_RTO(USART1);
     while (LL_USART_IsActiveFlag_RTO(USART1));
     LL_USART_EnableIT_RTO(USART1);
-    //LL_USART_EnableIT_TC(USART1);
     LL_USART_ClearFlag_TC(USART1);
+    //LL_USART_EnableIT_TXE_TXFNF(USART1);
+    LL_USART_EnableIT_TC(USART1);
+    LL_DMA_ClearFlag_TC1(DMA1);
+    LL_DMA_EnableChannel(DMA1, RX_CHANNEL);
 }
 
 static void
@@ -215,7 +206,7 @@ stm32_serial_dma_init(uint32_t channel)
         LL_DMA_SetMemoryAddress(
                 DMA1,
                 channel,
-                (uint32_t) self.dma_buffer
+                (uint32_t) self.rx_buffer
         );
 
         LL_DMA_SetPeriphRequest(
@@ -230,13 +221,10 @@ stm32_serial_dma_init(uint32_t channel)
                 LL_DMA_DIRECTION_PERIPH_TO_MEMORY
         );
 
-        LL_DMA_SetDataLength(
-                DMA1,
-                channel,
-                100
-        );
+        LL_DMA_SetDataLength(RX_DMA, channel, RX_BUFFER_SIZE);
 
         LL_DMA_EnableChannel(DMA1, RX_CHANNEL);
+        LL_DMA_ClearFlag_TC1(DMA1);
         LL_DMA_EnableIT_TC(DMA1, RX_CHANNEL);
     } else
     {
@@ -246,6 +234,17 @@ stm32_serial_dma_init(uint32_t channel)
                 LL_USART_DMA_GetRegAddr(USART1, LL_USART_DMA_REG_DATA_TRANSMIT)
         );
 
+        LL_DMA_SetMemoryAddress(
+                DMA1,
+                channel,
+                (uint32_t) self.tx_buffer
+        );
+
+        LL_DMA_SetDataLength(
+                DMA1,
+                channel,
+                6
+        );
         LL_DMA_SetPeriphRequest(
                 DMA1,
                 channel,
@@ -257,21 +256,26 @@ stm32_serial_dma_init(uint32_t channel)
                 channel,
                 LL_DMA_DIRECTION_MEMORY_TO_PERIPH
         );
+        //LL_DMA_EnableIT_TC(DMA1, channel);
+        LL_USART_ClearFlag_TC(USART1);
+        LL_DMA_EnableChannel(DMA1, TX_CHANNEL);
     }
+
     LL_DMA_SetChannelPriorityLevel(
             DMA1,
             channel,
             LL_DMA_PRIORITY_LOW
     );
-
 }
 
 static void
 stm32_serial_nvic_init()
 {
+    //NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0);
+    //NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+
     NVIC_SetPriority(DMA1_Channel1_IRQn, 0);
     NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-
     NVIC_SetPriority(USART1_IRQn, 0);
     NVIC_EnableIRQ(USART1_IRQn);
 }

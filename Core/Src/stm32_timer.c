@@ -271,7 +271,7 @@ gen_tim_init(TIM_TypeDef * timer, GeneralTimerInit params)
             __LL_TIM_CALC_DELAY(
                     SystemCoreClock,
                     LL_TIM_GetPrescaler(timer),
-                    params->update_delay
+                    params->update_delay * 1000
             )
     );
 

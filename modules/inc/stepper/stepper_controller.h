@@ -18,7 +18,7 @@
 #include "stepper_driver.h"
 #include "timer/timer.h"
 
-#define UPDATE_FREQUENCY 10000 //Hz
+#define UPDATE_FREQUENCY 1000 //Hz
 
 typedef struct stepper_controller_t * StepperController;
 

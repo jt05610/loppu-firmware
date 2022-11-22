@@ -17,7 +17,6 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <stdlib.h>
 #include "main.h"
 #include "stm32_clock.h"
 #include "stm32_timer.h"
@@ -25,9 +24,19 @@
 #include "needle_positioner.h"
 #include "stm32g0xx_ll_gpio.h"
 #include "stm32g0xx_ll_exti.h"
+#include "stm32g0xx_ll_usart.h"
+#include "stm32g0xx_ll_dma.h"
+#include "stm32_uart.h"
+#include "data_model/api.h"
+#include "modbus.h"
 
 static needle_positioner_t self;
-static volatile bool decision_time;
+static volatile api_t      api;
+volatile bool              clear_to_send;
+volatile bool              idle_line;
+static volatile bool       decision_time;
+static uint8_t             rx_buffer[RX_BUFFER_SIZE];
+static volatile bool processed;
 /**
   * @brief  The application entry point.
   * @retval int
@@ -37,18 +46,27 @@ main(void)
 {
     clock_config(INJECTOR_TICK);
     needle_positioner_create(&self);
-    LL_TIM_EnableCounter(TIM16);
+    stm32_serial_create(&self.serial, rx_buffer);
+    api.rx_buffer      = rx_buffer;
     self.axis.velocity = DEFAULT_VELOCITY;
-    decision_time = false;
+    decision_time               = false;
+    clear_to_send               = true;
+    idle_line                   = true;
+    processed = false;
+    api_create(&api);
     stepper_kinematics_t target = {
             .position = 0,
             .velocity = self.axis.velocity,
             .acceleration = 0
     };
+    LL_TIM_EnableCounter(TIM16);
+
     while (1)
     {
-        if(decision_time) {
-            switch (self.buttons.state) {
+        if (decision_time)
+        {
+            switch (self.buttons.state)
+            {
                 case 0x00:
                     linear_axis_disable(&self.axis);
                     timer_stop_pwm(&self.time);
@@ -60,8 +78,10 @@ main(void)
                     stepper_set_dir(&self.stepper, Forward);
                     target.position += (self.increment * STEPS_PER_MM);
                     stepper_controller_set_target(&self.controller, &target);
-                    timer_set_pwm_freq(&self.time, self.axis.velocity * STEPS_PER_MM);
-                    if(!LL_TIM_IsEnabledCounter(TIM2)) {
+                    timer_set_pwm_freq(
+                            &self.time, self.axis.velocity * STEPS_PER_MM);
+                    if (!LL_TIM_IsEnabledCounter(TIM2))
+                    {
                         linear_axis_enable(&self.axis);
                         timer_start_pwm(&self.time);
                     }
@@ -70,8 +90,10 @@ main(void)
                     linear_axis_enable(&self.axis);
                     stepper_set_dir(&self.stepper, Backward);
                     target.position -= (self.increment * STEPS_PER_MM);
-                    timer_set_pwm_freq(&self.time, self.axis.velocity * STEPS_PER_MM);
-                    if(!LL_TIM_IsEnabledCounter(TIM2)) {
+                    timer_set_pwm_freq(
+                            &self.time, self.axis.velocity * STEPS_PER_MM);
+                    if (!LL_TIM_IsEnabledCounter(TIM2))
+                    {
                         linear_axis_enable(&self.axis);
                         timer_start_pwm(&self.time);
                     }
@@ -80,21 +102,26 @@ main(void)
             }
             decision_time = false;
         }
+        api_poll(&api);
     }
 }
 
 __INTERRUPT
 TIM16_IRQHandler(void)
 {
-    self.controller.updated = true;
+    if (!clear_to_send && idle_line)
+    {
+        clear_to_send = true;
+    }
     LL_TIM_ClearFlag_UPDATE(TIM16);
 }
 
 __INTERRUPT
 TIM2_IRQHandler(void)
 {
-    self.controller.current_position ++;
-    if (self.controller.current_position == self.controller.planned_steps) {
+    self.controller.current_position++;
+    if (self.controller.current_position == self.controller.planned_steps)
+    {
         decision_time = true;
     }
     LL_TIM_ClearFlag_UPDATE(TIM2);
@@ -106,4 +133,55 @@ EXTI0_1_IRQHandler(void)
     buttons_handle(&self.buttons, stm32_gpio_read_interrupt_flags());
     stm32_gpio_clear_interrupt_flags(LL_EXTI_LINE_0 | LL_EXTI_LINE_1);
     decision_time = true;
+}
+
+__INTERRUPT
+DMA1_Channel1_IRQHandler(void)
+{
+    LL_DMA_ClearFlag_TC1(DMA1);
+
+
+}
+
+__INTERRUPT
+USART1_IRQHandler(void)
+{
+    if (LL_USART_IsActiveFlag_TC(USART1))
+    {
+        LL_GPIO_ResetOutputPin(DE_PORT, RE_PIN);
+        LL_GPIO_ResetOutputPin(DE_PORT, RE_PIN);
+        LL_USART_ClearFlag_TC(USART1);
+        idle_line = true;
+
+    }
+    if (LL_USART_IsActiveFlag_RTO(USART1))
+    {
+        LL_USART_ClearFlag_RTO(USART1);
+    }
+}
+
+
+uint16_t
+api_read_handler(uint32_t address)
+{
+    return api_read(&api, address);
+}
+
+uint16_t
+api_write_handler(uint32_t address, uint16_t value)
+{
+    return api_write(&api, address, value);
+}
+
+int
+api_send_handler(
+        const mbus_t context, const uint8_t * data, const uint16_t size)
+{
+    sized_array_t array = {.bytes=data, .size=size};
+    serial_write(&self.serial, &array);
+    api.position = 0;
+    LL_DMA_DisableChannel(RX_DMA, RX_CHANNEL);
+    LL_DMA_SetDataLength(RX_DMA, RX_CHANNEL, RX_BUFFER_SIZE);
+    LL_DMA_EnableChannel(RX_DMA, RX_CHANNEL);
+    return size;
 }

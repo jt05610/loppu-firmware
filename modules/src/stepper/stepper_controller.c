@@ -74,7 +74,7 @@ stepper_controller_set_target(
 stepper_kinematics_t *
 stepper_controller_get_target(StepperController base)
 {
-    return &base->target;
+    return 0;
 }
 
 static inline void

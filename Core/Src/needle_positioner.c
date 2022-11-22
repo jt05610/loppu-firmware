@@ -19,6 +19,7 @@
 #include "config.h"
 #include "stm32g0xx_ll_gpio.h"
 #include "stm32g0xx_ll_bus.h"
+#include "stm32_uart.h"
 #include "stm32_timer.h"
 #include "stm32g0xx_ll_exti.h"
 #include "stepper/a4988_stepper.h"
@@ -61,8 +62,8 @@ config_time(timer_t *timer)
     init.timer = TIM16;
     init.type  = GeneralTimer;
 
-    GEN_TIM(&init).update_freq  = UPDATE_FREQUENCY * 100;
-    GEN_TIM(&init).update_delay = 100 / 2;
+    GEN_TIM(&init).update_freq  = UPDATE_FREQUENCY;
+    GEN_TIM(&init).update_delay = 1000;
     GEN_TIM(&init).interrupt    = TIM16_IRQn;
     GEN_TIM(&init).clock_division    = LL_TIM_CLOCKDIVISION_DIV1;
 
