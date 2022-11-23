@@ -29,6 +29,10 @@ include_directories(
     inc
 )
 
+target_link_libraries(
+    ${GPIO_TEST_LIB}
+    CppUTestExt
+)
 target_link_libraries(${GPIO_TEST_LIB} ${GPIO_LIB})
 
 add_executable(GPIOTests all_tests.cpp)

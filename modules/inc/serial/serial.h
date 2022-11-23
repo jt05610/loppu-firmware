@@ -16,7 +16,7 @@
 #ifndef MICROFLUIDICSYSTEM_SERIAL_H
 #define MICROFLUIDICSYSTEM_SERIAL_H
 
-#include "sized_array.h"
+#include "project_types.h"
 
 typedef struct serial_t           * Serial;
 typedef struct serial_interface_t * SerialInterface;

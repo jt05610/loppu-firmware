@@ -16,7 +16,7 @@
 #ifndef DRIVERS_STEPPER_PRIVATE_H
 #define DRIVERS_STEPPER_PRIVATE_H
 
-#include "sized_array.h"
+#include "project_types.h"
 #include "stepper/stepper_driver.h"
 
 typedef struct stepper_interface_t

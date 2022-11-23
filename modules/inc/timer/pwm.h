@@ -5,7 +5,7 @@
 #ifndef MIXINGVALVECONTROLLER_PWM_H
 #define MIXINGVALVECONTROLLER_PWM_H
 
-#include "sized_array.h"
+#include "project_types.h"
 #include "timer/timer_math.h"
 
 typedef struct pwm_t           * PWM;

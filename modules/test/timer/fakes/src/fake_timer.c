@@ -1,7 +1,7 @@
 //
 // Created by Jonathan Taylor on 4/24/22.
 //
-#include "sized_array.h"
+#include "project_types.h"
 #include "fake_timer.h"
 
 #define MAX_INTERRUPTS 10

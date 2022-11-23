@@ -73,7 +73,6 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
         ${TMC_IC_DIR}
     )
 
-
     add_definitions(-DDEBUG -DSTM32G031xx -DUSE_FULL_LL_DRIVER)
 
     file(
@@ -81,8 +80,8 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
         SOURCES
         "Core/*.*"
         "Drivers/*.*"
-        modules/src/*.*
-        modules/stModbus/src/*.*
+        "modules/src/*.*"
+        "modules/stModbus/src/*.*"
     )
 
 message(${SOURCES})
@@ -106,7 +105,7 @@ else()
     project(Injector C CXX)
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_C_STANDARD 11)
-    add_subdirectory(modules)
+    #add_subdirectory(modules)
 endif()
 
 

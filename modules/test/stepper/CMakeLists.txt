@@ -47,7 +47,6 @@ add_executable(StepperTests all_tests.cpp)
 target_link_libraries(
     StepperTests
     PRIVATE
-    ${STEPPER_TEST_LIB}
     CppUTest
-    CppUTestExt
+    ${STEPPER_TEST_LIB}
 )

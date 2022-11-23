@@ -3,12 +3,12 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
     include(FetchContent)
+    set(TESTS OFF CACHE BOOL "Switch off CPPUTest Test build")
     fetchcontent_declare(
         CppUTest
         GIT_REPOSITORY https://github.com/cpputest/cpputest.git
         GIT_TAG latest-passing-build
     )
-    set(TESTS OFF CACHE BOOL "Switch off CPPUTest Test build")
 
     fetchcontent_makeavailable(CppUTest)
 
@@ -18,8 +18,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(STEPPER_TEST_LIB "${STEPPER_LIB}_test")
     set(BUTTONS_TEST_LIB "${BUTTONS_LIB}_test")
 
-    file(
-        GLOB
+    set(
         DRIVER_TEST_SOURCE
         "timer/fakes/src/fake_timer.c"
         "serial/fakes/src/fake_serial.c"

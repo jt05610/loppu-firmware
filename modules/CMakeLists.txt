@@ -3,6 +3,7 @@ set(GPIO_LIB "gpio")
 set(TIMER_LIB "timer")
 set(STEPPER_LIB "stepper")
 set(BUTTONS_LIB "buttons")
+set(DATA_MODEL_LIB "data_model")
 
 set(DRIVERS_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -19,12 +20,14 @@ set(
 file(
     GLOB_RECURSE
     DRIVER_SOURCE
-    "${DRIVERS_ROOT_DIR}/src/*.c"
+    "${DRIVERS_ROOT_DIR}/src/*.*"
 )
 
+include_directories(inc)
 add_subdirectory(src/serial)
 add_subdirectory(src/gpio)
 add_subdirectory(src/timer)
 add_subdirectory(src/stepper)
 add_subdirectory(src/buttons)
-add_subdirectory(test)
+add_subdirectory(src/data_model)
+#add_subdirectory(test)

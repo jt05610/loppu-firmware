@@ -5,7 +5,7 @@
 #ifndef DRIVERS_GPIO_H
 #define DRIVERS_GPIO_H
 
-#include "sized_array.h"
+#include "project_types.h"
 
 typedef struct gpio_t           * GPIO;
 typedef struct gpio_interface_t * GPIOInterface;

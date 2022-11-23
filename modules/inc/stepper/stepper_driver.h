@@ -16,7 +16,7 @@
 #ifndef DRIVERS_STEPPER_H
 #define DRIVERS_STEPPER_H
 
-#include "sized_array.h"
+#include "project_types.h"
 #include "gpio/gpio.h"
 
 typedef struct stepper_t           * Stepper;

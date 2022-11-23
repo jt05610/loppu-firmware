@@ -5,7 +5,7 @@
 #ifndef VALVECONTROLLER_TIMESERVICE_H
 #define VALVECONTROLLER_TIMESERVICE_H
 
-#include "sized_array.h"
+#include "project_types.h"
 #include "timer/timer_math.h"
 
 typedef struct timer_t           * Timer;

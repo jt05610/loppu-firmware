@@ -16,7 +16,7 @@
 #ifndef DRIVERS_TIMER_MATH_H
 #define DRIVERS_TIMER_MATH_H
 
-#include "sized_array.h"
+#include "project_types.h"
 
 static inline uint16_t
 calculate_prescaler(uint32_t input_clock, uint32_t out_clock)

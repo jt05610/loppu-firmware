@@ -10,7 +10,7 @@ if (WIN32)
         ${serial_inc_dir}/.private/serial_private.h
         ${serial_inc_dir}/serial.h
         ${serial_inc_dir}/win_serial.h
-        ${DRIVERS_ROOT_DIR}/../inc/project_types.h
+        ${DRIVERS_ROOT_DIR}/inc/project_types.h
         )
 else ()
     set(

@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "sized_array.h"
+#include "project_types.h"
 #include "serial_spy.h"
 
 #include "fake_serial.h"

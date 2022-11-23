@@ -13,6 +13,7 @@
   ******************************************************************************
   */
 
+#ifndef WIN32
 #include "CppUTest/TestHarness.h"
 
 extern "C"
@@ -124,3 +125,4 @@ TEST(posix_timer, delay_micros)
 
     CHECK_TRUE(999 <= (sum / n) && (sum / n) <= 1001);
 }
+#endif

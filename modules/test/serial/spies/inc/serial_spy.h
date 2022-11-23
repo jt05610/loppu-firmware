@@ -16,7 +16,7 @@
 #ifndef MICROFLUIDICSYSTEM_SERIAL_SPY_H
 #define MICROFLUIDICSYSTEM_SERIAL_SPY_H
 
-#include "sized_array.h"
+#include "project_types.h"
 
 char * spy_path();
 

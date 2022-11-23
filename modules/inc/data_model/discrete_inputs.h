@@ -29,6 +29,6 @@ typedef uint16_t (* discrete_input_getter)(GPIO gpio);
 
 void discrete_inputs_create(DiscreteInputs base, GPIO gpio);
 
-void discrete_inputs_handle(DiscreteInputs base, uint16_t address);
+uint16_t discrete_inputs_handle(DiscreteInputs base, uint16_t address);
 
 #endif //INJECTOR_DISCRETE_INPUTS_H
