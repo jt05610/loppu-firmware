@@ -22,6 +22,10 @@ typedef struct coils_t * Coils;
 
 typedef uint16_t (* coils_handler_t)(uint16_t value);
 
+typedef struct coils_t {
+    coils_handler_t *handlers;
+} coils_t;
+
 void coils_create(Coils base);
 
 uint16_t coils_read(Coils base, uint16_t address);

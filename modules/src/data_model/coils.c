@@ -17,11 +17,8 @@
 
 #define N_COILS 4
 
-typedef struct coils_t {
-    coils_handler_t *handlers;
-} coils_t;
 
-static coils_handler_t handlers[N_COILS] = {
+static coils_handler_t _handlers[N_COILS] = {
         home,
         go_to_target,
         stop,
@@ -31,13 +28,13 @@ static coils_handler_t handlers[N_COILS] = {
 void
 coils_create(Coils base)
 {
-    base->handlers = handlers;
+    base->handlers = _handlers;
 }
 
 uint16_t
 coils_read(Coils base, uint16_t address)
 {
-    return base->handlers[address](0x255);
+    return base->handlers[address](0xFF);
 }
 
 void

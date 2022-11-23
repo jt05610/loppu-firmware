@@ -14,3 +14,14 @@
   */
 
 #include "data_model/input_registers.h"
+
+void
+input_registers_create(InputRegisters base, ir_handler_t * handlers)
+{
+    base->handlers = handlers;
+}
+
+uint16_t input_registers_read(InputRegisters base, uint16_t address)
+{
+    return base->handlers[address]();
+}

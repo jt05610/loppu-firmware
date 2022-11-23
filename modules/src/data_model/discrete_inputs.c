@@ -18,11 +18,11 @@
 
 
 
-uint16_t get_btn_forward(GPIO gpio);
+static uint16_t get_btn_forward(GPIO gpio);
 
-uint16_t get_btn_backward(GPIO gpio);
+static uint16_t get_btn_backward(GPIO gpio);
 
-uint16_t get_btn_inject(GPIO gpio);
+static uint16_t get_btn_inject(GPIO gpio);
 
 static discrete_input_getter getters[N_DISCRETE_INPUTS] = {
         get_btn_forward,
@@ -42,19 +42,19 @@ discrete_inputs_read(DiscreteInputs base, uint16_t address)
     return base->getters[address](base->gpio);
 }
 
-inline uint16_t
+static uint16_t
 get_btn_forward(GPIO gpio)
 {
     return gpio_read_pin(gpio, BTN_FORWARD_PORT, BTN_FORWARD_PIN);
 }
 
-inline uint16_t
+static uint16_t
 get_btn_backward(GPIO gpio)
 {
     return gpio_read_pin(gpio, BTN_BACKWARD_PORT, BTN_BACKWARD_PIN);
 }
 
-inline uint16_t
+static uint16_t
 get_btn_inject(GPIO gpio)
 {
     return gpio_read_pin(gpio, BTN_INJECT_PORT, BTN_INJECT_PIN);

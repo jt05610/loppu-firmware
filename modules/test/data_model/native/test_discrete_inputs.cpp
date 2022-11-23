@@ -9,6 +9,7 @@
 extern "C" {
 #include "data_model/discrete_inputs.h"
 #include "mock_gpio_c.h"
+
 }
 
 TEST_GROUP(discrete_inputs)
@@ -40,4 +41,3 @@ TEST(discrete_inputs, reads)
     for (uint8_t i = 0; i < N_DISCRETE_INPUTS; i ++)
         _test_read(i, pins[i]);
 }
-
