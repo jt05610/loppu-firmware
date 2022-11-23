@@ -16,25 +16,13 @@
 #include "data_model/discrete_inputs.h"
 #include "gpio/gpio.h"
 
-#define BTN_INJECT_PORT GPIO_PORT_A
-#define BTN_INJECT_PIN 7
 
-#define BTN_BACKWARD_PORT GPIO_PORT_A
-#define BTN_BACKWARD_PIN 0
 
-#define BTN_FORWARD_PORT GPIO_PORT_A
-#define BTN_FORWARD_PIN 1
+uint16_t get_btn_forward(GPIO gpio);
 
-typedef struct discrete_inputs_t {
-    GPIO gpio;
-    discrete_input_getter * getters;
-} DiscreteInputsStruct;
+uint16_t get_btn_backward(GPIO gpio);
 
-static inline uint16_t get_btn_forward(GPIO gpio);
-
-static inline uint16_t get_btn_backward(GPIO gpio);
-
-static inline uint16_t get_btn_inject(GPIO gpio);
+uint16_t get_btn_inject(GPIO gpio);
 
 static discrete_input_getter getters[N_DISCRETE_INPUTS] = {
         get_btn_forward,
@@ -49,24 +37,24 @@ void discrete_inputs_create(DiscreteInputs base, GPIO gpio)
 }
 
 uint16_t
-discrete_inputs_handle(DiscreteInputs base, uint16_t address)
+discrete_inputs_read(DiscreteInputs base, uint16_t address)
 {
     return base->getters[address](base->gpio);
 }
 
-static inline uint16_t
+inline uint16_t
 get_btn_forward(GPIO gpio)
 {
     return gpio_read_pin(gpio, BTN_FORWARD_PORT, BTN_FORWARD_PIN);
 }
 
-static inline uint16_t
+inline uint16_t
 get_btn_backward(GPIO gpio)
 {
     return gpio_read_pin(gpio, BTN_BACKWARD_PORT, BTN_BACKWARD_PIN);
 }
 
-static inline uint16_t
+inline uint16_t
 get_btn_inject(GPIO gpio)
 {
     return gpio_read_pin(gpio, BTN_INJECT_PORT, BTN_INJECT_PIN);

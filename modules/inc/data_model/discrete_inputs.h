@@ -17,18 +17,30 @@
 #define INJECTOR_DISCRETE_INPUTS_H
 
 #include <stdint-gcc.h>
-#include "gpio.h"
+#include "gpio/gpio.h"
 
 #define N_DISCRETE_INPUTS 3
 
-typedef struct DiscreteInputsStruct discrete_inputs_t;
+#define BTN_INJECT_PORT GPIO_PORT_A
+#define BTN_INJECT_PIN 7
+
+#define BTN_BACKWARD_PORT GPIO_PORT_A
+#define BTN_BACKWARD_PIN 0
+
+#define BTN_FORWARD_PORT GPIO_PORT_A
+#define BTN_FORWARD_PIN 1
 
 typedef struct discrete_inputs_t * DiscreteInputs;
 
 typedef uint16_t (* discrete_input_getter)(GPIO gpio);
 
+typedef struct discrete_inputs_t {
+    GPIO gpio;
+    discrete_input_getter * getters;
+} discrete_inputs_t;
+
 void discrete_inputs_create(DiscreteInputs base, GPIO gpio);
 
-uint16_t discrete_inputs_handle(DiscreteInputs base, uint16_t address);
+uint16_t discrete_inputs_read(DiscreteInputs base, uint16_t address);
 
 #endif //INJECTOR_DISCRETE_INPUTS_H

@@ -18,19 +18,19 @@
 
 #include <stdint-gcc.h>
 
-typedef struct CoilsStruct coils_t;
-
 typedef struct coils_t * Coils;
 
-typedef uint16_t (* coils_handler_t)();
+typedef uint16_t (* coils_handler_t)(uint16_t value);
 
-void discrete_inputs_create(Coils base);
+void coils_create(Coils base);
 
-uint16_t discrete_inputs_handle(Coils base, uint16_t address);
+uint16_t coils_read(Coils base, uint16_t address);
 
-uint16_t home();
-uint16_t go_to_target();
-uint16_t stop();
-uint16_t nudge();
+void coils_write(Coils base, uint16_t address, uint16_t value);
+
+uint16_t home(uint16_t value);
+uint16_t go_to_target(uint16_t value);
+uint16_t stop(uint16_t value);
+uint16_t nudge(uint16_t value);
 
 #endif //INJECTOR_COILS_H

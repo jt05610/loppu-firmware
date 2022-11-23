@@ -1,13 +1,12 @@
 set(STEPPER_INC_DIR ${DRIVERS_ROOT_DIR}/inc/stepper)
-
-
-
+set(TMC_DIR ../../TMC-API/tmc)
+set(TMC_IC_DIR ${TMC_DIR}/ic/TMC2509)
 file(
     GLOB_RECURSE
     STEPPER_SOURCES
-    ${TMC_DIR}/tmc/helpers/*.*
+    ${TMC_DIR}/helpers/*.*
     ${TMC_IC_DIR}/*.*
-    ${TMC_DIR}/tmc/ramp/*.*
+    ${TMC_DIR}/ramp/*.*
     *.c
 )
 

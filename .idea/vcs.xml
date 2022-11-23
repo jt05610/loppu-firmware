@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Drivers/TMC-API" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug-event-trace/_deps/cpputest-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/cpputest-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-local/_deps/cpputest-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/modules/TMC-API" vcs="Git" />

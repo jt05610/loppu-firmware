@@ -17,6 +17,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(GPIO_TEST_LIB "${GPIO_LIB}_test")
     set(STEPPER_TEST_LIB "${STEPPER_LIB}_test")
     set(BUTTONS_TEST_LIB "${BUTTONS_LIB}_test")
+    set(DATA_MODEL_TEST_LIB "${DATA_MODEL_LIB}_test")
 
     set(
         DRIVER_TEST_SOURCE
@@ -41,6 +42,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
     add_subdirectory(timer)
     add_subdirectory(buttons)
     add_subdirectory(stepper)
+    add_subdirectory(data_model)
     add_executable(all_tests all_tests.cpp)
 
     set(
@@ -49,6 +51,7 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
         ${TIMER_TEST_LIB}
         ${GPIO_TEST_LIB}
         ${STEPPER_TEST_LIB}
+        ${DATA_MODEL_TEST_LIB}
     )
     
     target_link_libraries(all_tests ${DRIVER_TEST_LIBS} CppUTest CppUTestExt)

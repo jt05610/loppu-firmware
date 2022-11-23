@@ -23,6 +23,15 @@ file(
     "${DRIVERS_ROOT_DIR}/src/*.*"
 )
 
+include_directories(stModbus/include)
+set(
+    st_modbus_src
+    stModbus/src/rtu/mbutils.c
+    stModbus/src/modbus.c
+)
+
+add_library(ST_MODBUS STATIC ${st_modbus_src})
+
 include_directories(inc)
 add_subdirectory(src/serial)
 add_subdirectory(src/gpio)
@@ -30,4 +39,4 @@ add_subdirectory(src/timer)
 add_subdirectory(src/stepper)
 add_subdirectory(src/buttons)
 add_subdirectory(src/data_model)
-#add_subdirectory(test)
+add_subdirectory(test)

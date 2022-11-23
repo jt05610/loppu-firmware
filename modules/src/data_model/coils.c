@@ -19,7 +19,7 @@
 
 typedef struct coils_t {
     coils_handler_t *handlers;
-} CoilsStruct;
+} coils_t;
 
 static coils_handler_t handlers[N_COILS] = {
         home,
@@ -28,12 +28,20 @@ static coils_handler_t handlers[N_COILS] = {
         nudge
 };
 
-void discrete_inputs_create(Coils base)
+void
+coils_create(Coils base)
 {
     base->handlers = handlers;
 }
 
-uint16_t discrete_inputs_handle(Coils base, uint16_t address)
+uint16_t
+coils_read(Coils base, uint16_t address)
 {
-    return base->handlers[address]();
+    return base->handlers[address](0x255);
+}
+
+void
+coils_write(Coils base, uint16_t address, uint16_t value)
+{
+    base->handlers[address](value);
 }
