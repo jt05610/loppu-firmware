@@ -15,13 +15,30 @@
 
 #include "data_model/input_registers.h"
 
-void
-input_registers_create(InputRegisters base, ir_handler_t * handlers)
+static struct input_registers_t
 {
-    base->handlers = handlers;
+    PrimaryTable base;
+    ir_handler_t *handlers;
+} self = {};
+
+static uint16_t
+input_registers_read(PrimaryTable base, uint16_t address)
+{
+    return self.handlers[address]();
 }
 
-uint16_t input_registers_read(InputRegisters base, uint16_t address)
+static primary_table_interface_t interface = {
+        .read = input_registers_read,
+        .write = 0
+};
+
+void
+input_registers_create(PrimaryTable base, ir_handler_t * handlers)
 {
-    return base->handlers[address]();
+    base->vtable = &interface;
+    self.base = base;
+    self.handlers = handlers;
+
 }
+
+

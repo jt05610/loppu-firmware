@@ -13,7 +13,21 @@
   ******************************************************************************
   */
 
-#ifndef INJECTOR_HOLDING_REGSITERS_H
-#define INJECTOR_HOLDING_REGSITERS_H
+#ifndef INJECTOR_HOLDING_REGISTERS_H
+#define INJECTOR_HOLDING_REGISTERS_H
+#include "data_model/primary_table.h"
 
-#endif //INJECTOR_HOLDING_REGSITERS_H
+typedef enum rw_req_t
+{
+    READ = 0x00,
+    WRITE = 0x00
+} rw_req_t;
+
+
+typedef uint16_t (*hr_handler_t)(rw_req_t type, uint16_t value);
+
+void holding_registers_create(PrimaryTable table, hr_handler_t * handlers);
+
+
+
+#endif //INJECTOR_HOLDING_REGISTERS_H

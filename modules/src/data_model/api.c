@@ -17,7 +17,7 @@
 #include "data_model/coils.h"
 #include "data_model/discrete_inputs.h"
 #include "data_model/input_registers.h"
-#include "data_model/holding_regsiters.h"
+#include "data_model/holding_registers.h"
 #include "stm32_uart.h"
 
 uint16_t

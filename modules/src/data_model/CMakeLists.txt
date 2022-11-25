@@ -6,6 +6,7 @@ set(
     coils.c
     input_registers.c
     holding_registers.c
+    primary_table.c
     #api.c
 )
 
