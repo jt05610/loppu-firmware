@@ -24,6 +24,7 @@
 #include "stm32_gpio.h"
 
 #define RX_BUFFER_SIZE 256
+#define DMA_BUFF_SIZE 8
 #define RX_TIMEOUT 39
 
 #define RX_DMA DMA1
@@ -43,6 +44,16 @@
 void stm32_serial_create(Serial base, uint8_t * rx_buffer);
 
 uint16_t stm32_serial_received_len();
+
+void stm32_dma_transfer(uint16_t size);
+
+typedef struct stm32_serial_pos_t
+{
+    volatile uint16_t old;
+    volatile uint16_t new;
+} stm32_serial_pos_t;
+
+stm32_serial_pos_t * stm32_serial_current_pos();
 
 #endif /* __USART_H__ */
 

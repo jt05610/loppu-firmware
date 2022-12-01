@@ -15,6 +15,7 @@
   *
   ******************************************************************************
   */
+#include <memory.h>
 #include "stm32_uart.h"
 #include "stm32g0xx_ll_gpio.h"
 #include "stm32g0xx_ll_rcc.h"
@@ -23,11 +24,12 @@
 #include "stm32g0xx_ll_usart.h"
 
 #define BAUD 115200
-
 static struct stm32_serial_t
 {
-    uint8_t          * tx_buffer;
+    uint8_t * tx_buffer;
+    volatile uint8_t dma_buffer[DMA_BUFF_SIZE];
     volatile uint8_t * rx_buffer;
+    stm32_serial_pos_t pos;
 } self = {0};
 
 static bool stm32_serial_read(sized_array_t * data);
@@ -48,7 +50,6 @@ static serial_interface_t stm32_serial_interface = {
         .write = stm32_serial_write
 };
 
-
 void
 stm32_serial_create(Serial base, uint8_t * rx_buffer)
 {
@@ -56,18 +57,61 @@ stm32_serial_create(Serial base, uint8_t * rx_buffer)
     base->baud     = BAUD;
     self.rx_buffer = rx_buffer;
     stm32_serial_gpio_init();
-    stm32_serial_dma_init(RX_CHANNEL);
     //stm32_serial_dma_init(TX_CHANNEL);
+    stm32_serial_dma_init(RX_CHANNEL);
     stm32_serial_nvic_init();
     stm32_serial_uart_init();
     LL_GPIO_ResetOutputPin(DE_PORT, RE_PIN);
 }
 
-uint16_t
+static inline volatile void
+* copy(
+        volatile uint8_t * restrict dest,
+        const volatile uint8_t * restrict src,
+        size_t n)
+{
+    const volatile uint8_t * src_c  = src;
+    volatile uint8_t       * dest_c = dest;
+
+    while (n > 0)
+    {
+        n--;
+        dest_c[n] = src_c[n];
+    }
+    return dest;
+}
+
+void
+stm32_dma_transfer(uint16_t size)
+{
+    self.pos.old = self.pos.new;
+
+    if (self.pos.old + size > RX_BUFFER_SIZE)
+    {
+        uint16_t space = RX_BUFFER_SIZE - self.pos.old;
+        copy(self.rx_buffer + self.pos.old, self.dma_buffer, space);
+        self.pos.old = 0;
+        self.pos.new = size - space;
+        copy(self.rx_buffer, self.dma_buffer + space, self.pos.new);
+    } else
+    {
+        copy(self.rx_buffer + self.pos.old, self.dma_buffer, size);
+        self.pos.new = size + self.pos.old;
+    }
+}
+
+stm32_serial_pos_t
+* stm32_serial_current_pos()
+{
+    return &self.pos;
+}
+
+/*uint16_t
 stm32_serial_received_len()
 {
     return RX_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, RX_CHANNEL);
 }
+ */
 
 static bool
 stm32_serial_read(sized_array_t * data)
@@ -156,63 +200,66 @@ stm32_serial_uart_init()
     LL_USART_ClearFlag_RTO(USART1);
     while (LL_USART_IsActiveFlag_RTO(USART1));
     LL_USART_EnableIT_RTO(USART1);
+    LL_USART_DisableIT_PE(USART1);
+    LL_USART_DisableIT_ERROR(USART1);
     LL_USART_ClearFlag_TC(USART1);
     //LL_USART_EnableIT_TXE_TXFNF(USART1);
     LL_USART_EnableIT_TC(USART1);
-    LL_DMA_ClearFlag_TC1(DMA1);
-    LL_DMA_EnableChannel(DMA1, RX_CHANNEL);
 }
 
 static void
 stm32_serial_dma_init(uint32_t channel)
 {
-    LL_DMA_SetMode(
-            DMA1,
-            channel,
-            LL_DMA_MODE_NORMAL
-    );
 
-    LL_DMA_SetPeriphIncMode(
-            DMA1,
-            channel,
-            LL_DMA_PERIPH_NOINCREMENT
-    );
-
-    LL_DMA_SetMemoryIncMode(
-            DMA1,
-            channel,
-            LL_DMA_MEMORY_INCREMENT
-    );
-
-    LL_DMA_SetPeriphSize(
-            DMA1,
-            channel,
-            LL_DMA_PDATAALIGN_BYTE
-    );
-
-    LL_DMA_SetMemorySize(
-            DMA1,
-            channel,
-            LL_DMA_MDATAALIGN_BYTE
-    );
     if (RX_CHANNEL == channel)
     {
+
+        /*
+         * 1. Write the USART_RDR register address in the DMA control register
+         * to configure it as the source of the transfer. The data is moved from
+         * this address to the memory after each RXNE (RXFNE in case FIFO mode
+         * is enabled) event.
+         */
+
         LL_DMA_SetPeriphAddress(
                 DMA1,
                 channel,
                 (uint32_t) &USART1->RDR
         );
 
+        /*
+         * 2. Write the memory address in the DMA control register to configure
+         * it as the destination of the transfer. The data is loaded from
+         * USART_RDR to this memory area after each RXNE (RXFNE in case FIFO
+         * mode is enabled) event.
+         */
+
         LL_DMA_SetMemoryAddress(
                 DMA1,
                 channel,
-                (uint32_t) self.rx_buffer
+                (uint32_t) self.dma_buffer
         );
+        /*
+         * 3. Configure the total number of bytes to be transferred to the DMA
+         * control register.
+         */
 
-        LL_DMA_SetPeriphRequest(
+        LL_DMA_SetDataLength(RX_DMA, channel, DMA_BUFF_SIZE);
+
+        /*
+         * 4. Configure the parameters listed below in the DMA_CCRx register:
+         *  – the channel priority
+         *  – the data transfer direction
+         *  – the circular mode
+         *  – the peripheral and memory incremented mode
+         *  – the peripheral and memory data size
+         *  – the interrupt enable at half and/or full transfer and/or transfer error
+         */
+
+        LL_DMA_SetChannelPriorityLevel(
                 DMA1,
                 channel,
-                LL_DMAMUX_REQ_USART1_RX
+                LL_DMA_PRIORITY_HIGH
         );
 
         LL_DMA_SetDataTransferDirection(
@@ -221,11 +268,54 @@ stm32_serial_dma_init(uint32_t channel)
                 LL_DMA_DIRECTION_PERIPH_TO_MEMORY
         );
 
-        LL_DMA_SetDataLength(RX_DMA, channel, RX_BUFFER_SIZE);
+        LL_DMA_SetMode(
+                DMA1,
+                channel,
+                LL_DMA_MODE_NORMAL
+        );
 
-        LL_DMA_EnableChannel(DMA1, RX_CHANNEL);
+        LL_DMA_SetPeriphIncMode(
+                DMA1,
+                channel,
+                LL_DMA_PERIPH_NOINCREMENT
+        );
+
+        LL_DMA_SetMemoryIncMode(
+                DMA1,
+                channel,
+                LL_DMA_MEMORY_INCREMENT
+        );
+
+        LL_DMA_SetPeriphSize(
+                DMA1,
+                channel,
+                LL_DMA_PDATAALIGN_BYTE
+        );
+
+        LL_DMA_SetMemorySize(
+                DMA1,
+                channel,
+                LL_DMA_MDATAALIGN_BYTE
+        );
+
+        LL_DMA_SetPeriphRequest(
+                DMA1,
+                channel,
+                LL_DMAMUX_REQ_USART1_RX
+        );
+
         LL_DMA_ClearFlag_TC1(DMA1);
         LL_DMA_EnableIT_TC(DMA1, RX_CHANNEL);
+        LL_DMA_ClearFlag_HT1(DMA1);
+        LL_DMA_DisableIT_HT(DMA1, RX_CHANNEL);
+
+
+        /*
+         * 6. Activate the channel in the DMA control register.
+         */
+
+        LL_DMA_EnableChannel(DMA1, RX_CHANNEL);
+
     } else
     {
         LL_DMA_SetPeriphAddress(
@@ -261,11 +351,7 @@ stm32_serial_dma_init(uint32_t channel)
         LL_DMA_EnableChannel(DMA1, TX_CHANNEL);
     }
 
-    LL_DMA_SetChannelPriorityLevel(
-            DMA1,
-            channel,
-            LL_DMA_PRIORITY_LOW
-    );
+
 }
 
 static void
@@ -276,6 +362,6 @@ stm32_serial_nvic_init()
 
     NVIC_SetPriority(DMA1_Channel1_IRQn, 0);
     NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-    NVIC_SetPriority(USART1_IRQn, 0);
+    NVIC_SetPriority(USART1_IRQn, 2);
     NVIC_EnableIRQ(USART1_IRQn);
 }

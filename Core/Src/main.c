@@ -17,6 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <string.h>
 #include "main.h"
 #include "stm32_clock.h"
 #include "stm32_timer.h"
@@ -31,12 +32,20 @@
 #include "modbus.h"
 
 static needle_positioner_t self;
-static volatile api_t      api;
+static api_t               api;
 volatile bool              clear_to_send;
 volatile bool              idle_line;
 static volatile bool       decision_time;
 static uint8_t             rx_buffer[RX_BUFFER_SIZE];
-static volatile bool processed;
+static volatile bool       processed;
+
+typedef enum serial_state_t
+{
+    SERIAL_IDLE,
+    SERIAL_RECEIVING,
+}                          serial_state_t;
+
+static serial_state_t state = SERIAL_IDLE;
 /**
   * @brief  The application entry point.
   * @retval int
@@ -52,7 +61,7 @@ main(void)
     decision_time               = false;
     clear_to_send               = true;
     idle_line                   = true;
-    processed = false;
+    processed                   = false;
     api_create(&api);
     stepper_kinematics_t target = {
             .position = 0,
@@ -138,9 +147,12 @@ EXTI0_1_IRQHandler(void)
 __INTERRUPT
 DMA1_Channel1_IRQHandler(void)
 {
+    stm32_dma_transfer(DMA_BUFF_SIZE);
     LL_DMA_ClearFlag_TC1(DMA1);
-
-
+    api.target_pos += DMA_BUFF_SIZE;
+    LL_DMA_DisableChannel(RX_DMA, RX_CHANNEL);
+    LL_DMA_SetDataLength(RX_DMA, RX_CHANNEL, DMA_BUFF_SIZE);
+    LL_DMA_EnableChannel(RX_DMA, RX_CHANNEL);
 }
 
 __INTERRUPT
@@ -149,17 +161,24 @@ USART1_IRQHandler(void)
     if (LL_USART_IsActiveFlag_TC(USART1))
     {
         LL_GPIO_ResetOutputPin(DE_PORT, RE_PIN);
-        LL_GPIO_ResetOutputPin(DE_PORT, RE_PIN);
         LL_USART_ClearFlag_TC(USART1);
         idle_line = true;
-
+        state = SERIAL_IDLE;
     }
-    if (LL_USART_IsActiveFlag_RTO(USART1))
+    if (LL_USART_IsActiveFlag_RXNE_RXFNE(USART1)) {
+        return;
+    } else if (LL_USART_IsActiveFlag_RTO(USART1))
     {
+        if (DMA1_Channel1->CNDTR != DMA_BUFF_SIZE) {
+            if (LL_DMA_IsActiveFlag_TC1(DMA1)) return;
+            stm32_dma_transfer(DMA_BUFF_SIZE - DMA1_Channel1->CNDTR);
+            stm32_serial_pos_t * pos = stm32_serial_current_pos();
+            api.target_pos += pos->new;
+        }
         LL_USART_ClearFlag_RTO(USART1);
+        api.new_data   = true;
     }
 }
-
 
 uint16_t
 api_read_handler(uint32_t address)
@@ -179,9 +198,6 @@ api_send_handler(
 {
     sized_array_t array = {.bytes=data, .size=size};
     serial_write(&self.serial, &array);
-    api.position = 0;
-    LL_DMA_DisableChannel(RX_DMA, RX_CHANNEL);
-    LL_DMA_SetDataLength(RX_DMA, RX_CHANNEL, RX_BUFFER_SIZE);
-    LL_DMA_EnableChannel(RX_DMA, RX_CHANNEL);
+
     return size;
 }

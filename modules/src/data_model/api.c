@@ -52,16 +52,41 @@ api_create(api_t * base)
     base->modbus_conf.read       = api_read_handler;
     base->modbus_conf.write      = api_write_handler;
     base->modbus_conf.send       = &api_send_handler;
-    base->position = 0;
+    base->current_pos            = 0;
     base->mb                     = mbus_open(&base->modbus_conf);
     if (base->mb < 0) base->mb = (mbus_t) MBUS_ERROR;
 }
 
+static inline uint16_t
+mb_handle(API base)
+{
+    uint16_t go_to = base->target_pos;
+    uint16_t remaining = 0;
+    if (base->target_pos >= RX_BUFFER_SIZE) {
+        go_to = RX_BUFFER_SIZE;
+        remaining = base->target_pos - RX_BUFFER_SIZE;
+    }
+    for (uint16_t i = base->current_pos; i < go_to; i ++)
+    {
+        mbus_poll(base->mb, base->rx_buffer[i]);
+    }
+    if (remaining) {
+        base->current_pos = 0;
+        base->target_pos = remaining;
+        mb_handle(base);
+    }
+}
+
 void api_poll(API base)
 {
-    uint8_t new_len = stm32_serial_received_len();
-    if (new_len > base->position)
-    {
-        mbus_poll(base->mb, base->rx_buffer[base->position++]);
+    if (base->new_data) {
+        if (base->target_pos != base->current_pos)
+        {
+            /*
+             * No overflow, all good
+             */
+            mb_handle(base);
+        }
+        base->new_data = false;
     }
 }
