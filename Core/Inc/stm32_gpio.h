@@ -15,7 +15,6 @@ typedef enum pin_type_t
 {
     NormalPin,
     InterruptPin
-
 } pin_type_t;
 
 typedef struct pin_init_t

@@ -9,11 +9,16 @@
 #include "primary_table.h"
 #endif
 
+
+typedef uint16_t (* pt_read_t)();
+
+typedef void (* pt_write_t)(PrimaryTable table, uint16_t value);
+
 typedef struct primary_table_interface_t
 {
-    uint16_t (* read)(PrimaryTable table, uint16_t address);
+    pt_read_t * read;
 
-    void (* write)(PrimaryTable table, uint16_t address, uint16_t value);
+    pt_write_t * write;
 
 } primary_table_interface_t;
 
@@ -22,4 +27,5 @@ typedef struct primary_table_t
     PrimaryTableInterface vtable;
 
 } primary_table_t;
+
 #endif //INJECTOR_PRIMARY_TABLE_PRIVATE_H

@@ -19,15 +19,15 @@
 #include <stdbool.h>
 #include "modbus.h"
 #include "stm32_uart.h"
+#include "data_model.h"
 
 #define ADDR 0x01
-#define N_ADDRESSES 5
 
 typedef struct api_t * API;
 
 typedef struct api_t
 {
-    uint16_t      addresses[N_ADDRESSES];
+    DataModel     data_model;
     uint16_t      output;
     uint16_t      input;
     mbus_t        mb;
@@ -41,7 +41,7 @@ typedef struct api_t
 
 } api_t;
 
-void api_create(API base);
+void api_create(API base, DataModel data_model);
 
 uint16_t api_read(API base, uint32_t address);
 

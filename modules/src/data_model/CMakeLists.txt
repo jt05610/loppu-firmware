@@ -2,10 +2,7 @@ set(data_model_inc_dir ${DRIVERS_ROOT_DIR}/inc/data_model)
 
 set(
     data_model_sources
-    discrete_inputs.c
-    coils.c
-    input_registers.c
-    holding_registers.c
+    data_model.c
     primary_table.c
     #api.c
 )

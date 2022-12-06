@@ -15,7 +15,7 @@
 
 #ifndef INJECTOR_CONFIG_H
 #define INJECTOR_CONFIG_H
-#include "stm32_gpio.h"
+#include "stm32g0xx_ll_gpio.h"
 
 #define __INTERRUPT __attribute__((unused)) void
 
@@ -26,6 +26,7 @@
 
 #define FORWARD_PIN LL_GPIO_PIN_0
 #define BACKWARD_PIN LL_GPIO_PIN_1
+#define INJECT_PIN LL_GPIO_PIN_7
 #define BUTTON_PORT GPIOA
 #define STEPS_PER_MM (200 * 25)
 #define DIR_PIN LL_GPIO_PIN_4

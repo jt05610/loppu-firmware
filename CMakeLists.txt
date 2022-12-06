@@ -59,6 +59,7 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
 
     include_directories(
         Core/Inc
+        Core/Inc/data_model
         Drivers/STM32G0xx_HAL_Driver/Inc
         Drivers/LL_Driver/Inc
         Drivers/STM32G0xx_HAL_Driver/Inc/Legacy

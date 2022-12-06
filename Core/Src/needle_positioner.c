@@ -23,6 +23,7 @@
 #include "stm32_timer.h"
 #include "stm32g0xx_ll_exti.h"
 #include "stepper/a4988_stepper.h"
+#include "discrete_inputs.h"
 
 static inline void
 config_gpio(gpio_t *gpio)
@@ -106,6 +107,25 @@ config_axis_tmc22209(needle_positioner_t * positioner)
 {
 }
 
+static primary_table_t di;
+static primary_table_t coils;
+static primary_table_t ir;
+static primary_table_t hr;
+
+static PrimaryTable tables[4] = {
+    &di,
+    &coils,
+    &ir,
+    &hr,
+};
+
+static inline void
+config_data_model(needle_positioner_t * positioner)
+{
+    discrete_inputs_create(tables[0], &positioner->buttons);
+    datamodel_create(&positioner->data_model, tables);
+}
+
 void
 needle_positioner_create(needle_positioner_t * positioner)
 {
@@ -113,10 +133,14 @@ needle_positioner_create(needle_positioner_t * positioner)
     config_time(&positioner->time);
     config_pwm(&positioner->pwm);
     config_gpio(&positioner->gpio);
+    config_data_model(positioner);
     buttons_create(&positioner->buttons, EXTI_0_1_BIT_MASK, 2);
     config_axis_a4988(positioner);
     linear_axis_enable(&positioner->axis);
+    positioner->api.rx_buffer      = positioner->rx_buffer;
     positioner->velocity = DEFAULT_VELOCITY;
+    stm32_serial_create(&positioner->serial, positioner->rx_buffer);
+    api_create(&positioner->api, &positioner->data_model);
 }
 
 void needle_positioner_set_increment(needle_positioner_t * positioner, double increment)

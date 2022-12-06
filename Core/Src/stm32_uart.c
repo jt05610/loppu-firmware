@@ -362,6 +362,6 @@ stm32_serial_nvic_init()
 
     NVIC_SetPriority(DMA1_Channel1_IRQn, 0);
     NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-    NVIC_SetPriority(USART1_IRQn, 2);
+    NVIC_SetPriority(USART1_IRQn, 1);
     NVIC_EnableIRQ(USART1_IRQn);
 }

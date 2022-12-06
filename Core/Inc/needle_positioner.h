@@ -23,9 +23,12 @@
 #include "timer/timer.h"
 #include "timer/pwm.h"
 #include "serial/serial.h"
+#include "data_model/data_model.h"
+#include "data_model/api.h"
 
 typedef struct needle_positioner_t
 {
+    api_t                api;
     gpio_t               gpio;
     stepper_t            stepper;
     stepper_controller_t controller;
@@ -35,9 +38,10 @@ typedef struct needle_positioner_t
     timer_t              time;
     pwm_t                pwm;
     serial_t             serial;
+    uint8_t             rx_buffer[RX_BUFFER_SIZE];
+    data_model_t         data_model;
     double               increment;
     double               velocity;
-    volatile uint8_t     buffer[6];
 } needle_positioner_t;
 
 void needle_positioner_create(needle_positioner_t * positioner);
