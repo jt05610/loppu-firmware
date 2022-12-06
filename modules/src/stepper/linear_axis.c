@@ -23,13 +23,13 @@ linear_axis_create(
 )
 {
     axis->steps_per_mm = steps_per_mm;
-    axis->controller = controller;
-    axis->state = AXIS_DISABLED;
-    axis->target = 0;
-    axis->velocity = 0;
-    axis->accel = 0;
+    axis->controller   = controller;
+    axis->state        = AXIS_DISABLED;
+    axis->target       = 0;
+    axis->velocity     = 0;
+    axis->accel        = 0;
     axis->new_position = false;
-    axis->keep_moving = false;
+    axis->keep_moving  = false;
 }
 
 void
@@ -44,7 +44,7 @@ linear_axis_home(LinearAxis axis)
     axis->state = AXIS_HOMING;
 }
 
-typedef void (*axis_state_handler)(LinearAxis axis);
+typedef void (* axis_state_handler)(LinearAxis axis);
 
 static inline int32_t
 mm_to_steps(LinearAxis axis, double position)
@@ -64,7 +64,7 @@ handle_idle(LinearAxis axis)
                 axis->accel
         };
         stepper_controller_set_target(axis->controller, &target);
-        axis->state = AXIS_MOVING;
+        axis->state        = AXIS_MOVING;
         axis->new_position = false;
     }
 }
@@ -72,17 +72,19 @@ handle_idle(LinearAxis axis)
 static inline void
 handle_moving(LinearAxis axis)
 {
-    if (axis->new_position) {
+    if (axis->new_position)
+    {
         stepper_kinematics_t target = {
                 mm_to_steps(axis, axis->target),
                 mm_to_steps(axis, axis->velocity),
                 axis->accel
         };
         stepper_controller_set_target(axis->controller, &target);
-        axis->state = AXIS_MOVING;
+        axis->state        = AXIS_MOVING;
         axis->new_position = false;
     }
-    if (axis->controller->state == STEPPER_IDLE) {
+    if (axis->controller->state == STEPPER_IDLE)
+    {
 
         axis->state = AXIS_IDLE;
     }
@@ -147,14 +149,22 @@ linear_axis_disable(LinearAxis axis)
 void
 linear_axis_go_to(LinearAxis axis, double position)
 {
-    axis->target = position;
+    axis->target       = position;
     axis->new_position = true;
 }
 
 double
 linear_axis_current_position(LinearAxis axis)
 {
-    return (1.0 * (double) axis->controller->ramp.position) / (axis->steps_per_mm);
+    return (1.0 * (double) axis->controller->ramp.position) /
+           (axis->steps_per_mm);
+}
+
+double
+linear_axis_current_velocity(LinearAxis axis)
+{
+    return (1.0 * (double) axis->controller->ramp.velocity) /
+           (axis->steps_per_mm);
 }
 
 void
@@ -168,6 +178,7 @@ linear_axis_set_accel(LinearAxis axis, double accel)
 {
     axis->accel = accel;
 }
+
 void
 linear_axis_home_interrupt(LinearAxis axis)
 {
