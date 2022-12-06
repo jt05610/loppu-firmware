@@ -67,8 +67,8 @@ main(void)
                     linear_axis_enable(&self.axis);
 
                     stepper_set_dir(&self.stepper, Forward);
-                    target.position += (self.increment * STEPS_PER_MM);
-                    stepper_controller_set_target(&self.controller, &target);
+                    self.target.position += (self.increment * STEPS_PER_MM);
+                    stepper_controller_set_target(&self.controller, &self.target);
                     timer_set_pwm_freq(
                             &self.time, self.axis.velocity * STEPS_PER_MM);
                     if (!LL_TIM_IsEnabledCounter(TIM2))
@@ -80,7 +80,8 @@ main(void)
                 case 0x02:
                     linear_axis_enable(&self.axis);
                     stepper_set_dir(&self.stepper, Backward);
-                    target.position -= (self.increment * STEPS_PER_MM);
+                    self.target.position -= (self.increment * STEPS_PER_MM);
+                    stepper_controller_set_target(&self.controller, &self.target);
                     timer_set_pwm_freq(
                             &self.time, self.axis.velocity * STEPS_PER_MM);
                     if (!LL_TIM_IsEnabledCounter(TIM2))

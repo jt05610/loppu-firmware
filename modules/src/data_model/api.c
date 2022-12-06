@@ -81,9 +81,6 @@ void api_poll(API base)
     {
         if (base->target_pos != base->current_pos)
         {
-            /*
-             * No overflow, all good
-             */
             mb_handle(base);
         }
         base->new_data = false;

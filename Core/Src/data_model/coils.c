@@ -86,11 +86,13 @@ set_home(uint16_t value)
 /*
  * start set_home code
  */
-    if(value) {
+    if (value)
+    {
         stepper_set_dir(&self.positioner->stepper, Backward);
         self.positioner->controller.current_position = 0xFFFFFFFF;
-        self.positioner->target.position = 0;
-    } else {
+        self.positioner->target.position             = 0;
+    } else
+    {
         return set_stop(0);
     }
 
@@ -111,15 +113,21 @@ set_go_to_target(uint16_t value)
 /*
  * start set_go_to_target code
  */
-    if(value) {
+    if (value)
+    {
         stepper_controller_set_target(
                 &self.positioner->controller, &self.positioner->target);
+
+        timer_set_pwm_freq(
+                &self.positioner->time, self.positioner->axis.velocity * STEPS_PER_MM);
         if (!LL_TIM_IsEnabledCounter(TIM2))
         {
             linear_axis_enable(&self.positioner->axis);
             timer_start_pwm(&self.positioner->time);
+
         }
-    } else {
+    } else
+    {
         return set_stop(0);
     }
     return value;
@@ -194,10 +202,11 @@ static primary_table_interface_t interface = {
 void
 coils_create(PrimaryTable base, needle_positioner_t * positioner)
 {
-    base->vtable = &interface;
+    base->vtable    = &interface;
 /*
  * start get_create code
  */
+    self.positioner = positioner;
 /*
  * end get_create code
  */
