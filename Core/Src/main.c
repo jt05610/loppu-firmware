@@ -35,7 +35,6 @@ static needle_positioner_t self;
 volatile bool              clear_to_send;
 volatile bool              idle_line;
 static volatile bool       decision_time;
-static volatile bool       processed;
 
 /**
   * @brief  The application entry point.
@@ -50,12 +49,7 @@ main(void)
     decision_time               = false;
     clear_to_send               = true;
     idle_line                   = true;
-    processed                   = false;
-    stepper_kinematics_t target = {
-            .position = 0,
-            .velocity = self.axis.velocity,
-            .acceleration = 0
-    };
+
     LL_TIM_EnableCounter(TIM16);
 
     while (1)

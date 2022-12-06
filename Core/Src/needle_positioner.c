@@ -26,7 +26,7 @@
 #include "discrete_inputs.h"
 
 static inline void
-config_gpio(gpio_t *gpio)
+config_gpio(gpio_t * gpio)
 {
     stm32_gpio_create(gpio);
     // output pins
@@ -42,9 +42,9 @@ config_gpio(gpio_t *gpio)
     pin_init.pin_mask = DIR_PIN | ENABLE_PIN;
     stm32_gpio_init_pin(&pin_init);
 
-    pin_init.type = InterruptPin;
-    pin_init.mode = LL_GPIO_MODE_INPUT;
-    pin_init.trigger = LL_EXTI_TRIGGER_RISING_FALLING;
+    pin_init.type     = InterruptPin;
+    pin_init.mode     = LL_GPIO_MODE_INPUT;
+    pin_init.trigger  = LL_EXTI_TRIGGER_RISING_FALLING;
     pin_init.pin_mask = BACKWARD_PIN;
 
     stm32_gpio_init_pin(&pin_init);
@@ -57,22 +57,22 @@ config_gpio(gpio_t *gpio)
 }
 
 static inline void
-config_time(timer_t *timer)
+config_time(timer_t * timer)
 {
     stm32_timer_init_t init;
     init.timer = TIM16;
     init.type  = GeneralTimer;
 
-    GEN_TIM(&init).update_freq  = UPDATE_FREQUENCY;
-    GEN_TIM(&init).update_delay = 1000;
-    GEN_TIM(&init).interrupt    = TIM16_IRQn;
-    GEN_TIM(&init).clock_division    = LL_TIM_CLOCKDIVISION_DIV1;
+    GEN_TIM(&init).update_freq    = UPDATE_FREQUENCY;
+    GEN_TIM(&init).update_delay   = 1000;
+    GEN_TIM(&init).interrupt      = TIM16_IRQn;
+    GEN_TIM(&init).clock_division = LL_TIM_CLOCKDIVISION_DIV1;
 
     stm32_timer_create(timer, &init);
 }
 
 static inline void
-config_pwm(pwm_t *pwm)
+config_pwm(pwm_t * pwm)
 {
     timer_param_t params = {
             .period = 100,
@@ -84,21 +84,24 @@ config_pwm(pwm_t *pwm)
     stm32_pwm_create(pwm, TIM2, &params, STEP_PORT, STEP_PIN);
 
 }
+
 static inline void
 config_axis_a4988(needle_positioner_t * positioner)
 {
-    positioner->stepper_init.step_pin = STEP_PIN;
-    positioner->stepper_init.dir_pin = DIR_PIN;
-    positioner->stepper_init.enable_pin = ENABLE_PIN;
-    positioner->stepper_init.step_port = GPIO_PORT_A;
-    positioner->stepper_init.dir_port = GPIO_PORT_A;
+    positioner->stepper_init.step_pin    = STEP_PIN;
+    positioner->stepper_init.dir_pin     = DIR_PIN;
+    positioner->stepper_init.enable_pin  = ENABLE_PIN;
+    positioner->stepper_init.step_port   = GPIO_PORT_A;
+    positioner->stepper_init.dir_port    = GPIO_PORT_A;
     positioner->stepper_init.enable_port = GPIO_PORT_A;
-    positioner->stepper_init.base = &positioner->stepper;
-    positioner->stepper_init.gpio = &positioner->gpio;
+    positioner->stepper_init.base        = &positioner->stepper;
+    positioner->stepper_init.gpio        = &positioner->gpio;
     a4988_stepper_create(&positioner->stepper_init);
     positioner->controller.stepper = &positioner->stepper;
-    stepper_controller_create(&positioner->controller, UPDATE_FREQUENCY, &positioner->time);
-    linear_axis_create(&positioner->axis, &positioner->controller, STEPS_PER_MM);
+    stepper_controller_create(
+            &positioner->controller, UPDATE_FREQUENCY, &positioner->time);
+    linear_axis_create(
+            &positioner->axis, &positioner->controller, STEPS_PER_MM);
     linear_axis_set_velocity(&positioner->axis, DEFAULT_VELOCITY);
 }
 
@@ -113,10 +116,10 @@ static primary_table_t ir;
 static primary_table_t hr;
 
 static PrimaryTable tables[4] = {
-    &di,
-    &coils,
-    &ir,
-    &hr,
+        &di,
+        &coils,
+        &ir,
+        &hr,
 };
 
 static inline void
@@ -129,7 +132,7 @@ config_data_model(needle_positioner_t * positioner)
 void
 needle_positioner_create(needle_positioner_t * positioner)
 {
-    positioner->increment      = DEFAULT_INCREMENT;
+    positioner->increment = DEFAULT_INCREMENT;
     config_time(&positioner->time);
     config_pwm(&positioner->pwm);
     config_gpio(&positioner->gpio);
@@ -137,18 +140,23 @@ needle_positioner_create(needle_positioner_t * positioner)
     buttons_create(&positioner->buttons, EXTI_0_1_BIT_MASK, 2);
     config_axis_a4988(positioner);
     linear_axis_enable(&positioner->axis);
-    positioner->api.rx_buffer      = positioner->rx_buffer;
-    positioner->velocity = DEFAULT_VELOCITY;
+    positioner->api.rx_buffer = positioner->rx_buffer;
+    positioner->velocity      = DEFAULT_VELOCITY;
     stm32_serial_create(&positioner->serial, positioner->rx_buffer);
     api_create(&positioner->api, &positioner->data_model);
+    positioner->target.position     = 0;
+    positioner->target.velocity     = positioner->axis.velocity;
+    positioner->target.acceleration = 0;
 }
 
-void needle_positioner_set_increment(needle_positioner_t * positioner, double increment)
+void needle_positioner_set_increment(
+        needle_positioner_t * positioner, double increment)
 {
     positioner->increment = increment;
 }
 
-void needle_positioner_set_velocity(needle_positioner_t * positioner, double velocity)
+void needle_positioner_set_velocity(
+        needle_positioner_t * positioner, double velocity)
 {
     positioner->velocity = velocity;
 }
@@ -163,14 +171,18 @@ static inline void
 handle_forward_press(needle_positioner_t * self)
 {
     linear_axis_set_velocity(&self->axis, self->velocity);
-    linear_axis_go_to(&self->axis, linear_axis_current_position(&self->axis) + self->increment);
+    linear_axis_go_to(
+            &self->axis, linear_axis_current_position(&self->axis) +
+                         self->increment);
 }
 
 static inline void
 handle_backward_press(needle_positioner_t * self)
 {
     linear_axis_set_velocity(&self->axis, -self->velocity);
-    linear_axis_go_to(&self->axis, linear_axis_current_position(&self->axis) - self->increment);
+    linear_axis_go_to(
+            &self->axis, linear_axis_current_position(&self->axis) -
+                         self->increment);
 }
 
 static inline void
@@ -179,7 +191,7 @@ handle_both_press(needle_positioner_t * self)
 
 }
 
-typedef void (*position_handler_t)(needle_positioner_t * self);
+typedef void (* position_handler_t)(needle_positioner_t * self);
 
 static position_handler_t handlers[4] = {
         handle_idle,
@@ -190,9 +202,11 @@ static position_handler_t handlers[4] = {
 
 void needle_positioner_update(needle_positioner_t * positioner)
 {
-    if (positioner->buttons.state > 0) {
+    if (positioner->buttons.state > 0)
+    {
         handlers[positioner->buttons.state](positioner);
-    } else {
+    } else
+    {
     }
     linear_axis_update(&positioner->axis);
 

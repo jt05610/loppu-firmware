@@ -42,6 +42,8 @@ typedef struct needle_positioner_t
     data_model_t         data_model;
     double               increment;
     double               velocity;
+
+    stepper_kinematics_t target;
 } needle_positioner_t;
 
 void needle_positioner_create(needle_positioner_t * positioner);

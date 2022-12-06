@@ -18,6 +18,6 @@ primary_table_write(PrimaryTable table, uint16_t address, uint16_t value)
 {
     if (table && table->vtable && table->vtable->write)
     {
-        table->vtable->write[address](table, value);
+        table->vtable->write[address](value);
     }
 }

@@ -12,7 +12,7 @@
 
 typedef uint16_t (* pt_read_t)();
 
-typedef void (* pt_write_t)(PrimaryTable table, uint16_t value);
+typedef uint16_t (* pt_write_t)(uint16_t value);
 
 typedef struct primary_table_interface_t
 {
