@@ -147,6 +147,7 @@ needle_positioner_create(needle_positioner_t * positioner)
     positioner->target.position     = 0;
     positioner->target.velocity     = positioner->axis.velocity;
     positioner->target.acceleration = 0;
+    positioner->steps_per_mm = STEPS_PER_MM;
 }
 
 void needle_positioner_set_increment(
@@ -210,6 +211,12 @@ void needle_positioner_update(needle_positioner_t * positioner)
     }
     linear_axis_update(&positioner->axis);
 
+}
+
+void needle_positioner_set_steps_per_mm(
+        needle_positioner_t * positioner, uint16_t steps)
+{
+    positioner->steps_per_mm = steps;
 }
 
 /**

@@ -38,7 +38,8 @@ typedef struct needle_positioner_t
     timer_t              time;
     pwm_t                pwm;
     serial_t             serial;
-    uint8_t             rx_buffer[RX_BUFFER_SIZE];
+    uint8_t              rx_buffer[RX_BUFFER_SIZE];
+    uint16_t             steps_per_mm;
     data_model_t         data_model;
     double               increment;
     double               velocity;
@@ -50,6 +51,9 @@ void needle_positioner_create(needle_positioner_t * positioner);
 
 void needle_positioner_set_increment(
         needle_positioner_t * positioner, double increment);
+
+void needle_positioner_set_steps_per_mm(
+        needle_positioner_t * positioner, uint16_t steps);
 
 void needle_positioner_move(needle_positioner_t * positioner, dir_t dir);
 
