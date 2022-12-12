@@ -1,20 +1,3 @@
-set(SERIAL_LIB "serial")
-set(GPIO_LIB "gpio")
-set(TIMER_LIB "timer")
-set(STEPPER_LIB "stepper")
-set(BUTTONS_LIB "buttons")
-set(DATA_MODEL_LIB "data_model")
-
-set(DRIVERS_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
-set(
-    DRIVER_TEST_INC
-    ${DRIVERS_ROOT_DIR}/test/gpio/mocks/inc
-    ${DRIVERS_ROOT_DIR}/test/serial/fakes/inc
-    ${DRIVERS_ROOT_DIR}/test/serial/spies/inc
-    ${DRIVERS_ROOT_DIR}/test/timer/fakes/inc
-    ${DRIVERS_ROOT_DIR}/test/stepper/fakes/inc
-)
 
 
 file(
@@ -23,11 +6,11 @@ file(
     "${DRIVERS_ROOT_DIR}/src/*.*"
 )
 
-include_directories(stModbus/include)
+include_directories(../drivers/stModbus/include)
 set(
     st_modbus_src
-    stModbus/src/rtu/mbutils.c
-    stModbus/src/modbus.c
+    ../drivers/stModbus/src/rtu/mbutils.c
+    ../drivers/stModbus/src/modbus.c
 )
 
 add_library(ST_MODBUS STATIC ${st_modbus_src})

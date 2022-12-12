@@ -1,13 +1,24 @@
 cmake_minimum_required(VERSION 3.21)
 
-include_directories(
-    inc
-)
+set(BUTTONS_LIB buttons)
+set(DATA_MODEL_LIB data_model)
+set(GPIO_LIB gpio)
+set(MODBUS_LIB modbus)
+set(SERIAL_LIB serial)
+set(STEPPER_LIB stepper)
+set(TIMER_LIB timer)
 
-if (CMAKE_BUILD_TYPE MATCHES Embedded)
+set(DRIVER_INC driver_inc)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 99)
+
+
+if (${EMBEDDED})
+    set(BUILD_TESTS 0)
     set(CMAKE_SYSTEM_NAME Generic)
     set(CMAKE_SYSTEM_VERSION 1)
+
     # specify cross compilers and tools for STM32
     set(CMAKE_C_COMPILER arm-none-eabi-gcc)
     set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
@@ -30,8 +41,7 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
     add_compile_options(-ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
 
     project(Injector C CXX ASM)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_C_STANDARD 99)
+
     # uncomment to mitigate c++17 absolute addresses warnings
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-register")
 
@@ -49,64 +59,22 @@ if (CMAKE_BUILD_TYPE MATCHES Embedded)
         add_compile_options(-Os)
     else ()
         message(STATUS "Minimal optimization, debug info included")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
         add_compile_options(-Og -g)
     endif ()
 
-    set(TMC_DIR modules/TMC-API)
-    set(TMC_IC_DIR ${TMC_DIR}/tmc/ic/TMC2209)
-
-    add_subdirectory(modules)
-
-    include_directories(
-        Core/Inc
-        Core/Inc/data_model
-        Drivers/STM32G0xx_HAL_Driver/Inc
-        Drivers/LL_Driver/Inc
-        Drivers/STM32G0xx_HAL_Driver/Inc/Legacy
-        Drivers/CMSIS/Device/ST/STM32G0xx/Include
-        Drivers/CMSIS/Include
-        modules/inc
-        modules/inc/buttons
-        modules/inc/gpio
-        modules/inc/timer
-        modules/stModbus/include
-        ${TMC_DIR}
-        ${TMC_IC_DIR}
-    )
 
     add_definitions(-DDEBUG -DSTM32G031xx -DUSE_FULL_LL_DRIVER)
 
-    file(
-        GLOB_RECURSE
-        SOURCES
-        "Core/*.*"
-        "Drivers/*.*"
-        "modules/src/*.*"
-        "modules/stModbus/src/*.*"
-    )
-
-message(${SOURCES})
     set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32G031F6PX_FLASH.ld)
 
-    add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
-    add_link_options(-mcpu=cortex-m0 -mthumb -mthumb-interwork)
-    add_link_options(-T ${LINKER_SCRIPT})
 
-    add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
-    set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
-    set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
-
-    add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
-        COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
-        COMMENT "Building ${HEX_FILE}
-        Building ${BIN_FILE}"
-        )
 else()
+    set(BUILD_TESTS 1)
     project(Injector C CXX)
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_C_STANDARD 11)
-    add_subdirectory(modules)
 endif()
 
-
+add_subdirectory(drivers)
+include_directories(${DRIVER_INC})
+add_subdirectory(devices)
