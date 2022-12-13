@@ -127,7 +127,7 @@ EXTI0_1_IRQHandler(void)
     decision_time = true;
 }
 
-__INTERRUPT
+__attribute__((unused)) __INTERRUPT
 DMA1_Channel1_IRQHandler(void)
 {
     stm32_dma_transfer(DMA_BUFF_SIZE);

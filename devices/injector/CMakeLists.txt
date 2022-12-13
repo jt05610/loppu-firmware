@@ -16,9 +16,8 @@ set(
     ${TIMER_LIB}
     )
 
-
 add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${DEVICE_NAME}.map)
-add_link_options(-mcpu=cortex-m0 -mthumb -mthumb-interwork)
+add_link_options()
 add_link_options(-T ${LINKER_SCRIPT})
 
 add_executable(${DEVICE_NAME}.elf ${DEVICE_SOURCES} ${LINKER_SCRIPT})

@@ -16,7 +16,7 @@
 #ifndef INJECTOR_NEEDLE_POSITIONER_H
 #define INJECTOR_NEEDLE_POSITIONER_H
 
-#include "../../../adapters/stm32/inc/stm32_gpio.h"
+#include "../../../adapters/stm32/src/stm32_gpio.h"
 #include "../../../../drivers/stepper/inc/linear_axis.h"
 #include "../../../../drivers/stepper/inc/a4988_stepper.h"
 #include "../../../../drivers/buttons/inc/buttons.h"
