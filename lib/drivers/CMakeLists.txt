@@ -1,5 +1,0 @@
-add_subdirectory(serial)
-add_subdirectory(gpio)
-add_subdirectory(timer)
-add_subdirectory(mocks)
-add_subdirectory(peripherals)

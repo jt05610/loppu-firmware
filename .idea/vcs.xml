@@ -20,5 +20,7 @@
     <mapping directory="$PROJECT_DIR$/modules/bootstrap/adapters/stm32/simulator/qemu" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/modules/libmodbus" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/modules/stModbus" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/CMock" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/TMC-API" vcs="Git" />
   </component>
 </project>

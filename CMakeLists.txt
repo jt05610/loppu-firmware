@@ -38,6 +38,5 @@ macro(stm32_executable _name _main)
         )
 endmacro()
 
-add_subdirectory(lib)
-add_subdirectory(modules)
-add_subdirectory(devices)
+add_subdirectory(src)
+add_subdirectory(test)
