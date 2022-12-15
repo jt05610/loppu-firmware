@@ -1,8 +1,8 @@
 //
 // Created by Jonathan Taylor on 5/8/22.
 //
-#include "event_log.h"
-#include "server_dl.h"
+#include "../inc/modbus/event_log.h"
+#include "../inc/modbus/server_dl.h"
 
 #define ERROR_DECIMAL(error) ((error)-11)
 #define INCREMENT_COUNTER(self, error) \

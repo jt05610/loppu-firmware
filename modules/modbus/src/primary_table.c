@@ -1,7 +1,7 @@
 //
 // Created by taylojon on 11/23/2022.
 //
-#include "../inc/public/modbus/primary_table.h"
+#include "modbus/primary_table.h"
 
 void
 primary_table_read(PrimaryTable table, void * device, uint16_t address, sized_array_t * dest)

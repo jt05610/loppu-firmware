@@ -15,7 +15,7 @@
 #ifndef NEEDLEPOSITIONER_INPUT_REGISTERS_H
 #define NEEDLEPOSITIONER_INPUT_REGISTERS_H
 
-#include "modbus.h"
+#include "../../../../modules/modbus/inc/modbus.h"
 
 void input_registers_create(PrimaryTable base, void * device);
 

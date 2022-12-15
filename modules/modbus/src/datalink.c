@@ -1,8 +1,8 @@
 //
 // Created by Jonathan Taylor on 5/19/22.
 //
-#include "datalink.h"
-#include "crc.h"
+#include "../inc/modbus/datalink.h"
+#include "../inc/modbus/crc.h"
 
 void
 dl_transmit(Datalink base, SerialPDU pdu)

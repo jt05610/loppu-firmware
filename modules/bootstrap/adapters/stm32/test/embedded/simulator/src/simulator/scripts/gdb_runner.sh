@@ -1,0 +1,1 @@
+arm-none-eabi-gdb -x /Users/jtaylor/CLionProjects/Injector/modules/bootstrap/adapters/stm32/test/embedded/simulator/src/simulator/scripts/openocd.gdb -q /Users/jtaylor/CLionProjects/Injector/cmake-build-simulated/modules/bootstrap/adapters/stm32/test/STM32Tests.elf

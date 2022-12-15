@@ -15,7 +15,7 @@
 #ifndef NEEDLEPOSITIONER_DISCRETE_INPUTS_H
 #define NEEDLEPOSITIONER_DISCRETE_INPUTS_H
 
-#include "modbus.h"
+#include "../../../../modules/modbus/inc/modbus.h"
 
 void discrete_inputs_create(PrimaryTable base, void * device);
 

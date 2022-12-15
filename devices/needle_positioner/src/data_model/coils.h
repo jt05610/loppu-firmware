@@ -15,7 +15,7 @@
 #ifndef NEEDLEPOSITIONER_COILS_H
 #define NEEDLEPOSITIONER_COILS_H
 
-#include "modbus.h"
+#include "../../../../modules/modbus/inc/modbus.h"
 
 void coils_create(PrimaryTable base, void * device);
 

@@ -1,4 +1,4 @@
-add_library(modbus)
+add_library(modbus INTERFACE)
 
 file(
     GLOB_RECURSE
@@ -6,5 +6,5 @@ file(
     src/*.*
 )
 
-target_sources(modbus PRIVATE ${MODBUS_SOURCES})
-target_include_directories(modbus PUBLIC inc/public PRIVATE inc/.private)
+target_sources(modbus INTERFACE ${MODBUS_SOURCES})
+target_include_directories(modbus INTERFACE inc)

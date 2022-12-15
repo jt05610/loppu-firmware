@@ -4,12 +4,20 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug-event-trace/_deps/cpputest-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/cpputest-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-embedded/_deps/cpputest-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-embedded/_deps/unity-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-local/_deps/cpputest-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-native/_deps/cpputest-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-simulated/_deps/unity-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-simulator/_deps/cpputest-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-simulator/_deps/unity-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/drivers/TMC-API" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/drivers/stModbus" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/lib/drivers/TMC-API" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/third_party/CMock" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lib/third_party/TMC-API" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/modules/TMC-API" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/modules/bootstrap/adapters/stm32/simulator/qemu" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/modules/libmodbus" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/modules/stModbus" vcs="Git" />
   </component>

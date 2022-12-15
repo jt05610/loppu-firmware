@@ -16,33 +16,40 @@
 #include "serial.h"
 
 void
-serial_open(Serial base)
+serial_open(Serial base, void * instance)
 {
     if (base && base->vtable && base->vtable->open)
-        base->vtable->open(base);
+        base->vtable->open(instance);
 }
 
 void
-serial_close(Serial base)
+serial_close(Serial base, void * instance)
 {
-    if (base && base->vtable && base->vtable->open)
-        base->vtable->close(base);
+    if (base && base->vtable && base->vtable->close)
+        base->vtable->close(instance);
 }
 
 uint16_t
-serial_read(Serial base, uint8_t * dest)
+serial_read(Serial base, void * instance, uint8_t * dest)
 {
     uint16_t ret = 0;
     if (base && base->vtable && base->vtable->read)
-        ret = base->vtable->read(base, dest);
+        ret = base->vtable->read(instance, dest);
     return ret;
 }
 
 void
-serial_write(Serial base, uint8_t * data, uint16_t size)
+serial_write(Serial base, void * instance, uint8_t * data, uint16_t size)
 {
     if (base && base->vtable && base->vtable->write)
-        base->vtable->write(base, data, size);
+        base->vtable->write(instance, data, size);
+}
+
+void
+serial_putchar(Serial base, void * instance, uint8_t a)
+{
+    if (base && base->vtable && base->vtable->putchar)
+        base->vtable->putchar(instance, a);
 }
 
 void

@@ -3,7 +3,7 @@
   * @file   serial_private.h
   * @author Jonathan Taylor
   * @date   6/9/22
-  * @brief  DESCRIPTION
+  * @brief  Private serial header.
   ******************************************************************************
   * @attention
   *
@@ -13,33 +13,68 @@
   ******************************************************************************
   */
 
-#ifndef MICROFLUIDICSYSTEM_SERIAL_PRIVATE_H
-#define MICROFLUIDICSYSTEM_SERIAL_PRIVATE_H
+#ifndef DRIVERS_SERIAL_PRIVATE_H
+#define DRIVERS_SERIAL_PRIVATE_H
 
 #include "serial.h"
 
-#ifndef MICROFLUIDICSYSTEM_SERIAL_H
-#include "serial.h"
-#endif
+/** @addtogroup Serial
+ * @{
+ */
 
+/**
+ * @brief Serial interface function data structure.
+ */
 typedef struct serial_interface_t
 {
-    void (* open)(Serial base);
+    /**
+     * @brief Opens specified serial instance
+     * @param instance Serial instance if needed by target.
+     */
+    void (* open)(void * instance);
 
-    void (* close)(Serial base);
+    /**
+     * @brief Closes specified serial instance
+     * @param instance Serial instance if needed by target.
+     */
+    void (* close)(void * instance);
 
-    uint16_t (* read)(Serial base, uint8_t * dest);
+    /**
+     * @brief Read data from serial port to dest.
+     * @param instance Serial instance if needed by target.
+     * @param dest Buffer to store data into.
+     * @return Number of read bytes.
+     */
+    uint16_t (* read)(void * instance, uint8_t * dest);
 
-    void (* write)(Serial base, uint8_t * data, uint16_t size);
+    /**
+     * @brief Write buffer to serial port.
+     * @param instance Serial instance if needed by target.
+     * @param data Bytes to write.
+     * @param size Number of bytes to write.
+     */
+    void (* write)(void * instance, uint8_t * data, uint16_t size);
+
+    /**
+     * @brief Write single byte to serial port.
+     * @param instance Serial instance if needed by target.
+     * @param a Bytes to write.
+     */
+    void (* putchar)(void * instance, uint8_t a);
 
 } serial_interface_t;
 
-typedef struct serial_t
+/**
+ * @brief Base serial data structure.
+ */
+typedef struct serial_base_t
 {
-    uint8_t * rx_buffer;
-    uint16_t buffer_size;
-    uint16_t buffer_position;
-    SerialInterface vtable;
-} serial_t;
+    SerialInterface vtable;         /** @brief Pointer to interface. */
+    volatile uint8_t * rx_buffer;   /** @brief Buffer to store incoming data. */
+    uint16_t buffer_size;           /** @brief Size of buffer. */
+    uint16_t buffer_position;       /** @brief Current position in buffer. */
+} serial_base_t;
 
-#endif //MICROFLUIDICSYSTEM_SERIAL_PRIVATE_H
+/** @} */
+
+#endif //DRIVERS_SERIAL_PRIVATE_H

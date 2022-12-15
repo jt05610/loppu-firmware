@@ -2,11 +2,11 @@
 // Created by Jonathan Taylor on 5/25/22.
 //
 
-#include "server_dl.h"
+#include "../inc/modbus/server_dl.h"
 #include "modbus/server_app.h"
 #include "modbus/util.h"
 #include "modbus/data_model.h"
-#include "types.h"
+#include "../inc/modbus/types.h"
 
 
 #define SERVER_IDLE 0x00

@@ -1,6 +1,6 @@
 include(FetchContent)
 
-if (${EMBEDDED})
+if ((${EMBEDDED}))
     # STM32
     add_subdirectory(stm32g0xx)
 else()
@@ -42,10 +42,27 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(unity)
 
-add_library(cmock CMock/src/cmock.c)
-target_include_directories(cmock PUBLIC CMock/src ${unity_SOURCE_DIR}/src)
+file(
+    GLOB_RECURSE
+    UNITY_SOURCES
+    unity/*.*
+    ${unity_SOURCE_DIR}/src/*.*
+)
 
+set(
+    UNITY_INC
+    unity
+    ${unity_SOURCE_DIR}/src/
+)
 
+add_library(unity_lib INTERFACE)
+target_sources(unity_lib INTERFACE ${UNITY_SOURCES})
+target_include_directories(unity_lib INTERFACE ${UNITY_INC})
+target_compile_definitions(
+    unity_lib
+    INTERFACE
+    UNITY_INCLUDE_CONFIG_H
+)
 # TMC-API
 
 set(TMC_IC TMC2209)

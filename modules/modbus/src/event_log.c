@@ -2,7 +2,7 @@
 // Created by Jonathan Taylor on 5/26/22.
 //
 
-#include "event_log.h"
+#include "../inc/modbus/event_log.h"
 
 static log_t log = {.count=0, .events = {0}};
 

@@ -12,7 +12,7 @@
   *
   ******************************************************************************
   */
-#include "modbus.h"
+#include "../../../modules/modbus/inc/modbus.h"
 #include "needle_positioner.h"
 
 #include "data_model/discrete_inputs.h"
