@@ -299,6 +299,7 @@ dma_init()
             .memory_address=(uint32_t) self.dma_buffer,
             .data_length=STM32_USART_DMA_BUFFER_SIZE,
             .transfer_direction=LL_DMA_DIRECTION_PERIPH_TO_MEMORY,
+            .byte=true,
             .circular=false,
             .periph_request=LL_DMAMUX_REQ_USART1_RX,
             .enable_ht=false,

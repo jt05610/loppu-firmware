@@ -45,7 +45,7 @@ static timer_interface_t interface = {
 
 
 Timer
-stm32_timer_create(STM32TimerInit params)
+stm32_timer_create()
 {
     self.vtable = &interface;
     return &self;

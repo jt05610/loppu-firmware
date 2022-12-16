@@ -18,6 +18,10 @@
 
 #include "analog.h"
 
+#define ADC_BUFFER_SIZE 100
+
 Analog stm32_adc_create();
+
+static uint16_t adc_buffer[ADC_BUFFER_SIZE];
 
 #endif //INJECTOR_STM32_ADC_H

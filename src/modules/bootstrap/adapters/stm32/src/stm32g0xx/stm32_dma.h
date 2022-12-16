@@ -32,6 +32,7 @@ typedef struct stm32_dma_params_t
     uint32_t memory_address;
     uint32_t data_length;
     uint32_t transfer_direction;
+    bool byte;
     bool circular;
     uint32_t periph_request;
     bool enable_ht;
@@ -39,10 +40,10 @@ typedef struct stm32_dma_params_t
 } stm32_dma_params_t;
 
 
-typedef void (*dma_clear_flag_handler_t)(DMA_TypeDef * dma);
+typedef void (* dma_clear_flag_handler_t)(DMA_TypeDef * dma);
 
 static inline void
-stm32_dma_clear_flags(DMA_TypeDef *dma, uint32_t channel)
+stm32_dma_clear_flags(DMA_TypeDef * dma, uint32_t channel)
 {
     dma_clear_flag_handler_t tc_handlers[5][2] = {
             {LL_DMA_ClearFlag_HT1, LL_DMA_ClearFlag_TC1},
@@ -58,32 +59,39 @@ stm32_dma_clear_flags(DMA_TypeDef *dma, uint32_t channel)
 static inline void
 stm32_dma_init(stm32_dma_params_t * p)
 {
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
     LL_DMA_SetPeriphAddress(p->dma, p->channel, p->periph_address);
     LL_DMA_SetMemoryAddress(p->dma, p->channel, p->memory_address);
     LL_DMA_SetDataLength(p->dma, p->channel, p->data_length);
     LL_DMA_SetChannelPriorityLevel(p->dma, p->channel, PRIORITY);
     LL_DMA_SetDataTransferDirection(p->dma, p->channel, p->transfer_direction);
-    if (p->circular)
-    {
+    if (p->circular) {
         LL_DMA_SetMode(p->dma, p->channel, LL_DMA_MODE_CIRCULAR);
-    } else
-    {
+    } else {
         LL_DMA_SetMode(p->dma, p->channel, LL_DMA_MODE_NORMAL);
+    }
+    if (p->byte) {
+        LL_DMA_SetPeriphSize(p->dma, p->channel, LL_DMA_PDATAALIGN_BYTE);
+        LL_DMA_SetMemorySize(p->dma, p->channel, LL_DMA_MDATAALIGN_BYTE);
+    } else {
+        LL_DMA_SetPeriphSize(p->dma, p->channel, LL_DMA_PDATAALIGN_HALFWORD);
+        LL_DMA_SetMemorySize(p->dma, p->channel, LL_DMA_MDATAALIGN_HALFWORD);
     }
     LL_DMA_SetPeriphIncMode(p->dma, p->channel, LL_DMA_PERIPH_NOINCREMENT);
     LL_DMA_SetPeriphIncMode(p->dma, p->channel, LL_DMA_MEMORY_INCREMENT);
-    LL_DMA_SetPeriphSize(p->dma, p->channel, PERIPH_SIZE);
-    LL_DMA_SetMemorySize(p->dma, p->channel, MEM_SIZE);
     LL_DMA_SetPeriphRequest(p->dma, p->channel, p->periph_request);
+
     stm32_dma_clear_flags(p->dma, p->channel);
-    if (p->enable_ht)
+    if (p->enable_ht) {
         LL_DMA_EnableIT_HT(p->dma, p->channel);
-    else
+    } else {
         LL_DMA_DisableIT_HT(p->dma, p->channel);
-    if (p->enable_tc)
+    }
+    if (p->enable_tc) {
         LL_DMA_EnableIT_TC(p->dma, p->channel);
-    else
+    } else {
         LL_DMA_DisableIT_TC(p->dma, p->channel);
+    }
     LL_DMA_EnableChannel(p->dma, p->channel);
 }
 

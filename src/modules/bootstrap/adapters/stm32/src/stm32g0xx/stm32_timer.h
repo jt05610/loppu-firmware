@@ -30,23 +30,11 @@
  */
 
 /**
- * @brief Pointer to STM32G0xx timer initialization parameters.
- */
-typedef struct stm32_timer_init_t * STM32TimerInit;
-
-/**
- * @brief Parameters to initialize STM32G0xx timer.
- */
-typedef struct stm32_timer_init_t {
-
-} stm32_timer_init_t;
-
-/**
  * @brief Creates STM32G0xx Timer interface.
  * @param params Initialization parameters.
  * @return @ref Timer initialized to interact with STM32G0xx.
  */
-Timer stm32_timer_create(STM32TimerInit params);
+Timer stm32_timer_create();
 
 /** @} */
 
