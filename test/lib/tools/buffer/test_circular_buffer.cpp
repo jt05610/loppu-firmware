@@ -14,7 +14,7 @@
   */
 
 #include <gtest/gtest.h>
-#include "circular_buffer.h"
+#include "buffer/circular_buffer.h"
 
 #define BUFFER_SIZE 10
 
@@ -29,16 +29,15 @@ protected:
     void fill_buffer()
     {
         for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
-            ASSERT_EQ(0, circ_buf_push(&buffer, i));
-            ASSERT_EQ(i, buffer_buffer[i]);
+            circ_buf_push(&buffer, i);
+            ASSERT_EQ(i, buffer_buffer[i + buffer.tail]);
         }
     }
 
     void clear_buffer()
     {
-        uint8_t * ptr = result;
         for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
-            ASSERT_EQ(0, circ_buf_pop(&buffer, ptr++));
+            ASSERT_EQ(i, circ_buf_pop(&buffer));
         }
     }
 
@@ -49,7 +48,6 @@ protected:
 TEST_F(TestCircularBuffer, push)
 {
     fill_buffer();
-    ASSERT_EQ(BUFFER_SIZE, buffer.head);
     for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
         ASSERT_EQ(i, buffer_buffer[i]);
     }
@@ -59,20 +57,26 @@ TEST_F(TestCircularBuffer, pop)
 {
     fill_buffer();
     clear_buffer();
-    ASSERT_EQ(buffer.tail, buffer.head);
-    for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
-        ASSERT_EQ(i, result[i]);
+}
+
+TEST_F(TestCircularBuffer, waiting)
+{
+    fill_buffer();
+    ASSERT_EQ(BUFFER_SIZE, circ_buf_waiting(&buffer));
+    for (uint8_t i = 0; i < BUFFER_SIZE; i++) {
+        circ_buf_pop(&buffer);
+        ASSERT_EQ(BUFFER_SIZE - 1, circ_buf_waiting(&buffer));
+        circ_buf_push(&buffer, 0xFF);
+        ASSERT_EQ(BUFFER_SIZE, circ_buf_waiting(&buffer));
     }
 }
 
-TEST_F(TestCircularBuffer, cant_push_full)
+TEST_F(TestCircularBuffer, transfer)
 {
-    fill_buffer();
-    ASSERT_EQ(-1, circ_buf_push(&buffer, 0xFF));
-
-    /* make sure nothing changed */
-    ASSERT_EQ(BUFFER_SIZE, buffer.head);
-    for (uint16_t i = 0; i < BUFFER_SIZE; i++) {
-        ASSERT_EQ(i, buffer_buffer[i]);
+    CIRC_BUF(dest, 256);
+    for (uint8_t i = 1; i < 26; i++) {
+        fill_buffer();
+        circ_buf_transfer(&dest, &buffer);
+        ASSERT_EQ((i * BUFFER_SIZE), circ_buf_waiting(&dest));
     }
 }
