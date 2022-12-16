@@ -1,2 +1,3 @@
-create_test(TestCircularBuffer test_circular_buffer.cpp buffer_lib)
+create_test(TestCircularBuffer test_circular_buffer.cpp tools)
+
 
