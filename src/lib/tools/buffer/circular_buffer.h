@@ -16,6 +16,8 @@
 #ifndef INJECTOR_CIRCULAR_BUFFER_H
 #define INJECTOR_CIRCULAR_BUFFER_H
 
+#include "buffer/copy.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,6 +45,7 @@ typedef struct circ_buf_t
     volatile uint16_t head;         /**< @brief Buffer  */
     volatile uint16_t tail;         /**< @brief Buffer data */
     const uint16_t    size;         /**< @brief Buffer data */
+    bool              empty;        /**< @brief Whether buffer is empty */
 } circ_buf_t;
 
 /**
@@ -51,7 +54,7 @@ typedef struct circ_buf_t
  * @param size Size of circular buffer
  */
 #define CIRC_BUF(name, n)           \
-    uint8_t name##_buffer[n+1];     \
+    uint8_t name##_buffer[n];       \
     circ_buf_t name = {             \
         .bytes = name##_buffer,     \
         .head = 0,                  \
@@ -63,40 +66,66 @@ typedef struct circ_buf_t
  * @brief Adds byte to circular buffer
  * @param c Circular buffer instance
  * @param byte Byte to add to buffer
- * @return 0 if successful, -1 on error
  */
-static inline char
+static inline void
 circ_buf_push(circ_buf_t * c, uint8_t byte)
 {
-    uint16_t next;
-
-    next = c->head + 1;
-
-    if (next >= c->size + 1) {
-        next = 0;
-    }
-    if (next != c->tail) {
-        c->bytes[c->head] = byte;
-        c->head = next;
-    } else {
-        return -1;
-    }
-    return 0;
+    c->bytes[c->head++] = byte;
+    c->head %= c->size;
+    c->empty            = false;
 }
 
-static inline char
-circ_buf_pop(circ_buf_t *c, uint8_t * data)
+/**
+ * @brief Copies next byte in buffer to given buffer
+ * @param c Circular buffer instance
+ */
+static inline uint8_t
+circ_buf_pop(circ_buf_t * c)
 {
-    uint16_t next;
-    if (c->head == c->tail)
-        return -1;
-    next = c->tail + 1;
-    if (next >= c->size + 1) {
-        next = 0;
+    uint8_t result = c->bytes[c->tail++];
+    c->tail %= c->size;
+    c->empty       = c->tail == c->head;
+    return result;
+}
+
+/**
+ * @brief Gives how many bytes are waiting to be transferred from buffer.
+ * @param c Circular buffer instance
+ * @return number of bytes in buffer
+ */
+static inline uint16_t
+circ_buf_waiting(circ_buf_t * c)
+{
+    if (!c->empty) {
+        if (c->head > c->tail) {
+            return c->head - c->tail;
+        } else if (c->head == c->tail) {
+            return c->size;
+        } else {
+            return c->size - (c->tail - c->head);
+        }
+    } else {
+        return 0;
     }
-    *data = c->bytes[c->tail];
-    c->tail = next;
-    return 0;
+}
+
+/**
+ * @brief Copies from one circular buffer to another
+ * @param dest Buffer to copy to
+ * @param src Buffer to copy from
+ * @return true if okay, otherwise false
+ */
+static inline bool
+circ_buf_transfer(circ_buf_t * dest, circ_buf_t * src)
+{
+    uint16_t n = circ_buf_waiting(src);
+    if ( n > dest->size) {
+        return false;
+    }
+    for (uint16_t i = 0; i < n; i++) {
+        circ_buf_push(dest, circ_buf_pop(src));
+    }
+    return true;
 }
 
 /** @) */
@@ -104,7 +133,7 @@ circ_buf_pop(circ_buf_t *c, uint8_t * data)
 /** @) */
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif //INJECTOR_CIRCULAR_BUFFER_H
