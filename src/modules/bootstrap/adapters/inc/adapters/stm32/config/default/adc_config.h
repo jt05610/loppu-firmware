@@ -113,6 +113,7 @@ extern "C" {
  * @{
  */
 
+#if 0
 /** Enable end of calibration interrupt generation */
 #define STM32_ADC_ENABLE_IT_EOCAL       0
 
@@ -121,9 +122,6 @@ extern "C" {
 
 /** Enable end of conversion interrupt generation */
 #define STM32_ADC_ENABLE_IT_EOC         0
-
-/** Enable end of sequence of conversions interrupt generation */
-#define STM32_ADC_ENABLE_IT_EOS         0
 
 /** Enable analog watchdog 1 interrupt generation */
 #define STM32_ADC_ENABLE_IT_AWD1        0
@@ -139,6 +137,11 @@ extern "C" {
 
 /** Enable end of sampling phase interrupt generation */
 #define STM32_ADC_ENABLE_IT_EOSMP       0
+
+#endif
+
+/** Enable end of sequence of conversions interrupt generation */
+#define STM32_ADC_ENABLE_IT_EOS         0
 
 /** Enable overrun interrupt generation */
 #define STM32_ADC_ENABLE_IT_OVR         0

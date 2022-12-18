@@ -45,17 +45,22 @@ serial_write(Serial base, void * instance, uint8_t * data, uint16_t size)
         base->vtable->write(instance, data, size);
 }
 
-void
-serial_putchar(Serial base, void * instance, uint8_t a)
+uint8_t
+serial_putchar(Serial base, void * instance, char a)
 {
     if (base && base->vtable && base->vtable->putchar)
-        base->vtable->putchar(instance, a);
+        return base->vtable->putchar(instance, a);
+    return 0;
 }
 
 void
-serial_attach_buffer(Serial base, uint8_t * buffer, uint16_t size)
+serial_attach_buffer(Serial base, circ_buf_t * buffer)
 {
-    base->rx_buffer = buffer;
-    base->buffer_size = size;
-    base->buffer_position = 0;
+    base->serial_buffer = buffer;
+}
+
+bool
+serial_buffer_transfer(Serial base, circ_buf_t * src)
+{
+    return circ_buf_transfer(base->serial_buffer, src);
 }

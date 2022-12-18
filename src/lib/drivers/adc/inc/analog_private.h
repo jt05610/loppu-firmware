@@ -16,24 +16,30 @@
 #ifndef DRIVERS_ANALOG_PRIVATE_H
 #define DRIVERS_ANALOG_PRIVATE_H
 
-#include "analog.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @addtogroup ADC
  * @{
  */
+
 #include <stdint.h>
 
 /** @brief Data structure for adc watchdog initialization */
 typedef struct adc_watchdog_t
 {
+    /** @brief any data needed to initialize or use callback */
+    uint8_t data;
+
     /** @brief Trigger cb if reading is greater than this value */
     uint16_t max_value;
 
     /** @brief Trigger cb if reading is less than this value */
     uint16_t min_value;
 
-    /**< @brief Function to run if either threshold is crossed */
+    /** @brief Function to run if either threshold is crossed */
     void (* cb)();
 
 } adc_watchdog_t;
@@ -60,14 +66,17 @@ typedef struct adc_interface_t
 
 } adc_interface_t;
 
-/**< @brief: ADC base data structure */
+/** @brief ADC base data structure */
 typedef struct adc_base_t
 {
     uint16_t n_samples;               /**< @brief Number of samples to store */
     volatile uint16_t * buffer;       /**< @brief Location of samples */
-    ADCInterface vtable;              /**< @brief MCU specific functions */
+    adc_interface_t   * vtable;       /**< @brief MCU specific functions */
 } adc_base_t;
-
 /** @} */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //DRIVERS_ANALOG_PRIVATE_H

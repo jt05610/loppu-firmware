@@ -22,6 +22,8 @@
  * @{
  */
 
+
+
 /**
  * @brief Serial interface function data structure.
  */
@@ -59,8 +61,9 @@ typedef struct serial_interface_t
      * @brief Write single byte to serial port.
      * @param instance Serial instance if needed by target.
      * @param a Bytes to write.
+     * @return a as unsigned byte
      */
-    void (* putchar)(void * instance, uint8_t a);
+    uint8_t (* putchar)(void * instance, char a);
 
 } serial_interface_t;
 
@@ -70,9 +73,7 @@ typedef struct serial_interface_t
 typedef struct serial_base_t
 {
     SerialInterface vtable;         /** @brief Pointer to interface. */
-    volatile uint8_t * rx_buffer;   /** @brief Buffer to store incoming data. */
-    uint16_t buffer_size;           /** @brief Size of buffer. */
-    uint16_t buffer_position;       /** @brief Current position in buffer. */
+    circ_buf_t * serial_buffer;     /** @brief Circular buffer to store data. */
 } serial_base_t;
 
 /** @} */

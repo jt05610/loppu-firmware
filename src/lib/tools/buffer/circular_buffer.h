@@ -29,7 +29,7 @@ extern "C" {
  */
 
 /**
- * @defgroup CircularBuffer
+ * @defgroup CircularBuffer Circular buffer
  * @brief Volatile circular buffer implementation
  * @{
  */
@@ -60,6 +60,20 @@ typedef struct circ_buf_t
         .head = 0,                  \
         .tail = 0,                  \
         .size = n                   \
+    }
+
+/**
+ * @brief Macro to create static circular buffer
+ * @param name Name of circular buffer
+ * @param size Size of circular buffer
+ */
+#define STATIC_CIRC_BUF(name, n)        \
+    static uint8_t name##_buffer[n];    \
+    static circ_buf_t name = {          \
+        .bytes = name##_buffer,         \
+        .head = 0,                      \
+        .tail = 0,                      \
+        .size = n                       \
     }
 
 /**

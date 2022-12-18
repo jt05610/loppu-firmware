@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file   modbus.h
+  * @file   stm32_clock.h
   * @author Jonathan Taylor
-  * @date   12/11/22
+  * @date   7/1/22
   * @brief  DESCRIPTION
   ******************************************************************************
   * @attention
@@ -13,18 +13,22 @@
   ******************************************************************************
   */
 
-#ifndef INJECTOR_MODBUS_H
-#define INJECTOR_MODBUS_H
+#ifndef STM32_IMPL_STM32_CLOCK_H
+#define STM32_IMPL_STM32_CLOCK_H
 
 /**
- * @defgroup Modbus
- * @ingroup Modules
- * @brief Modbus server implementation.
- * @note https://www.modbus.org/docs/Modbus_Application_Protocol_V1_1b.pdf
- * @note https://modbus.org/docs/Modbus_over_serial_line_V1.pdf
+ * @defgroup STM32G0xx_RCC Reset and clock control (RCC)
+ * @ingroup STM32G0xx
+ * @brief Handles reset and clock configuration
+ * @{
  */
 
-#include "modbus/util.h"
-#include "modbus/server_app.h"
+/**
+ * @brief Configures rcc
+ * @see rcc_config.h
+ */
+void stm32_rcc_config();
 
-#endif //INJECTOR_MODBUS_H
+/** @) */
+
+#endif //STM32_IMPL_STM32_CLOCK_H

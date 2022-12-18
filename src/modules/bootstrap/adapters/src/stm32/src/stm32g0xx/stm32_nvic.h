@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file   modbus.h
+  * @file   stm32_nvic.h
   * @author Jonathan Taylor
   * @date   12/11/22
   * @brief  DESCRIPTION
@@ -13,18 +13,22 @@
   ******************************************************************************
   */
 
-#ifndef INJECTOR_MODBUS_H
-#define INJECTOR_MODBUS_H
+#ifndef INJECTOR_STM32_NVIC_H
+#define INJECTOR_STM32_NVIC_H
 
 /**
- * @defgroup Modbus
- * @ingroup Modules
- * @brief Modbus server implementation.
- * @note https://www.modbus.org/docs/Modbus_Application_Protocol_V1_1b.pdf
- * @note https://modbus.org/docs/Modbus_over_serial_line_V1.pdf
+ * @defgroup STM32G0xx_NVIC Nested vectored interrupt controller (NVIC)
+ * @ingroup STM32G0xx
+ * @brief Manages interrupts
+ * @{
  */
 
-#include "modbus/util.h"
-#include "modbus/server_app.h"
+/**
+ * @brief initializes NVIC
+ * @see nvic_config.h
+ */
+void stm32_nvic_init();
 
-#endif //INJECTOR_MODBUS_H
+/** @} */
+
+#endif //INJECTOR_STM32_NVIC_H

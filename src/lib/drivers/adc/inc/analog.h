@@ -3,7 +3,7 @@
   * @file   analog.h
   * @author Jonathan Taylor
   * @date   12/15/22
-  * @brief  Analog hardware abstraction layer driver header.
+  * @brief  Analog peripheral driver header.
   ******************************************************************************
   * @attention
   *
@@ -13,25 +13,26 @@
   ******************************************************************************
   */
 
-#ifndef INJECTOR_ANALOG_H
-#define INJECTOR_ANALOG_H
+#ifndef DRIVERS_ANALOG_H
+#define DRIVERS_ANALOG_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
- * @defgroup ADC
+ * @defgroup ADC Analog-to-digital converter (ADC)
  * @ingroup Peripherals
  * @brief Analog-to-digital converter abstraction layer
  * @{
  */
 #include <stdint.h>
 
-/** @brief: Pointer to ADC instance */
+/** @brief Pointer to ADC instance */
 typedef struct adc_base_t * Analog;
 
-/** @brief: Pointer to ADC Watchdog instance */
+/** @brief Pointer to ADC Watchdog instance */
 typedef struct adc_watchdog_t * ADCWatchdog;
-
-/** @brief: Pointer to ADC interface instance */
-typedef struct adc_interface_t * ADCInterface;
 
 /**
  * @brief Interface to start ADC conversion.
@@ -63,4 +64,8 @@ void adc_add_watchdog(Analog base, ADCWatchdog watchdog);
 #include "analog_private.h"
 /** @} */
 
-#endif //INJECTOR_ANALOG_H
+#ifdef __cplusplus
+}
+#endif
+
+#endif // DRIVERS_ANALOG_H

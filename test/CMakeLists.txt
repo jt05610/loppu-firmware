@@ -1,9 +1,9 @@
 if ((${EMBEDDED}))
     set(${TEST_LIB} unity_lib)
-    macro(create_unity_test)
 
-    endmacro()
     set(create_test create_unity_test)
+
+
 else()
     # GoogleTest
 
@@ -21,12 +21,13 @@ else()
 endif()
 
 macro(create_test _name _runner _deps)
-   if(${EMBEDDED})
+    set(_exec run_${_name})
+    add_executable(${_exec})
+    target_sources(${_exec} PRIVATE ${_runner})
+    if(${EMBEDDED})
+        target_link_libraries(${_exec} PUBLIC unity_lib ${_deps})
 
    else()
-       set(_exec ${_name})
-       add_executable(${_exec})
-       target_sources(${_exec} PRIVATE ${_runner})
        target_link_libraries(${_exec} PRIVATE GTest::gtest_main ${_deps})
        gtest_discover_tests(${_exec})
    endif()
@@ -34,3 +35,4 @@ endmacro()
 enable_testing()
 
 add_subdirectory(lib)
+add_subdirectory(embedded)

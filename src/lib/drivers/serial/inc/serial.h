@@ -31,11 +31,12 @@
  *          prototypes.
  * @{
  */
+#include "buffer/circular_buffer.h"
 
 /**
  * @brief Pointer to @ref serial_base_t.
  */
-typedef struct serial_base_t      * Serial;
+typedef struct serial_base_t * Serial;
 
 /**
  * @brief Pointer to @ref serial_interface_t.
@@ -57,7 +58,7 @@ void serial_open(Serial base, void * instance);
 void serial_close(Serial base, void * instance);
 
 /**
- * @brief Read data from serial port
+ * @brief Read pending data from serial port
  * @param base Serial instance
  * @param instance Serial instance if needed by target.
  * @param dest buffer to read data into
@@ -79,16 +80,24 @@ void serial_write(Serial base, void * instance, uint8_t * data, uint16_t size);
  * @param base Serial instance
  * @param instance Serial instance if needed by target.
  * @param a Byte to write
+ * @return Unsigned version of given char.
  */
-void serial_putchar(Serial base, void * instance, uint8_t a);
+uint8_t serial_putchar(Serial base, void * instance, char a);
 
 /**
  * @brief Sets internal buffer for serial to read from
  * @param base Serial instance
- * @param buffer Buffer to read into
- * @param size Number of bytes the buffer can hold
+ * @param buffer Instantiated circular buffer to read into
  */
-void serial_attach_buffer(Serial base, uint8_t * buffer, uint16_t size);
+void serial_attach_buffer(Serial base, circ_buf_t * buffer);
+
+/**
+ * @brief Transfers from passed source buffer into serial's circular buffer
+ * @param base Serial instance
+ * @param src Buffer to transfer from
+ * @return true if okay, false if error occurred
+ */
+bool serial_buffer_transfer(Serial base, circ_buf_t * src);
 
 /** @} */
 

@@ -374,10 +374,12 @@ typedef struct
 #define LL_RCC_USART1_CLKSOURCE_SYSCLK     ((RCC_CCIPR_USART1SEL << 16U) | RCC_CCIPR_USART1SEL_0)  /*!< SYSCLK clock used as USART1 clock source */
 #define LL_RCC_USART1_CLKSOURCE_HSI        ((RCC_CCIPR_USART1SEL << 16U) | RCC_CCIPR_USART1SEL_1)  /*!< HSI clock used as USART1 clock source */
 #define LL_RCC_USART1_CLKSOURCE_LSE        ((RCC_CCIPR_USART1SEL << 16U) | RCC_CCIPR_USART1SEL)    /*!< LSE clock used as USART1 clock source */
+#if defined(RCC_CCIPR_USART2SEL)
 #define LL_RCC_USART2_CLKSOURCE_PCLK1      ((RCC_CCIPR_USART2SEL << 16U) | 0x00000000U)            /*!< PCLK1 clock used as USART2 clock source */
 #define LL_RCC_USART2_CLKSOURCE_SYSCLK     ((RCC_CCIPR_USART2SEL << 16U) | RCC_CCIPR_USART2SEL_0)  /*!< SYSCLK clock used as USART2 clock source */
 #define LL_RCC_USART2_CLKSOURCE_HSI        ((RCC_CCIPR_USART2SEL << 16U) | RCC_CCIPR_USART2SEL_1)  /*!< HSI clock used as USART2 clock source */
 #define LL_RCC_USART2_CLKSOURCE_LSE        ((RCC_CCIPR_USART2SEL << 16U) | RCC_CCIPR_USART2SEL)    /*!< LSE clock used as USART2 clock source */
+#endif
 #if defined(RCC_CCIPR_USART3SEL)
 #define LL_RCC_USART3_CLKSOURCE_PCLK1      ((RCC_CCIPR_USART3SEL << 16U) | 0x00000000U)           /*!< PCLK1 clock used as USART3 clock source */
 #define LL_RCC_USART3_CLKSOURCE_SYSCLK     ((RCC_CCIPR_USART3SEL << 16U) | RCC_CCIPR_USART3SEL_0) /*!< SYSCLK clock used as USART3 clock source */

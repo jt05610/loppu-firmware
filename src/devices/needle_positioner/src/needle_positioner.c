@@ -29,7 +29,7 @@ static struct needle_positioner_t
 {
     ServerApp server;
     needle_positioner_init_t * ctx;
-    uint8_t rx_buffer[RX_BUFFER_SIZE];
+    uint8_t rx_buffer[STM32_USART1_RX_BUFFER_SIZE];
 
 } self = {0};
 

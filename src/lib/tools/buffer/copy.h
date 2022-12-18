@@ -16,6 +16,9 @@
 #ifndef INJECTOR_COPY_H
 #define INJECTOR_COPY_H
 
+#include "stddef.h"
+#include "stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,8 +35,8 @@ extern "C" {
  * @param src source buffer
  * @param n number of bytes to transfer
  */
-static inline volatile void
-* copy(
+static inline volatile void *
+copy(
         BYTE_BUFFER_TYPE dest,
         const BYTE_BUFFER_TYPE src,
         size_t n)
@@ -51,5 +54,4 @@ static inline volatile void
 #ifdef __cplusplus
 };
 #endif
-
 #endif //INJECTOR_COPY_H

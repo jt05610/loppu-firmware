@@ -19,6 +19,7 @@
 #include "serial.h"
 #include "gpio.h"
 #include "timer.h"
+#include "analog.h"
 
 /** @addtogroup Drivers
  *  @{
@@ -38,11 +39,14 @@ typedef struct peripherals_t * Peripherals;
 /**
  * @brief Container of abstract hardware implementations.
  */
-typedef struct peripherals_t {
-    GPIO gpio;              /**< @brief Implemented @ref gpio_t instance. */
-    Serial serial;          /**< @brief Implemented @ref serial_t instance. */
-    Timer timer;            /**< @brief Implemented @ref timer_t instance. */
-} peripherals_t;
+typedef struct peripherals_t
+{
+    GPIO   gpio;          /**< @brief Implemented gpio instance. */
+    Serial serial;        /**< @brief Implemented serial instance. */
+    Timer  timer;         /**< @brief Implemented timer instance. */
+    Analog analog;        /**< @brief Implemented analog instance. */
+
+}                            peripherals_t;
 
 /** @} */
 
