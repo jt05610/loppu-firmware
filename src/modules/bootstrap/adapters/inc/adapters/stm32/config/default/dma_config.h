@@ -46,45 +46,35 @@ extern "C" {
  * @note There may be overlap as long as only one overlapping channel is enabled
  */
 
-#if STM32_ADC_ENABLE_DMA
 /**
  * @brief DMA channel assignment for ADC
  * @ingroup STM32G0xx_ADCConfig
  */
 #define STM32_ADC_DMA_CHANNEL           LL_DMA_CHANNEL_1
-#endif
 
-#if STM32_ENABLE_USART1_RX_DMA
 /**
  * @brief DMA channel assignment for USART1 RX request
  * @ingroup STM32G0xx_SerialConfig
  */
 #define STM32_USART1_RX_DMA_CHANNEL     LL_DMA_CHANNEL_2
-#endif
 
-#if STM32_ENABLE_USART1_TX_DMA
 /**
  * @brief DMA channel assignment for USART1 TX request
  * @ingroup STM32G0xx_SerialConfig
  */
 #define STM32_USART1_TX_DMA_CHANNEL     LL_DMA_CHANNEL_3
-#endif
 
-#if STM32_ENABLE_USART2_RX_DMA
 /**
  * @brief DMA channel assignment for USART2 RX request
  * @ingroup STM32G0xx_SerialConfig
  */
 #define STM32_USART2_RX_DMA_CHANNEL     LL_DMA_CHANNEL_2
-#endif
 
-#if STM32_ENABLE_USART2_TX_DMA
 /**
  * @brief DMA channel assignment for USART2 TX request
  * @ingroup STM32G0xx_SerialConfig
  */
 #define STM32_USART2_TX_DMA_CHANNEL     LL_DMA_CHANNEL_2
-#endif
 
 #if STM32_ADC_ENABLE_DMA
 /**
@@ -132,7 +122,7 @@ extern "C" {
 #define STM32_ADC_DMA_ENABLE_TE         0
 
 /** @brief DMA buffer size */
-#define STM32_ADC_DMA_BUFFER_SIZE    STM32_ADC_BUFFER_SIZE
+#define STM32_ADC_DMA_BUFFER_SIZE       STM32_ADC_BUFFER_SIZE
 
 /** @} */
 

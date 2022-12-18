@@ -14,9 +14,7 @@
   */
 
 #include <stdint.h>
-#include <stdbool.h>
 #include "stm32g0xx_ll_dma.h"
-#include "buffer/circular_buffer.h"
 #include "stm32_dma.h"
 #include "stm32_interrupts.h"
 #include "default/dma_config.h"
@@ -49,7 +47,7 @@ __DMA_SET_PERIPH_MEM(IncMode, periph, __GET(periph, PERIPH_INC), __GET(periph, M
 LL_DMA_SetPeriphRequest(DMA1, __GET(periph, CHANNEL),  __GET(periph, REQUEST));             \
 __ENABLE(periph, HT);                                                                       \
 __ENABLE(periph, TC);                                                                       \
-__ENABLE(periph, TE);
+__ENABLE(periph, TE)
 
 void
 stm32_dma_create(stm32_dma_mem_addr_t * params)
@@ -150,7 +148,7 @@ DMA1_Channel2_3_IRQHandler()
 __INTERRUPT
 DMA1_Ch4_5_DMAMUX1_OVR_IRQHandler()
 {
-#if STM32_ENABLE_DMA1_Channel4_5_DMAMUx1_OVR_IRQn
+#if STM32_ENABLE_DMA1_Ch4_5_DMAMUX1_OVR_IRQn
     __HANDLE(HT, 4) {
 
         __CLEAR(HT, 4);

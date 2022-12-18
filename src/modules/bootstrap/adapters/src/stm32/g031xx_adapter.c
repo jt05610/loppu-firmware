@@ -22,6 +22,7 @@
 #include "stm32g0xx/stm32_timer.h"
 #include "stm32g0xx/stm32_gpio.h"
 #include "stm32g0xx/stm32_dma.h"
+#include "stm32g0xx/stm32_nvic.h"
 
 peripherals_t self = {0};
 
@@ -67,12 +68,6 @@ gpio_config()
 }
 
 static inline void
-nvic_config()
-{
-
-}
-
-static inline void
 serial_config()
 {
 #if STM32_ENABLE_SERIAL
@@ -92,12 +87,12 @@ Peripherals
 stm32_dependency_injection()
 {
     stm32_rcc_config();
+    stm32_nvic_config();
     adc_config();
     dma_config();
     gpio_config();
     timer_config();
     serial_config();
-    nvic_config();
 
     return &self;
 }

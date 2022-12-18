@@ -27,7 +27,7 @@
  * @brief initializes NVIC
  * @see nvic_config.h
  */
-void stm32_nvic_init();
+void stm32_nvic_config();
 
 /** @} */
 

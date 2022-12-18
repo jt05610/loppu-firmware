@@ -15,6 +15,9 @@
 
 #ifndef INJECTOR_NVIC_CONFIG_H
 #define INJECTOR_NVIC_CONFIG_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup STM32G0xx_NVICConfig NVIC config
@@ -22,60 +25,184 @@
  * @brief NVIC peripheral configuration
  * @{
  */
+/** @brief Enable Window Watchdog interrupt handler */
+#define STM32_ENABLE_WWDG_IRQn 0
+/** @brief Window Watchdog interrupt priority */
+#define STM32_WWDG_IRQn_PRIORITY 0
+
+/** @brief Enable PVD through EXTI Line detect */
+#define STM32_ENABLE_PVD_IRQn 0
+/** @brief PVD through EXTI Line detect */
+#define STM32_PVD_IRQn_PRIORITY 0
+
+/** @brief Enable RTC through the EXTI line interrupt handler */
+#define STM32_ENABLE_RTC_TAMP_IRQn 0
+/** @brief RTC through the EXTI line interrupt priority */
+#define STM32_RTC_TAMP_IRQn_PRIORITY 0
+
+/** @brief Enable FLASH interrupt handler */
+#define STM32_ENABLE_FLASH_IRQn 0
+/** @brief FLASH interrupt priority */
+#define STM32_FLASH_IRQn_PRIORITY 0
+
+/** @brief Enable EXTI Line 0 and 1 interrupt handler */
+#define STM32_ENABLE_EXTI0_1_IRQn 0
+/** @brief EXTI Line 0 and 1 interrupt priority */
+#define STM32_EXTI0_1_IRQn_PRIORITY 0
+
+/** @brief Enable EXTI Line 2 and 3 interrupt handler */
+#define STM32_ENABLE_EXTI2_3_IRQn 0
+/** @brief EXTI Line 2 and 3 interrupt priority */
+#define STM32_EXTI2_3_IRQn_PRIORITY 0
+
+/** @brief Enable EXTI Line 4 to 15 interrupt handler */
+#define STM32_ENABLE_EXTI4_15_IRQn 0
+/** @brief EXTI Line 4 to 15 interrupt priority */
+#define STM32_EXTI4_15_IRQn_PRIORITY 0
 
 /**
- * @brief Enables USART1 interrupt generation
- * @ingroup STM32G0xx_USART1_NVIC_Config
- */
-#define STM32_ENABLE_USART1_IRQn       1
-
-/**
- * @brief Enables USART2 interrupt generation
- * @ingroup STM32G0xx_USART2_NVIC_Config
- */
-#define STM32_ENABLE_USART2_IRQn       0
-
-#if STM32_ENABLE_USART1_IRQn
-/**
-  ******************************************************************************
- * @defgroup STM32G0xx_USART1_NVIC_Config USART1 interrupts
- * @ingroup STM32G0xx_USART1Config
- * @brief Interrupt generation configuration for USART1
+ * @ingroup STM32G0xx_DMA
  * @{
  */
-/** @brief USART1 interrupt generation priority */
-#define STM32_USART1_IRQn_PRIORITY     1
-
-/** @) */
-#endif // STM32_ENABLE_USART1_IRQn
-
-
-#if STM32_ENABLE_USART2_IRQn
-/**
-  ******************************************************************************
- * @defgroup STM32G0xx_USART2_NVIC_Config USART2 interrupts
- * @brief Interrupt generation configuration for USART2
- * @ingroup STM32G0xx_USART2Config
- * @{
- */
-
-/** @brief USART2 interrupt generation priority */
-#define STM32_USART2_IRQn_PRIORITY      0
-
-/** @) */
-#endif // STM32_ENABLE_USART2_IRQn
-#define STM32_ENABLE_DMA1_Channel1_IRQn                 1
-#define STM32_ENABLE_DMA1_Channel2_3_IRQn               1
-#define STM32_ENABLE_DMA1_Channel4_5_DMAMUx1_OVR_IRQn   0
-#if STM32_ENABLE_DMA1_Channel1_IRQn
+/** @brief Enable DMA1 Channel 1 interrupt handler */
+#define STM32_ENABLE_DMA1_Channel1_IRQn                 0
+/** @brief DMA1 Channel 1 interrupt priority */
 #define STM32_DMA1_Channel1_IRQn_PRIORITY               0
-#endif
-#if STM32_ENABLE_DMA1_Channel2_3_IRQn
+
+/** @brief Enable DMA1 Channel 2 and Channel 3 interrupt handler */
+#define STM32_ENABLE_DMA1_Channel2_3_IRQn               0
+/** @brief DMA1 Channel 2 and Channel 3 interrupt priority */
 #define STM32_DMA1_Channel2_3_PRIORITY                  0
-#endif
-#if STM32_ENABLE_DMA1_Channel4_5_DMAMUx1_OVR_IRQn
+
+/** @brief Enable DMA1 Channel 4 5, DMAMUX1 overrun interrupt handler */
+#define STM32_ENABLE_DMA1_Ch4_5_DMAMUX1_OVR_IRQn        0
+/** @brief DMA1 Channel 4 to Channel 5, DMAMUX1 overrun interrupt priority */
 #define STM32_Channel4_5_DMAMUx1_OVR_IRQn_PRIORITY      0
-#endif
 
 /** @} */
+
+/**
+ * @ingroup STM32G031xx_ADC
+ * @{
+ */
+/** @brief Enable ADC1 interrupt handler */
+#define STM32_ENABLE_ADC1_IRQn 0
+/** @brief ADC1 interrupt priority */
+#define STM32_ADC1_IRQn_PRIORITY 0
+/** @} */
+
+/**
+ * @ingroup STM32G031xx_Timer
+ * @{
+ */
+
+/** @brief Enable TIM1 Break, Update, Trigger, and Commutation
+ *         interrupt handler */
+#define STM32_ENABLE_TIM1_BRK_UP_TRG_COM_IRQn 0
+/** @brief TIM1 Break, Update, Trigger and Commutation interrupt priority */
+#define STM32_TIM1_BRK_UP_TRG_COM_IRQn_PRIORITY 0
+
+/** @brief Enable TIM1 Capture Compare interrupt handler */
+#define STM32_ENABLE_TIM1_CC_IRQn 0
+/** @brief TIM1 Capture Compare interrupt priority */
+#define STM32_TIM1_CC_IRQn_PRIORITY 0
+
+/** @brief Enable TIM2 interrupt handler */
+#define STM32_ENABLE_TIM2_IRQn 0
+/** @brief TIM2 interrupt priority */
+#define STM32_TIM2_IRQn_PRIORITY 0
+
+/** @brief Enable TIM3 interrupt handler */
+#define STM32_ENABLE_TIM3_IRQn 0
+/** @brief TIM3 interrupt priority */
+#define STM32_TIM3_IRQn_PRIORITY 0
+
+/** @brief Enable LPTIM1 interrupt handler */
+#define STM32_ENABLE_LPTIM1_IRQn 0
+/** @brief LPTIM1 interrupt priority */
+#define STM32_LPTIM1_IRQn_PRIORITY 0
+
+/** @brief Enable LPTIM2 interrupt handler */
+#define STM32_ENABLE_LPTIM2_IRQn 0
+/** @brief LPTIM2 interrupt priority */
+#define STM32_LPTIM2_IRQn_PRIORITY 0
+
+/** @brief Enable TIM14 interrupt handler */
+#define STM32_ENABLE_TIM14_IRQn 0
+/** @brief TIM14 interrupt priority */
+#define STM32_TIM14_IRQn_PRIORITY 0
+
+/** @brief Enable TIM16 interrupt handler */
+#define STM32_ENABLE_TIM16_IRQn 0
+/** @brief TIM16 interrupt priority */
+#define STM32_TIM16_IRQn_PRIORITY 0
+
+/** @brief Enable TIM17 interrupt handler */
+#define STM32_ENABLE_TIM17_IRQn 0
+/** @brief TIM17 interrupt priority */
+#define STM32_TIM17_IRQn_PRIORITY 0
+
+/** @} */
+/**
+ * @ingroup STM32G031xx_I2C
+ * @{
+ */
+
+/** @brief Enable I2C1 interrupt handler */
+#define STM32_ENABLE_I2C1_IRQn 0
+/** @brief I2C1 interrupt priority */
+#define STM32_I2C1_IRQn_PRIORITY 0
+
+/** @brief Enable I2C2 interrupt handler */
+#define STM32_ENABLE_I2C2_IRQn 0
+/** @brief I2C2 interrupt priority */
+#define STM32_I2C2_IRQn_PRIORITY 0
+
+/** @} */
+
+/**
+ * @ingroup STM32G031xx_SPI
+ * @{
+ */
+
+/** @brief Enable SPI1 interrupt handler */
+#define STM32_ENABLE_SPI1_IRQn 0
+/** @brief SPI1 interrupt priority */
+#define STM32_SPI1_IRQn_PRIORITY 0
+
+/** @brief Enable SPI2 interrupt handler */
+#define STM32_ENABLE_SPI2_IRQn 0
+/** @brief SPI2 interrupt priority */
+#define STM32_SPI2_IRQn_PRIORITY 0
+
+/** @} */
+
+/**
+ * @ingroup STM32G031xx_Serial
+ * @{
+ */
+
+/** @brief Enable USART1 interrupt handler */
+#define STM32_ENABLE_USART1_IRQn 0
+/** @brief USART1 interrupt priority */
+#define STM32_USART1_IRQn_PRIORITY 0
+
+/** @brief Enable USART2 interrupt handler */
+#define STM32_ENABLE_USART2_IRQn 0
+/** @brief USART2 interrupt priority */
+#define STM32_USART2_IRQn_PRIORITY 0
+
+/** @brief Enable LPUART1 interrupt handler */
+#define STM32_ENABLE_LPUART1_IRQn 0
+/** @brief LPUART1 interrupt priority */
+#define STM32_LPUART1_IRQn_PRIORITY 0
+
+/** @} */
+
+/** @) */
+
+#ifdef __cplusplus
+};
+#endif
+
 #endif //INJECTOR_NVIC_CONFIG_H
