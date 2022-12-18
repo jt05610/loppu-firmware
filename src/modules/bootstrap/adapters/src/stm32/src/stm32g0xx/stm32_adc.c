@@ -78,6 +78,11 @@ stm32_adc_create()
     return &self.base;
 }
 
+volatile uint16_t * stm32_adc_get_buffer()
+{
+    return self.adc_buffer;
+}
+
 static inline void
 start()
 {

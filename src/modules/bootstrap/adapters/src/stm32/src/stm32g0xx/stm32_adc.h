@@ -34,6 +34,12 @@ extern "C" {
  */
 Analog stm32_adc_create();
 
+/**
+ * @brief Gets ADC buffer
+ * @return Adc buffer
+ */
+volatile uint16_t * stm32_adc_get_buffer();
+
 /** @} */
 
 #ifdef __cplusplus

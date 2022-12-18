@@ -17,76 +17,87 @@
 #include "default.h"
 
 #include "stm32g0xx/stm32_rcc.h"
-
-#if STM32_ENABLE_ADC
-
 #include "stm32g0xx/stm32_adc.h"
-
-#endif
-
-#if !STM32_ENABLE_SERIAL
-
 #include "stm32g0xx/stm32_serial.h"
-
-#endif
-
-#if STM32_ENABLE_TIMER
-
 #include "stm32g0xx/stm32_timer.h"
-
-#endif
-
-#if STM32_ENABLE_GPIO
-
 #include "stm32g0xx/stm32_gpio.h"
-
-#endif
-
-#if STM32_ENABLE_DMA
-
 #include "stm32g0xx/stm32_dma.h"
 
-#endif
 peripherals_t self = {0};
 
-Peripherals
-stm32_dependency_injection(void * params)
+static inline void
+adc_config()
 {
-    (void) params;
-    stm32_rcc_config();
-
 #if STM32_ENABLE_ADC
     self.analog = stm32_adc_create();
 #endif
+}
 
+static inline void
+dma_config()
+{
 #if STM32_ENABLE_DMA
-    stm32_dma_mem_addr_t dma_params = {
-#if STM32_USART1_RX_ENABLE_DMA
-            .usart1_rx=0,
+    stm32_dma_mem_addr_t addr = {
+#if STM32_ADC_ENABLE_DMA
+            .adc=(uint32_t) stm32_adc_get_buffer(),
 #endif
-            .usart2_rx=0,
-#if STM32_USART1_RX_ENABLE_DMA
-            .adc=(uint32_t) self.analog->buffer
+#if STM32_ENABLE_USART1_RX_DMA
+            .usart1_rx=(uint32_t) stm32_get_usart1_rx_buffer(),
 #endif
-
-#if STM32_USART1_RX_ENABLE_DMA
+#if STM32_ENABLE_USART1_TX_DMA
+            .usart1_tx=(uint32_t) stm32_get_usart1_tx_buffer(),
+#endif
+#if STM32_ENABLE_USART2_RX_DMA
+            .usart2_rx=(uint32_t) stm32_get_usart2_rx_buffer(),
+#endif
+#if STM32_ENABLE_USART2_TX_DMA
+            .usart2_tx=(uint32_t) stm32_get_usart2_tx_buffer(),
 #endif
     };
-    stm32_dma_create(&dma_params);
+    stm32_dma_create(&addr);
 #endif
+}
 
+static inline void
+gpio_config()
+{
 #if STM32_ENABLE_GPIO
     self.gpio = stm32_gpio_create();
 #endif
+}
 
+static inline void
+nvic_config()
+{
 
+}
+
+static inline void
+serial_config()
+{
+#if STM32_ENABLE_SERIAL
+    self.serial = stm32_serial_create();
+#endif
+}
+
+static inline void
+timer_config()
+{
 #if STM32_ENABLE_TIMER
     self.timer = stm32_timer_create();
 #endif
+}
 
-#if !STM32_ENABLE_SERIAL
-    self.serial = stm32_serial_create();
-#endif
+Peripherals
+stm32_dependency_injection()
+{
+    stm32_rcc_config();
+    adc_config();
+    dma_config();
+    gpio_config();
+    timer_config();
+    serial_config();
+    nvic_config();
 
     return &self;
 }

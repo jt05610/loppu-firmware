@@ -1,6 +1,6 @@
 # Project exclude paths
-/cmake-build-embedded/
-/cmake-build-debug/
-/cmake-build-simulated/
-/docs/
-/src/lib/third_party/CMock/
+/cmake-build-embedded/*
+/cmake-build-debug/*
+/cmake-build-simulated/*
+/docs/*
+/src/lib/third_party/CMock/*

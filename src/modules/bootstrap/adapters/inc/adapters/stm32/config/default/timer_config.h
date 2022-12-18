@@ -26,6 +26,7 @@
 
 #include "stm32g0xx_ll_tim.h"
 
+#define STM32_ENABLE_TIMER              1
 /**
   ******************************************************************************
  * @defgroup STM32G0xx_LPTIM1_Config LPTIM1

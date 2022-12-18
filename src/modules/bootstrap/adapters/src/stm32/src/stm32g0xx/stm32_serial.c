@@ -13,16 +13,14 @@
   ******************************************************************************
   */
 
-#if 0
 #include "stm32_serial.h"
+
 #include "default/serial_config.h"
 #include "default/gpio_config.h"
 #include "stm32g0xx_ll_gpio.h"
 #include "buffer.h"
 #include "stm32g0xx_ll_dma.h"
 #include "default/dma_config.h"
-
-STATIC_CIRC_BUF(serial_buffer, STM32_USART1_RX_BUFFER_SIZE);
 
 static struct
 {
@@ -58,11 +56,49 @@ static serial_interface_t interface = {
         .putchar=_putchar
 };
 
+#if STM32_ENABLE_USART1_RX_DMA
+STATIC_CIRC_BUF(usart1_rx_circ, STM32_USART1_RX_BUFFER_SIZE);
+uint8_t *
+stm32_get_usart1_rx_buffer()
+{
+    return usart1_rx_circ_buffer;
+}
+# endif
+
+#if STM32_ENABLE_USART1_TX_DMA
+STATIC_CIRC_BUF(usart1_tx_circ, STM32_USART1_TX_BUFFER_SIZE);
+
+uint8_t *
+stm32_get_usart1_tx_buffer()
+{
+    return usart1_tx_circ_buffer;
+}
+
+#endif
+
+#if STM32_ENABLE_USART2_RX_DMA
+STATIC_CIRC_BUF(usart2_rx_circ, STM32_USART2_RX_BUFFER_SIZE);
+uint8_t *
+stm32_get_usart2_rx_buffer()
+{
+    return usart2_rx_circ_buffer;
+}
+# endif
+
+#if STM32_ENABLE_USART2_TX_DMA
+STATIC_CIRC_BUF(usart2_tx_circ, STM32_USART2_TX_BUFFER_SIZE);
+uint8_t *
+stm32_get_usart2_tx_buffer()
+{
+    return usart2_tx_circ_buffer;
+}
+#endif
+
 Serial
 stm32_serial_create()
 {
     self.base.vtable        = &interface;
-    self.base.serial_buffer = &serial_buffer;
+    self.base.serial_buffer = &usart1_rx_circ;
     uart_clock_init();
 #ifndef SIMULATED
     gpio_init();
@@ -384,4 +420,3 @@ USART1_IRQHandler(void)
         self.rx_pos_old = self.base.buffer_position;
     }
 }
-#endif

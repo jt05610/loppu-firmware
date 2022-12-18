@@ -104,7 +104,7 @@ __INTERRUPT TIM17_IRQHandler();
 /** @} */
 
 /**
- * @addtogroup STM32G031xx_SPI
+ * @addtogroup STM32G031xx_I2C
  * @{
  */
 

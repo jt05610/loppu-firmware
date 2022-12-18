@@ -19,13 +19,9 @@
 #include "default/serial_config.h"
 
 /**
- * @addtogroup STM32G0xx
- * @{
- */
-
-/**
  * @defgroup STM32G0xx_Serial Universal synchronous/asynchronous
  *           receiver transmitter (USART)
+ * @ingroup STM32G0xx
  * @brief Serial implementation for STM32g031xx microcontroller
  * @{
  */
@@ -56,8 +52,31 @@ Serial stm32_serial_create();
 void
 stm32_serial_set_rto_cb(void * instance, rx_callback_t * cb, void * to_pass);
 
-/** @) */
+/**
+ * @brief Gets USART1 RX buffer
+ * @return USART1 RX buffer
+ */
+uint8_t * stm32_get_usart1_rx_buffer();
+
+/**
+ * @brief Gets USART1 TX buffer
+ * @return USART1 TX buffer
+ */
+uint8_t * stm32_get_usart1_tx_buffer();
+
+/**
+ * @brief Gets USART2 RX buffer
+ * @return USART2 RX buffer
+ */
+uint8_t * stm32_get_usart2_rx_buffer();
+
+/**
+ * @brief Gets USART2 TX buffer
+ * @return USART2 TX buffer
+ */
+uint8_t * stm32_get_usart2_tx_buffer();
 
 /** @) */
+
 
 #endif //INJECTOR_STM32_SERIAL_H

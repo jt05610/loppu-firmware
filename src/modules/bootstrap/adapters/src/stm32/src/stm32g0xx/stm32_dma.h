@@ -25,18 +25,26 @@
  */
 
 #include <stdint.h>
+#include "adapters/stm32/config/default/dma_config.h"
 
 /** @brief Struct to pass memory address to dma */
 typedef struct stm32_dma_mem_addr_t {
-#if STM32_USART1_RX_ENABLE_DMA
-    uint32_t usart1_rx;                /**< @brief USART1 RX buffer address */
-#endif
-#if STM32_USART2_RX_ENABLE_DMA
-    uint32_t usart2_rx;                /**< @brief USART2 RX buffer address */
-#endif
 #if STM32_ADC_ENABLE_DMA
     uint32_t adc;                      /**< @brief ADC buffer address */
 #endif
+#if STM32_ENABLE_USART1_RX_DMA
+    uint32_t usart1_rx;                /**< @brief USART1 RX buffer address */
+#endif
+#if STM32_ENABLE_USART1_TX_DMA
+    uint32_t usart1_tx;                /**< @brief USART1 TX buffer address */
+#endif
+#if STM32_ENABLE_USART2_RX_DMA
+    uint32_t usart2_rx;                /**< @brief USART2 RX buffer address */
+#endif
+#if STM32_ENABLE_USART2_TX_DMA
+    uint32_t usart2_tx;                /**< @brief USART2 TX buffer address */
+#endif
+
 } stm32_dma_mem_addr_t;
 
 /**

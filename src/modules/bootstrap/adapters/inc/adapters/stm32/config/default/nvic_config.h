@@ -64,6 +64,18 @@
 
 /** @) */
 #endif // STM32_ENABLE_USART2_IRQn
+#define STM32_ENABLE_DMA1_Channel1_IRQn                 1
+#define STM32_ENABLE_DMA1_Channel2_3_IRQn               1
+#define STM32_ENABLE_DMA1_Channel4_5_DMAMUx1_OVR_IRQn   0
+#if STM32_ENABLE_DMA1_Channel1_IRQn
+#define STM32_DMA1_Channel1_IRQn_PRIORITY               0
+#endif
+#if STM32_ENABLE_DMA1_Channel2_3_IRQn
+#define STM32_DMA1_Channel2_3_PRIORITY                  0
+#endif
+#if STM32_ENABLE_DMA1_Channel4_5_DMAMUx1_OVR_IRQn
+#define STM32_Channel4_5_DMAMUx1_OVR_IRQn_PRIORITY      0
+#endif
 
 /** @} */
 #endif //INJECTOR_NVIC_CONFIG_H

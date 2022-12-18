@@ -3,7 +3,7 @@
   * @file   stm32_dma.c
   * @author Jonathan Taylor
   * @date   12/17/22
-  * @brief  DESCRIPTION
+  * @brief  DMA implementation for STM32GG0xx
   ******************************************************************************
   * @attention
   *
@@ -16,12 +16,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32g0xx_ll_dma.h"
-#include "adapters/stm32/config/default/dma_config.h"
 #include "buffer/circular_buffer.h"
 #include "stm32_dma.h"
+#include "stm32_interrupts.h"
+#include "default/dma_config.h"
+#include "default/nvic_config.h"
 
 typedef void (* dma_clear_flag_handler_t)(DMA_TypeDef * dma);
 
+static uint8_t channel_flags;
 
 static inline void
 stm32_dma_clear_flags(uint32_t channel)
@@ -53,7 +56,13 @@ __GET(periph, ENABLE_##flag)                        \
 LL_DMA_SetPeriph##prop(DMA1, __GET(periph, CHANNEL), p_val);     \
 LL_DMA_SetMemory##prop(DMA1, __GET(periph, CHANNEL), m_val)
 
-#define __INIT_PERIPH(periph, mem_address)                                                  \
+/**
+ * Determines whether to enable interrupts for channels 1, 2/3, or 4/5
+ */
+#define __NVIC_FLAGS(periph) \
+__GET(periph, ENABLE_HT) | __GET(periph, ENABLE_TC) | __GET(periph, ENABLE_TE)
+
+#define __INIT_PERIPH(periph, mem_address, flag_track)                                      \
 __DMA_SET_PERIPH_MEM(Address, periph, __GET(periph, PERIPH_ADDR), (uint32_t) mem_address);  \
 LL_DMA_SetDataLength(DMA1, __GET(periph, CHANNEL), __GET(periph, BUFFER_SIZE));             \
 LL_DMA_SetChannelPriorityLevel(DMA1, __GET(periph, CHANNEL), __GET(periph, PRIORITY));      \
@@ -64,46 +73,68 @@ __DMA_SET_PERIPH_MEM(IncMode, periph, __GET(periph, PERIPH_INC), __GET(periph, M
 LL_DMA_SetPeriphRequest(DMA1, __GET(periph, CHANNEL),  __GET(periph, REQUEST));             \
 stm32_dma_clear_flags(__GET(periph, CHANNEL));                                              \
 __ENABLE(periph, HT);                                                                       \
-__ENABLE(periph, TC)
-
-#if STM32_USART1_RX_ENABLE_DMA
-STATIC_CIRC_BUF(usart1_rx_dma_buffer, STM32_USART1_RX_DMA_BUFFER_SIZE);
-#endif
-
-#if STM32_USART2_RX_ENABLE_DMA
-STATIC_CIRC_BUF(usart2_rx_dma_buffer, STM32_USART1_RX_DMA_BUFFER_SIZE);
-#endif
+__ENABLE(periph, TC);                                                                       \
+__ENABLE(periph, TE);
 
 void
 stm32_dma_create(stm32_dma_mem_addr_t * params)
 {
-#if STM32_USART1_RX_ENABLE_DMA
-    __INIT_PERIPH(_USART1_RX, params->usart1_rx);
-#endif
-#if STM32_USART2_RX_ENABLE_DMA
-    __INIT_PERIPH(_USART2_RX, params->usart1_rx);
-#endif
 #if STM32_ADC_ENABLE_DMA
-    __INIT_PERIPH(_ADC, params->adc);
+    __INIT_PERIPH(_ADC, params->adc, nvic_tracker);
 #endif
+#if STM32_ENABLE_USART1_RX_DMA
+    __INIT_PERIPH(_USART1_RX, params->usart1_rx, nvic_tracker);
+#endif
+#if STM32_ENABLE_USART1_TX_DMA
+    __INIT_PERIPH(_USART1_TX, params->usart1_tx, nvic_tracker);
+#endif
+#if STM32_ENABLE_USART2_RX_DMA
+    __INIT_PERIPH(_USART2_RX, params->usart2_rx, nvic_tracker);
+#endif
+#if STM32_ENABLE_USART2_TX_DMA
+    __INIT_PERIPH(_USART2_TX, params->usart2_tx, nvic_tracker);
+#endif
+
 }
 
 void
 stm32_dma_start_channel(uint8_t channel)
 {
     LL_DMA_EnableChannel(DMA1, channel);
-    while(!LL_DMA_IsEnabledChannel(DMA1, channel));
+    while (!LL_DMA_IsEnabledChannel(DMA1, channel));
 }
 
 void
 stm32_dma_stop_channel(uint8_t channel)
 {
     LL_DMA_DisableChannel(DMA1, channel);
-    while(LL_DMA_IsEnabledChannel(DMA1, channel));
+    while (LL_DMA_IsEnabledChannel(DMA1, channel));
 }
 
 void
 stm32_dma_reset_channel(uint8_t channel)
 {
     stm32_dma_stop_channel(channel);
+    stm32_dma_start_channel(channel);
+}
+
+__INTERRUPT
+DMA1_Channel1_IRQHandler()
+{
+#if STM32_ENABLE_DMA1_Channel1_IRQn
+#endif
+}
+
+__INTERRUPT
+DMA1_Channel2_3_IRQHandler()
+{
+#if STM32_ENABLE_DMA1_Channel2_3_IRQn
+#endif
+}
+
+__INTERRUPT
+DMA1_Ch4_5_DMAMUX1_OVR_IRQHandler()
+{
+#if STM32_ENABLE_DMA1_Channel4_5_DMAMUx1_OVR_IRQn
+#endif
 }

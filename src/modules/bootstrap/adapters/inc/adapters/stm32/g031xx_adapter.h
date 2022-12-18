@@ -37,7 +37,7 @@
  * @param params pointer to @ref stm32init_t.
  * @return STM32G0xx implemented @ref Peripherals.
  */
-Peripherals stm32_dependency_injection(void * params);
+Peripherals stm32_dependency_injection();
 
 /** @} */
 

@@ -23,8 +23,9 @@
  * @brief Macros to implement stm32g031xx serial peripheral.
  * @{
  */
-
 #include "stm32g0xx_ll_usart.h"
+
+#define STM32_ENABLE_SERIAL             1 /**< @brief Enable USART peripheral */
 
 /**
  * @brief whether to configure and enable USART1 instance
@@ -91,9 +92,7 @@
 /** @brief Turn on STM32 Async mode for USART1 */
 #define STM32_USART1_ASYNC              1
 
-/** @brief Enable DMA transfers for RX */
-#define STM32_USART1_RX_ENABLE_DMA             1
-
+#define STM32_USART1_TX_BUFFER_SIZE     256
 
 /** @brief Enable DMA transfers for TX */
 #define STM32_USART1_TX_DMA             0
@@ -167,7 +166,6 @@
 #define STM32_USART2_ASYNC              1
 
 /** @brief Enable DMA transfers for RX */
-#define STM32_USART2_RX_ENABLE_DMA             1
 
 /** @brief DMA buffer size */
 #define STM32_USART2_DMA_BUFFER_SIZE    8
