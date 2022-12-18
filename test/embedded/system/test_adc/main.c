@@ -18,7 +18,6 @@ static Peripherals hal;
 
 int main()
 {
-    ADC_TypeDef * a = ADC1;
     uint16_t reading;
     uint32_t cnt = 0;
     hal = bootstrap(stm32_dependency_injection, 0);

@@ -3,7 +3,7 @@
   * @file   stm32_dma.h
   * @author Jonathan Taylor
   * @date   12/11/22
-  * @brief  DESCRIPTION
+  * @brief  STM32G0xx DMA implementation header.
   ******************************************************************************
   * @attention
   *
@@ -13,8 +13,12 @@
   ******************************************************************************
   */
 
-#ifndef INJECTOR_STM32_DMA_H
-#define INJECTOR_STM32_DMA_H
+#ifndef STM32_DMA_H
+#define STM32_DMA_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup STM32G0xx_DMA Direct memory access controller (DMA)
@@ -73,4 +77,8 @@ void stm32_dma_reset_channel(uint8_t channel);
 
 /** @} */
 
-#endif //INJECTOR_STM32_DMA_H
+#ifdef __cplusplus
+}
+#endif
+
+#endif // STM32_DMA_H

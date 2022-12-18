@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file   stm32_nvic.c
+  * @file   devices.dox
   * @author Jonathan Taylor
-  * @date   12/17/22
-  * @brief  DESCRIPTION
+  * @date   12/18/22
+  * @brief  Modules documentation page
   ******************************************************************************
   * @attention
   *
@@ -13,13 +13,8 @@
   ******************************************************************************
   */
 
-#include "stm32g031xx.h"
-#include "stm32_nvic.h"
-#include "default/nvic_config.h"
-
-#define NVIC_INIT(i, p) NVIC_SetPriority((i), (p)); NVIC_EnableIRQ((i))
-
-void stm32_nvic_init()
-{
-
-}
+/**
+ * @defgroup Devices
+ * @brief Device can use @ref Modules and @ref Drivers to do things.
+ * @note Devices should not depend on any one mcu.
+*/

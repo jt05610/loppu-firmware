@@ -1,0 +1,21 @@
+/**
+ * @mainpage Robotic injector framework
+ * @section intro_sec Introduction
+ * todo: write this
+ *
+ * @section design Design
+ *
+ * @subsection drivers_sec Hardware abstraction drivers
+ * @see Drivers
+ * todo: write this
+ * @subsection devices_sec Device abstraction libraries
+ * @see Devices
+ * todo: write this
+ * @subsection modules_sec Modules
+ * @see Modules
+ * todo: write this
+ *
+ * @section install_sec Installation
+ *
+ *
+*/

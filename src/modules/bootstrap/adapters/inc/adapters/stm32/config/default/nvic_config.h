@@ -27,7 +27,7 @@
  * @brief Enables USART1 interrupt generation
  * @ingroup STM32G0xx_USART1_NVIC_Config
  */
-#define STM32_ENABLE_USART1_IRQn       0
+#define STM32_ENABLE_USART1_IRQn       1
 
 /**
  * @brief Enables USART2 interrupt generation
@@ -44,7 +44,7 @@
  * @{
  */
 /** @brief USART1 interrupt generation priority */
-#define STM32_USART1_IRQn_PRIORITY     0
+#define STM32_USART1_IRQn_PRIORITY     1
 
 /** @) */
 #endif // STM32_ENABLE_USART1_IRQn

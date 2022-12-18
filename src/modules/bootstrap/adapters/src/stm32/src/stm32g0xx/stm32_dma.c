@@ -22,24 +22,6 @@
 #include "default/dma_config.h"
 #include "default/nvic_config.h"
 
-typedef void (* dma_clear_flag_handler_t)(DMA_TypeDef * dma);
-
-static uint8_t channel_flags;
-
-static inline void
-stm32_dma_clear_flags(uint32_t channel)
-{
-    dma_clear_flag_handler_t tc_handlers[5][2] = {
-            {LL_DMA_ClearFlag_HT1, LL_DMA_ClearFlag_TC1},
-            {LL_DMA_ClearFlag_HT2, LL_DMA_ClearFlag_TC2},
-            {LL_DMA_ClearFlag_HT3, LL_DMA_ClearFlag_TC3},
-            {LL_DMA_ClearFlag_HT4, LL_DMA_ClearFlag_TC4},
-            {LL_DMA_ClearFlag_HT5, LL_DMA_ClearFlag_TC5},
-    };
-    tc_handlers[channel][0](DMA1);
-    tc_handlers[channel][1](DMA1);
-}
-
 #define __DO(channel, func, flag) \
 LL_DMA_##func##_##flag(DMA1, channel)
 
@@ -56,12 +38,6 @@ __GET(periph, ENABLE_##flag)                        \
 LL_DMA_SetPeriph##prop(DMA1, __GET(periph, CHANNEL), p_val);     \
 LL_DMA_SetMemory##prop(DMA1, __GET(periph, CHANNEL), m_val)
 
-/**
- * Determines whether to enable interrupts for channels 1, 2/3, or 4/5
- */
-#define __NVIC_FLAGS(periph) \
-__GET(periph, ENABLE_HT) | __GET(periph, ENABLE_TC) | __GET(periph, ENABLE_TE)
-
 #define __INIT_PERIPH(periph, mem_address, flag_track)                                      \
 __DMA_SET_PERIPH_MEM(Address, periph, __GET(periph, PERIPH_ADDR), (uint32_t) mem_address);  \
 LL_DMA_SetDataLength(DMA1, __GET(periph, CHANNEL), __GET(periph, BUFFER_SIZE));             \
@@ -71,7 +47,6 @@ LL_DMA_SetMode(DMA1, __GET(periph, CHANNEL), __GET(periph, CIRC_MODE));         
 __DMA_SET_PERIPH_MEM(Size, periph, __GET(periph, PERIPH_SIZE), __GET(periph, MEM_SIZE));    \
 __DMA_SET_PERIPH_MEM(IncMode, periph, __GET(periph, PERIPH_INC), __GET(periph, MEM_INC));   \
 LL_DMA_SetPeriphRequest(DMA1, __GET(periph, CHANNEL),  __GET(periph, REQUEST));             \
-stm32_dma_clear_flags(__GET(periph, CHANNEL));                                              \
 __ENABLE(periph, HT);                                                                       \
 __ENABLE(periph, TC);                                                                       \
 __ENABLE(periph, TE);
@@ -118,10 +93,26 @@ stm32_dma_reset_channel(uint8_t channel)
     stm32_dma_start_channel(channel);
 }
 
+#define __HANDLE(flag, channel) if(LL_DMA_IsActiveFlag_##flag##channel)
+#define __CLEAR(flag, channel) LL_DMA_ClearFlag_##flag##channel
+#define __CLEAR_FLAGS(channel)  __CLEAR(TC, channel); __CLEAR(TE, channel)
+
 __INTERRUPT
 DMA1_Channel1_IRQHandler()
 {
 #if STM32_ENABLE_DMA1_Channel1_IRQn
+    __HANDLE(HT, 1) {
+
+        __CLEAR(HT, 1);
+    }
+    __HANDLE(TC, 1) {
+
+        __CLEAR(TC, 1);
+    }
+    __HANDLE(TE, 1) {
+
+        __CLEAR(TE, 1);
+    }
 #endif
 }
 
@@ -129,6 +120,30 @@ __INTERRUPT
 DMA1_Channel2_3_IRQHandler()
 {
 #if STM32_ENABLE_DMA1_Channel2_3_IRQn
+    __HANDLE(HT, 2) {
+
+        __CLEAR(HT, 2);
+    }
+    __HANDLE(TC, 2) {
+
+        __CLEAR(TC, 2);
+    }
+    __HANDLE(TE, 2) {
+
+        __CLEAR(TE, 2);
+    }
+    __HANDLE(HT, 3) {
+
+        __CLEAR(HT, 3);
+    }
+    __HANDLE(TC, 3) {
+
+        __CLEAR(TC, 3);
+    }
+    __HANDLE(TE, 3) {
+
+        __CLEAR(TE, 3);
+    }
 #endif
 }
 
@@ -136,5 +151,29 @@ __INTERRUPT
 DMA1_Ch4_5_DMAMUX1_OVR_IRQHandler()
 {
 #if STM32_ENABLE_DMA1_Channel4_5_DMAMUx1_OVR_IRQn
+    __HANDLE(HT, 4) {
+
+        __CLEAR(HT, 4);
+    }
+    __HANDLE(TC, 4) {
+
+        __CLEAR(TC, 4);
+    }
+    __HANDLE(TE, 4) {
+
+        __CLEAR(TE, 4);
+    }
+    __HANDLE(HT, 5) {
+
+        __CLEAR(HT, 5);
+    }
+    __HANDLE(TC, 5) {
+
+        __CLEAR(TC, 5);
+    }
+    __HANDLE(TE, 5) {
+
+        __CLEAR(TE, 5);
+    }
 #endif
 }

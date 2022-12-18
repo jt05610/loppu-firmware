@@ -17,16 +17,9 @@
 #define INJECTOR_TOOLS_H
 
 /**
- * @addtogroup Drivers
- * @{
- */
-
-/**
  * @defgroup Tools
- * @brief General purpose functions for use by all drivers.
+ * @brief General purpose functions.
  */
-
-/** @} */
 
 #include "buffer/circular_buffer.h"
 #include "buffer/copy.h"

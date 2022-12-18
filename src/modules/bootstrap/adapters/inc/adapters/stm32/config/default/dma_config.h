@@ -15,9 +15,13 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedMacroInspection"
-#ifndef INJECTOR_DMA_CONFIG_H
-#define INJECTOR_DMA_CONFIG_H
+#ifndef DMA_CONFIG_H
+#define DMA_CONFIG_H
 
+#ifdef __cplusplus
+extern "C" {
+
+#endif
 /**
  * @defgroup STM32G0xx_DMAConfig DMA config
  * @brief Configuration for STM32 DMA peripheral
@@ -359,6 +363,11 @@
 
 /** @} */
 
-#endif //INJECTOR_DMA_CONFIG_H
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // DMA_CONFIG_H
 
 #pragma clang diagnostic pop

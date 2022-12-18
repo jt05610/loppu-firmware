@@ -54,6 +54,10 @@ __INTERRUPT EXTI2_3_IRQHandler();
 /** @brief EXTI Line 4 to 15 interrupt handler */
 __INTERRUPT EXTI4_15_IRQHandler();
 
+/**
+ * @ingroup STM32G0xx_DMA
+ * @{
+ */
 /** @brief DMA1 Channel 1 interrupt handler */
 __INTERRUPT DMA1_Channel1_IRQHandler();
 
@@ -63,6 +67,8 @@ __INTERRUPT DMA1_Channel2_3_IRQHandler();
 /** @brief DMA1 Channel 4 to Channel 5, DMAMUX1 overrun interrupt handler */
 __INTERRUPT DMA1_Ch4_5_DMAMUX1_OVR_IRQHandler();
 
+/** @} */
+
 /**
  * @brief ADC1 interrupt handler
  * @ingroup STM32G031xx_ADC
@@ -70,7 +76,7 @@ __INTERRUPT DMA1_Ch4_5_DMAMUX1_OVR_IRQHandler();
 __INTERRUPT ADC1_IRQHandler();
 
 /**
- * @addtogroup STM32G031xx_Timer
+ * @ingroup STM32G031xx_Timer
  * @{
  */
 
@@ -104,7 +110,7 @@ __INTERRUPT TIM17_IRQHandler();
 /** @} */
 
 /**
- * @addtogroup STM32G031xx_I2C
+ * @ingroup STM32G031xx_I2C
  * @{
  */
 
@@ -117,7 +123,7 @@ __INTERRUPT I2C2_IRQHandler();
 /** @} */
 
 /**
- * @addtogroup STM32G031xx_SPI
+ * @ingroup STM32G031xx_SPI
  * @{
  */
 
@@ -130,7 +136,7 @@ __INTERRUPT SPI2_IRQHandler();
 /** @} */
 
 /**
- * @addtogroup STM32G031xx_Serial
+ * @ingroup STM32G031xx_Serial
  * @{
  */
 
