@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file   clock_config.h
+  * @file   rcc_config.h
   * @author Jonathan Taylor
   * @date   12/16/22
   * @brief  Default clock configuration header for STM32G0xx.
@@ -13,8 +13,12 @@
   ******************************************************************************
   */
 
-#ifndef INJECTOR_RCC_CONFIG_H
-#define INJECTOR_RCC_CONFIG_H
+#ifndef STM32_RCC_CONFIG_H
+#define STM32_RCC_CONFIG_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup STM32G0xx_RCCConfig RCC config
@@ -41,4 +45,8 @@
 
 /** @} */
 
-#endif //INJECTOR_RCC_CONFIG_H
+#ifdef __cplusplus
+};
+#endif
+
+#endif // STM32_RCC_CONFIG_H

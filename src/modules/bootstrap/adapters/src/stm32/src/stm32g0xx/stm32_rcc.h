@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file   stm32_clock.h
+  * @file   stm32_rcc.h
   * @author Jonathan Taylor
   * @date   7/1/22
-  * @brief  DESCRIPTION
+  * @brief  STM32 RCC header.
   ******************************************************************************
   * @attention
   *
@@ -15,6 +15,10 @@
 
 #ifndef STM32_IMPL_STM32_CLOCK_H
 #define STM32_IMPL_STM32_CLOCK_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @defgroup STM32G0xx_RCC Reset and clock control (RCC)
@@ -30,5 +34,9 @@
 void stm32_rcc_config();
 
 /** @) */
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif //STM32_IMPL_STM32_CLOCK_H

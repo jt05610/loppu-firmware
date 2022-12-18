@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file   stm32_clock.c
+  * @file   stm32_rcc.c
   * @author Jonathan Taylor
   * @date   7/1/22
   * @brief Source for initializing stm32 hardware clock.
