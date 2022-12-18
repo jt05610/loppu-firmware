@@ -3,7 +3,7 @@
   * @file   analog_private.h
   * @author Jonathan Taylor
   * @date   12/15/22
-  * @brief  DESCRIPTION
+  * @brief  Analog driver private header.
   ******************************************************************************
   * @attention
   *
@@ -13,8 +13,8 @@
   ******************************************************************************
   */
 
-#ifndef INJECTOR_ANALOG_PRIVATE_H
-#define INJECTOR_ANALOG_PRIVATE_H
+#ifndef DRIVERS_ANALOG_PRIVATE_H
+#define DRIVERS_ANALOG_PRIVATE_H
 
 #include "analog.h"
 
@@ -39,26 +39,24 @@ typedef struct adc_watchdog_t
 } adc_watchdog_t;
 
 /** @brief Device specific adc interface functions. */
-typedef struct adc_interface_t {
+typedef struct adc_interface_t
+{
 
     /**
      * @brief Start ADC conversion
-     * @param privdata
      */
-    void (*start)(void * privdata);
+    void (* start)();
 
     /**
     * @brief Stop ADC conversion
-    * @param privdata
     */
-    void (*stop)(void * privdata);
+    void (* stop)();
 
     /**
      * @brief Adds watchdog to adc instance.
-     * @param privdata Any data needed to pass for target mcu.
      * @param watchdog Implemented @ref adc_watchdog_t
      */
-    void (*add_watchdog)(uint8_t privdata, ADCWatchdog watchdog);
+    void (* add_watchdog)(ADCWatchdog watchdog);
 
 } adc_interface_t;
 
@@ -72,4 +70,4 @@ typedef struct adc_base_t
 
 /** @} */
 
-#endif //INJECTOR_ANALOG_PRIVATE_H
+#endif //DRIVERS_ANALOG_PRIVATE_H
