@@ -15,8 +15,8 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedMacroInspection"
-#ifndef INJECTOR_ADC_CONFIG_H
-#define INJECTOR_ADC_CONFIG_H
+#ifndef STM32_ADC_CONFIG_H
+#define STM32_ADC_CONFIG_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -168,6 +168,6 @@ extern "C" {
 }
 #endif
 
-#endif //INJECTOR_ADC_CONFIG_H
+#endif //STM32_ADC_CONFIG_H
 
 #pragma clang diagnostic pop
