@@ -29,6 +29,5 @@ int main()
             reading = adc_average(hal->analog);
             cnt = 0;
         }
-
     }
 }

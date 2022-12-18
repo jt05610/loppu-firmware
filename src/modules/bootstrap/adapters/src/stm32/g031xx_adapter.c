@@ -55,6 +55,10 @@ stm32_dependency_injection(void * params)
     (void) params;
     stm32_rcc_config();
 
+#if STM32_ENABLE_ADC
+    self.analog = stm32_adc_create();
+#endif
+
 #if STM32_ENABLE_DMA
     stm32_dma_mem_addr_t dma_params = {
 #if STM32_USART1_RX_ENABLE_DMA
@@ -64,6 +68,7 @@ stm32_dependency_injection(void * params)
 #if STM32_USART1_RX_ENABLE_DMA
             .adc=(uint32_t) self.analog->buffer
 #endif
+
 #if STM32_USART1_RX_ENABLE_DMA
 #endif
     };
@@ -74,9 +79,6 @@ stm32_dependency_injection(void * params)
     self.gpio = stm32_gpio_create();
 #endif
 
-#if STM32_ENABLE_ADC
-    self.analog = stm32_adc_create();
-#endif
 
 #if STM32_ENABLE_TIMER
     self.timer = stm32_timer_create();
