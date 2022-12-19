@@ -99,6 +99,11 @@ void serial_attach_buffer(Serial base, circ_buf_t * buffer);
  */
 bool serial_buffer_transfer(Serial base, circ_buf_t * src);
 
+uint16_t serial_available(Serial base, void * instance);
+
+void serial_clear(Serial base, void * instance);
+
+
 /** @} */
 
 /** @} */

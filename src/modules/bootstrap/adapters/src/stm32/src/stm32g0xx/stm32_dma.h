@@ -30,6 +30,7 @@ extern "C" {
 
 #include <stdint.h>
 #include "adapters/stm32/config/default/dma_config.h"
+#include "buffer/circular_buffer.h"
 
 /** @brief Struct to pass memory address to dma */
 typedef struct stm32_dma_mem_addr_t {
@@ -37,7 +38,8 @@ typedef struct stm32_dma_mem_addr_t {
     uint32_t adc;                      /**< @brief ADC buffer address */
 #endif
 #if STM32_ENABLE_USART1_RX_DMA
-    uint32_t usart1_rx;                /**< @brief USART1 RX buffer address */
+    circ_buf_t * usart1_rx;                /**< @brief USART1 RX buffer address */
+    circ_buf_t * usart1_rx_buffer;     /**< @brief USART1 RX circ buffer */
 #endif
 #if STM32_ENABLE_USART1_TX_DMA
     uint32_t usart1_tx;                /**< @brief USART1 TX buffer address */

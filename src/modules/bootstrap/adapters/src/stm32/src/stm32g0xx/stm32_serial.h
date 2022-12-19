@@ -29,14 +29,6 @@
 #include "serial.h"
 #include "stm32g0xx_ll_usart.h"
 
-/** @brief Struct for RX interrupt handlers */
-typedef struct rx_callback_t
-{
-    USART_TypeDef * instance;      /**< @brief USART instance */
-    void          * data;          /**< @brief Any data to pass to callback*/
-    void (* call)(void * data);    /**< @brief Run callback with passed data */
-} rx_callback_t;
-
 /**
  * @brief Creates STM32 serial instance.
  * @return @ref Serial instance for stm32 peripherals.
@@ -44,19 +36,16 @@ typedef struct rx_callback_t
 Serial stm32_serial_create();
 
 /**
- * @brief Sets function to run once a receive timeout is triggered.
- * @param instance serial instance if need by target mcu.
- * @param cb callback function to run.
- * @param to_pass data to pass to callback if needed.
- */
-void
-stm32_serial_set_rto_cb(void * instance, rx_callback_t * cb, void * to_pass);
-
-/**
  * @brief Gets USART1 RX buffer
  * @return USART1 RX buffer
  */
-uint8_t * stm32_get_usart1_rx_buffer();
+circ_buf_t * stm32_get_usart1_rx_buffer();
+
+/**
+ * @brief Gets USART1 RX circular buffer
+ * @return USART1 RX circular buffer
+ */
+circ_buf_t * stm32_get_usart1_rx_circ_buffer();
 
 /**
  * @brief Gets USART1 TX buffer
@@ -75,6 +64,12 @@ uint8_t * stm32_get_usart2_rx_buffer();
  * @return USART2 TX buffer
  */
 uint8_t * stm32_get_usart2_tx_buffer();
+
+/**
+ * @brief  See if there is data in rx buffer
+ * @return Whether or not there is new data
+ */
+bool stm32_serial_new_data();
 
 /** @) */
 

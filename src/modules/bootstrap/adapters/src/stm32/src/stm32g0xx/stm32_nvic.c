@@ -164,6 +164,7 @@ stm32_nvic_config()
 {
     ungrouped_init();
     exti_init();
+    dma_init();
     adc_init();
     timer_init();
     i2c_init();

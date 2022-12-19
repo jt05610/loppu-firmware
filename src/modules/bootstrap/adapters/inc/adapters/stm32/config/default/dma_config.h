@@ -50,31 +50,31 @@ extern "C" {
  * @brief DMA channel assignment for ADC
  * @ingroup STM32G0xx_ADCConfig
  */
-#define STM32_ADC_DMA_CHANNEL           LL_DMA_CHANNEL_1
+#define STM32_ADC_DMA_CHANNEL           LL_DMA_CHANNEL_5
 
 /**
  * @brief DMA channel assignment for USART1 RX request
  * @ingroup STM32G0xx_SerialConfig
  */
-#define STM32_USART1_RX_DMA_CHANNEL     LL_DMA_CHANNEL_2
+#define STM32_USART1_RX_DMA_CHANNEL     LL_DMA_CHANNEL_1
 
 /**
  * @brief DMA channel assignment for USART1 TX request
  * @ingroup STM32G0xx_SerialConfig
  */
-#define STM32_USART1_TX_DMA_CHANNEL     LL_DMA_CHANNEL_3
+#define STM32_USART1_TX_DMA_CHANNEL     LL_DMA_CHANNEL_2
 
 /**
  * @brief DMA channel assignment for USART2 RX request
  * @ingroup STM32G0xx_SerialConfig
  */
-#define STM32_USART2_RX_DMA_CHANNEL     LL_DMA_CHANNEL_2
+#define STM32_USART2_RX_DMA_CHANNEL     LL_DMA_CHANNEL_3
 
 /**
  * @brief DMA channel assignment for USART2 TX request
  * @ingroup STM32G0xx_SerialConfig
  */
-#define STM32_USART2_TX_DMA_CHANNEL     LL_DMA_CHANNEL_2
+#define STM32_USART2_TX_DMA_CHANNEL     LL_DMA_CHANNEL_4
 
 #if STM32_ADC_ENABLE_DMA
 /**
@@ -184,7 +184,7 @@ extern "C" {
 #define STM32_USART1_RX_DMA_ENABLE_HT         0
 
 /** @brief Enable DMA transfer complete interrupt generation */
-#define STM32_USART1_RX_DMA_ENABLE_TC         0
+#define STM32_USART1_RX_DMA_ENABLE_TC         1
 
 /** @brief Enable DMA transfer complete interrupt generation */
 #define STM32_USART1_RX_DMA_ENABLE_TE         0
@@ -234,7 +234,7 @@ extern "C" {
 #define STM32_USART1_TX_DMA_ENABLE_HT         0
 
 /** @brief Enable DMA transfer complete interrupt generation */
-#define STM32_USART1_TX_DMA_ENABLE_TC         0
+#define STM32_USART1_TX_DMA_ENABLE_TC         1
 
 /** @brief Enable DMA transfer complete interrupt generation */
 #define STM32_USART1_TX_DMA_ENABLE_TE         0

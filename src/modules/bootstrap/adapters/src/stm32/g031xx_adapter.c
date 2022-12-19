@@ -43,7 +43,8 @@ dma_config()
             .adc=(uint32_t) stm32_adc_get_buffer(),
 #endif
 #if STM32_ENABLE_USART1_RX_DMA
-            .usart1_rx=(uint32_t) stm32_get_usart1_rx_buffer(),
+            .usart1_rx=stm32_get_usart1_rx_buffer(),
+             .usart1_rx_buffer=stm32_get_usart1_rx_circ_buffer(),
 #endif
 #if STM32_ENABLE_USART1_TX_DMA
             .usart1_tx=(uint32_t) stm32_get_usart1_tx_buffer(),
@@ -89,10 +90,10 @@ stm32_dependency_injection()
     stm32_rcc_config();
     stm32_nvic_config();
     adc_config();
+    serial_config();
     dma_config();
     gpio_config();
     timer_config();
-    serial_config();
 
     return &self;
 }

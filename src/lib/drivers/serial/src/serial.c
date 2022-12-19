@@ -53,6 +53,19 @@ serial_putchar(Serial base, void * instance, char a)
     return 0;
 }
 
+uint16_t serial_available(Serial base, void * instance)
+{
+    if (base && base->vtable && base->vtable->available)
+        return base->vtable->available(instance);
+    return 0;
+}
+
+void serial_clear(Serial base, void * instance)
+{
+    if (base && base->vtable && base->vtable->clear)
+        base->vtable->clear(instance);
+}
+
 void
 serial_attach_buffer(Serial base, circ_buf_t * buffer)
 {

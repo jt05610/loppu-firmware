@@ -7,7 +7,9 @@
     <mapping directory="$PROJECT_DIR$/cmake-build-embedded/_deps/cpputest-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-embedded/_deps/unity-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-local/_deps/cpputest-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-minsizerel/_deps/unity-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-native/_deps/cpputest-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-release/_deps/unity-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-simulated/_deps/unity-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-simulator/_deps/cpputest-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/cmake-build-simulator/_deps/unity-src" vcs="Git" />

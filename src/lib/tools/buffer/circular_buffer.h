@@ -35,6 +35,7 @@ extern "C" {
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
  * @brief Circular buffer data structure
@@ -45,7 +46,7 @@ typedef struct circ_buf_t
     volatile uint16_t head;         /**< @brief Buffer  */
     volatile uint16_t tail;         /**< @brief Buffer data */
     const uint16_t    size;         /**< @brief Buffer data */
-    bool              empty;        /**< @brief Whether buffer is empty */
+    bool empty;        /**< @brief Whether buffer is empty */
 } circ_buf_t;
 
 /**
@@ -73,7 +74,8 @@ typedef struct circ_buf_t
         .bytes = name##_buffer,         \
         .head = 0,                      \
         .tail = 0,                      \
-        .size = n                       \
+        .size = n,                      \
+        .empty = true, \
     }
 
 /**
@@ -110,17 +112,18 @@ circ_buf_pop(circ_buf_t * c)
 static inline uint16_t
 circ_buf_waiting(circ_buf_t * c)
 {
-    if (!c->empty) {
-        if (c->head > c->tail) {
-            return c->head - c->tail;
-        } else if (c->head == c->tail) {
+    if (c->head > c->tail) {
+        return c->head - c->tail;
+    } else if (c->head == c->tail) {
+        if (!c->empty) {
             return c->size;
         } else {
-            return c->size - (c->tail - c->head);
+            return 0;
         }
     } else {
-        return 0;
+        return c->size - (c->tail - c->head);
     }
+
 }
 
 /**
@@ -133,7 +136,7 @@ static inline bool
 circ_buf_transfer(circ_buf_t * dest, circ_buf_t * src)
 {
     uint16_t n = circ_buf_waiting(src);
-    if ( n > dest->size) {
+    if (n > dest->size) {
         return false;
     }
     for (uint16_t i = 0; i < n; i++) {

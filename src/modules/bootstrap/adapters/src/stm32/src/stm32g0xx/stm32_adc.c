@@ -245,7 +245,7 @@ adc_channel_init()
     );
 }
 
-#define __HANDLE(flag) if(LL_ADC_IsActiveFlag_##flag)
+#define __ISR_HANDLE(flag) if(LL_ADC_IsActiveFlag_##flag)
 
 __INTERRUPT
 ADC1_IRQHandler()

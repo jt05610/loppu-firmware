@@ -18,15 +18,15 @@
 #include "default/serial_config.h"
 #include "default/gpio_config.h"
 #include "stm32g0xx_ll_gpio.h"
-#include "buffer.h"
 #include "stm32g0xx_ll_dma.h"
 #include "default/dma_config.h"
 #include "stm32_interrupts.h"
+#include "stm32_dma.h"
 
 static struct
 {
     serial_base_t base;
-    rx_callback_t * rx_callback;
+    bool new_data;
 } self = {0};
 
 static inline void uart_init();
@@ -34,6 +34,9 @@ static inline void uart_init();
 static inline void open(void * instance);
 
 static inline void close(void * instance);
+
+static inline uint16_t available(void * instance);
+static inline void clear(void * instance);
 
 static inline uint16_t read(void * instance, uint8_t * bytes);
 
@@ -44,6 +47,8 @@ static inline uint8_t _putchar(void * instance, char a);
 static serial_interface_t interface = {
         .open=open,
         .close=close,
+        .available=available,
+        .clear=clear,
         .read=read,
         .write=write,
         .putchar=_putchar
@@ -51,11 +56,18 @@ static serial_interface_t interface = {
 
 #if STM32_ENABLE_USART1_RX_DMA
 STATIC_CIRC_BUF(usart1_rx_circ, STM32_USART1_RX_BUFFER_SIZE);
+STATIC_CIRC_BUF(usart1_rx_dma_circ, STM32_USART1_RX_DMA_BUFFER_SIZE);
 
-uint8_t *
+circ_buf_t *
 stm32_get_usart1_rx_buffer()
 {
-    return usart1_rx_circ_buffer;
+    return &usart1_rx_dma_circ;
+}
+
+circ_buf_t *
+stm32_get_usart1_rx_circ_buffer()
+{
+    return &usart1_rx_circ;
 }
 
 # endif
@@ -94,6 +106,8 @@ stm32_serial_create()
 {
     self.base.vtable        = &interface;
     self.base.serial_buffer = &usart1_rx_circ;
+    self.new_data           = false;
+
 #ifndef SIMULATED
     LL_GPIO_ResetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
 #endif
@@ -101,10 +115,9 @@ stm32_serial_create()
     return &self.base;
 }
 
-void
-stm32_serial_set_rto_cb(void * instance, rx_callback_t * cb, void * to_pass)
+bool stm32_serial_new_data()
 {
-    self.rx_callback = cb;
+    return self.new_data;
 }
 
 static void
@@ -113,11 +126,11 @@ open(void * instance)
 #if (STM32_ENABLE_USART1 & STM32_ENABLE_USART2)
 #if STM32_ENABLE_USART1
     if ((USART_TypeDef *) instance == USART1) {
-#if STM32_USART1_RX_ENABLE_DMA
+#if STM32_ENABLE_USART1_RX_DMA
         LL_DMA_EnableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
 #endif // STM32_USART_RX_DMA
 
-#if STM32_USART1_TX_DMA
+#if STM32_ENABLE_USART1_TX_DMA
         LL_DMA_EnableChannel(DMA1, STM32_USART1_TX_DMA_CHANNEL);
 #endif // STM32_USART_TX_DMA
     }
@@ -125,40 +138,34 @@ open(void * instance)
 
 #if STM32_ENABLE_USART2
     if ((USART_TypeDef *) instance == USART2) {
-#if STM32_USART2_RX_ENABLE_DMA
+#if STM32_ENABLE_USART2_RX_DMA
         LL_DMA_EnableChannel(DMA1, STM32_USART2_RX_DMA_CHANNEL);
 #endif // STM32_USART_RX_DMA
 
-#if STM32_USART2_TX_DMA
+#if STM32_ENABLE_USART2_TX_DMA
         LL_DMA_EnableChannel(DMA1, STM32_USART2_TX_DMA_CHANNEL);
 #endif // STM32_USART_TX_DMA
     }
 #endif // STM32_ENABLE_USART2
-
 #else
 #if STM32_ENABLE_USART1
-#if STM32_USART1_RX_DMA
-    LL_DMA_EnableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
+#if STM32_ENABLE_USART1_RX_DMA
+    stm32_dma_start_channel(STM32_USART1_RX_DMA_CHANNEL);
 #endif // STM32_USART_RX_DMA
-
-#if STM32_USART1_TX_DMA
-    LL_DMA_EnableChannel(DMA1, STM32_USART1_TX_DMA_CHANNEL);
-#endif // STM32_USART_TX_DMA
 
 #endif // STM32_ENABLE_USART1
 
 #if STM32_ENABLE_USART2
 
-#if STM32_USART2_RX_DMA
+#if STM32_ENABLE_USART2_RX_DMA
     LL_DMA_EnableChannel(DMA1, STM32_USART2_RX_DMA_CHANNEL);
 #endif // STM32_USART_RX_DMA
 
-#if STM32_USART2_TX_DMA
+#if STM32_ENABLE_USART2_TX_DMA
     LL_DMA_EnableChannel(DMA1, STM32_USART2_TX_DMA_CHANNEL);
 #endif // STM32_USART_TX_DMA
 
 #endif // STM32_ENABLE_USART2
-
 #endif // STM32_ENABLE_USART1 & STM32_ENABLE_USART1
 }
 
@@ -167,116 +174,278 @@ close(void * instance)
 {
     LL_USART_Disable((USART_TypeDef *) instance);
 #if (STM32_ENABLE_USART1 & STM32_ENABLE_USART2)
-#if STM32_ENABLE_USART1
     if ((USART_TypeDef *) instance == USART1) {
-#if STM32_USART1_RX_ENABLE_DMA
+#if STM32_ENABLE_USART1_RX_DMA
         LL_DMA_DisableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
 #endif // STM32_USART_RX_DMA
 
-#if STM32_USART1_TX_DMA
-        LL_DMA_EnableChannel(DMA1, STM32_USART1_TX_DMA_CHANNEL);
+#if STM32_ENABLE_USART1_TX_DMA
+        LL_DMA_DisableChannel(DMA1, STM32_USART1_TX_DMA_CHANNEL);
 #endif // STM32_USART_TX_DMA
     }
-#endif // STM32_ENABLE_USART1
-
-#if STM32_ENABLE_USART2
     if ((USART_TypeDef *) instance == USART2) {
-#if STM32_USART2_RX_ENABLE_DMA
+#if STM32_ENABLE_USART2_RX_DMA
         LL_DMA_DisableChannel(DMA1, STM32_USART2_RX_DMA_CHANNEL);
 #endif // STM32_USART_RX_DMA
 
-#if STM32_USART2_TX_DMA
+#if STM32_ENABLE_USART2_TX_DMA
         LL_DMA_DisableChannel(DMA1, STM32_USART2_TX_DMA_CHANNEL);
 #endif // STM32_USART_TX_DMA
     }
-#endif // STM32_ENABLE_USART2
 
 #else
 #if STM32_ENABLE_USART1
-#if STM32_USART1_RX_DMA
-    LL_DMA_EnableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
+#if STM32_ENABLE_USART1_RX_DMA
+    LL_DMA_DisableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
 #endif // STM32_USART_RX_DMA
 
-#if STM32_USART1_TX_DMA
-    LL_DMA_EnableChannel(DMA1, STM32_USART1_TX_DMA_CHANNEL);
+#if STM32_ENABLE_USART1_TX_DMA
+    LL_DMA_DisableChannel(DMA1, STM32_USART1_TX_DMA_CHANNEL);
 #endif // STM32_USART_TX_DMA
 
 #endif // STM32_ENABLE_USART1
 
 #if STM32_ENABLE_USART2
 
-#if STM32_USART2_RX_DMA
-    LL_DMA_EnableChannel(DMA1, STM32_USART2_RX_DMA_CHANNEL);
+#if STM32_ENABLE_USART2_RX_DMA
+    LL_DMA_DisableChannel(DMA1, STM32_USART2_RX_DMA_CHANNEL);
 #endif // STM32_USART_RX_DMA
 
-#if STM32_USART2_TX_DMA
-    LL_DMA_EnableChannel(DMA1, STM32_USART2_TX_DMA_CHANNEL);
+#if STM32_ENABLE_USART2_TX_DMA
+    LL_DMA_DisableChannel(DMA1, STM32_USART2_TX_DMA_CHANNEL);
 #endif // STM32_USART_TX_DMA
 
 #endif // STM32_ENABLE_USART2
-
-#endif // STM32_ENABLE_USART1 & STM32_ENABLE_USART
+#endif // STM32_ENABLE_USART1 & STM32_ENABLE_USART1
 }
+
+#define __BUFF_TRANSFER(src, dest, size)        \
+size = circ_buf_waiting(src);                   \
+for (uint16_t i = 0; i < size; i++)             \
+    dest[i] = circ_buf_pop(src)
 
 static uint16_t
 read(void * instance, uint8_t * bytes)
 {
-    return 0;
+#if (STM32_ENABLE_USART1 & STM32_ENABLE_USART2)
+    if ((USART_TypeDef *) instance == USART1) {
+#if STM32_ENABLE_USART1_RX_DMA
+        uint16_t size;
+        __BUFF_TRANSFER(&usart1_rx_circ, bytes, size);
+        return size;
+#else
+        LL_USART_ReceiveData8(USART1);
+#endif
+    } else if ((USART_TypeDef *) instance == USART2) {
+#if STM32_ENABLE_USART2_RX_DMA
+        uint16_t size;
+        __BUFF_TRANSFER(&usart2_rx_circ, bytes, size);
+#else
+        *bytes++ = LL_USART_ReceiveData8(USART2);
+        return 1;
+#endif
+    } else {
+        return 0;
+    }
+#elif STM32_ENABLE_USART1
+    (void) instance;
+#if STM32_ENABLE_USART2_RX_DMA
+    uint16_t size;
+    __BUFF_TRANSFER(&usart1_rx_circ, bytes, size);
+    *bytes++ = LL_USART_ReceiveData8(USART1);
+    return 1;
+#else
+
+#endif
+#elif STM32_ENABLE_USART2
+    (void) instance;
+#if STM32_ENABLE_USART2_RX_DMA
+        uint16_t size;
+        __BUFF_TRANSFER(&usart2_rx_circ, bytes, size);
+#else
+        *bytes++ = LL_USART_ReceiveData8(USART2);
+        return 1;
+#endif
+#else
+        return 0;
+#endif
 }
 
 static void
 write(void * instance, uint8_t * bytes, uint16_t size)
 {
+#if STM32_ENABLE_USART1 & STM32_ENABLE_USART2
+
+    if ((USART_TypeDef *) instance == USART1) {
 #if STM32_USART1_RS485
-    LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
+        LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
+        while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT,
+                                       STM32_USART1_RE_PIN)) {}
 #endif // STM32_USART1_RS485
 #if STM32_ENABLE_USART1_TX_DMA
+        uint8_t * ptr = bytes;
+        while (size--) {
+            circ_buf_push(&usart1_tx_circ, *ptr++);
+        }
 #else
+        for (uint16_t i = 0; i < size; i++) {
+        LL_USART_TransmitData8((USART_TypeDef *) instance, bytes[i]);
+        while (!LL_USART_IsActiveFlag_TXE_TXFNF((USART_TypeDef *) instance));
+    }
+#endif
+    } else if ((USART_TypeDef *) instance == USART2) {
+
+#if STM32_USART2_RS485
+        LL_GPIO_SetOutputPin(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN);
+        while (!LL_GPIO_IsOutputPinSet(STM32_USART2_RE_PORT,
+                                       STM32_USART2_RE_PIN)) {}
+#endif // STM32_USART2_RS485
+
+#if STM32_ENABLE_USART2_TX_DMA
+        uint8_t *ptr = bytes;
+        while (size --)
+            circ_buf_push(&usart2_tx_circ, *ptr++);
+#else
+        for (uint16_t i = 0; i < size; i++) {
+            LL_USART_TransmitData8(USART2, bytes[i]);
+            while (!LL_USART_IsActiveFlag_TXE_TXFNF(USART2));
+        }
+#endif
+    }
+#elif STM32_ENABLE_USART1
+    (void) instance;
+#if STM32_USART1_RS485
+    LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
     while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN));
+#endif // STM32_USART1_RS485
+#if STM32_ENABLE_USART1_TX_DMA
+    uint8_t * ptr = bytes;
+    while (size--) {
+        circ_buf_push(&usart1_tx_circ, *ptr++);
+    }
+    stm32_dma_start_channel(STM32_USART1_TX_DMA_CHANNEL);
+
+#else
     for (uint16_t i = 0; i < size; i++) {
         LL_USART_TransmitData8((USART_TypeDef *) instance, bytes[i]);
         while (!LL_USART_IsActiveFlag_TXE_TXFNF((USART_TypeDef *) instance));
     }
 #endif
+#elif STM32_ENABLE_USART2
+    (void) instance;
+#if STM32_USART2_RS485
+    LL_GPIO_SetOutputPin(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN);
+    while (!LL_GPIO_IsOutputPinSet(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN));
+#endif // STM32_USART2_RS485
+#if STM32_ENABLE_USART2_TX_DMA
+    uint8_t *ptr = bytes;
+    while (size --)
+        circ_buf_push(&usart2_tx_circ, *ptr++);
+#else
+    for (uint16_t i = 0; i < size; i++) {
+        LL_USART_TransmitData8(USART2, bytes[i]);
+        while (!LL_USART_IsActiveFlag_TXE_TXFNF(USART2);
+    }
+#endif
+#endif
+
 }
 
 static uint8_t
 _putchar(void * instance, char a)
 {
+#if STM32_ENABLE_USART1 & STM32_ENABLE_USART2
+    if ((USART_TypeDef *) instance == USART1) {
 #if STM32_USART1_RS485
-    LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
+        LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
+        while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT,
+                                       STM32_USART1_RE_PIN)) {}
 #endif // STM32_USART1_RS485
 #if STM32_ENABLE_USART1_TX_DMA
+        circ_buf_push(&usart1_tx_circ, (uint8_t) a);
+        return (uint8_t) a;
 #else
+        LL_USART_TransmitData8((USART_TypeDef *) instance, bytes[i]);
+        while (!LL_USART_IsActiveFlag_TXE_TXFNF((USART_TypeDef *) instance));
+    }
+#endif // STM32_ENABLE_USART1_TX_DMA
+    } else if ((USART_TypeDef *) instance == USART2) {
+#if STM32_USART2_RS485
+        LL_GPIO_SetOutputPin(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN);
+        while (!LL_GPIO_IsOutputPinSet(STM32_USART2_RE_PORT,
+                                       STM32_USART2_RE_PIN)) {}
+#endif // STM32_USART2_RS485
+#if STM32_ENABLE_USART2_TX_DMA
+        circ_buf_push(&usart2_tx_circ, (uint8_t) a);
+#else
+        LL_USART_TransmitData8(USART2, (uint8_t) a);
+        while (!LL_USART_IsActiveFlag_TXE_TXFNF((USART_TypeDef *) instance));
+        return (uint8_t) a;
+#endif
+    }
+
+#elif STM32_ENABLE_USART1
+    (void) instance;
+#if STM32_USART1_RS485
+    LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
     while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN));
-        LL_USART_TransmitData8((USART_TypeDef *) instance, (uint8_t) a);
+#endif // STM32_USART1_RS485
+#if !STM32_ENABLE_USART1_TX_DMA
+    (void) instance;
+    circ_buf_push(&usart1_tx_circ, (uint8_t) a);
+#else
+    LL_USART_TransmitData8(USART1, (uint8_t) a);
+    return a;
+#endif
+#elif STM32_ENABLE_USART2
+    (void) instance;
+#if STM32_USART2_RS485
+    LL_GPIO_SetOutputPin(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN);
+    while (!LL_GPIO_IsOutputPinSet(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN));
+#endif // STM32_USART2_RS485
+#if !STM32_ENABLE_USART2_TX_DMA
+    (void) instance;
+    circ_buf_push(&usart1_tx_circ, (uint8_t) a);
+#else
+    LL_USART_TransmitData8(USART2, (uint8_t) a);
 #endif
     return (uint8_t) a;
+#else
+    return a + 20;
+#endif
 }
 
+#define __INIT_USART(params, inst)                           \
+params->PrescalerValue=STM32_##inst##_PRESCALER_VALUE;       \
+params->BaudRate=STM32_##inst##_BAUD_RATE;                   \
+params->DataWidth=STM32_##inst##_DATA_WIDTH;                 \
+params->StopBits=STM32_##inst##_STOP_BITS;                   \
+params->Parity=STM32_##inst##_PARITY;                        \
+params->TransferDirection=STM32_##inst##_TRANSFER_DIRECTION; \
+params->HardwareFlowControl=STM32_##inst##_HARDWARE_FC;      \
+params->OverSampling=STM32_##inst##_OVER_SAMPLING;           \
+LL_USART_Init(inst, params);
+
+
+#define __INIT_RS485(inst)                                              \
+LL_USART_EnableDEMode(inst);                                            \
+LL_USART_SetDESignalPolarity(USART1, STM32_##inst##_DE_POLARITY);       \
+LL_USART_SetDEAssertionTime(USART1, STM32_##inst##_DE_ASSERT_TIME);     \
+LL_USART_SetDEDeassertionTime(USART1, STM32_##inst##_DE_DEASSERT_TIME)
+
+#define __SET_IT(inst, it)      \
+LL_USART_ClearFlag_##it(inst);  \
+STM32_##inst##_##it##_ENABLE    \
+? LL_USART_EnableIT_##it(inst)  \
+: LL_USART_DisableIT_##it(inst) \
+
+
 static void
-uart_init()
+uart1_init(LL_USART_InitTypeDef * uart_params)
 {
-    LL_USART_InitTypeDef uart_params = {
-            .PrescalerValue=STM32_USART1_PRESCALER_VALUE,
-            .BaudRate=STM32_USART1_BAUD_RATE,
-            .DataWidth=STM32_USART1_DATA_WIDTH,
-            .StopBits=STM32_USART1_STOP_BITS,
-            .Parity=STM32_USART1_PARITY,
-            .TransferDirection=STM32_USART1_TRANSFER_DIRECTION,
-            .HardwareFlowControl=STM32_USART1_HARDWARE_FC,
-            .OverSampling=STM32_USART1_OVER_SAMPLING
-    };
-
-#if STM32_ENABLE_USART1
-    LL_USART_Init(USART1, &uart_params);
-
+    __INIT_USART(uart_params, USART1);
 #if STM32_USART1_RS485
-    LL_USART_EnableDEMode(USART1);
-    LL_USART_SetDESignalPolarity(USART1, STM32_USART1_DE_POLARITY);
-    LL_USART_SetDEAssertionTime(USART1, STM32_USART1_DE_ASSERT_TIME);
-    LL_USART_SetDEDeassertionTime(USART1, STM32_USART1_DE_DEASSERT_TIME);
-
+    __INIT_RS485(USART1);
 #endif // STM32_USART1_RS485
 
 #if STM32_USART1_FIFO
@@ -289,130 +458,125 @@ uart_init()
     LL_USART_ConfigAsyncMode(USART1);
 #endif // STM32_USART1_ASYNC
 
-#if STM32_USART1_RX_ENABLE_DMA
+#if STM32_ENABLE_USART1_RX_DMA
     LL_USART_EnableDMAReq_RX(USART1);
 #else
     LL_USART_DisableDMAReq_RX(USART1);
 
 #endif // STM32_USART_RX_DMA
 
-#if STM32_USART1_TX_DMA
+#if STM32_ENABLE_USART1_TX_DMA
     LL_USART_EnableDMAReq_TX(USART1);
 #else
     LL_USART_DisableDMAReq_TX(USART1);
 
 #endif // STM32_USART_TX_DMA
-
     LL_USART_Enable(USART1);
-#ifndef SIMULATED
-    while ((!(LL_USART_IsActiveFlag_TEACK(USART1))
-            || (!(LL_USART_IsActiveFlag_REACK(USART1))))) {}
-#endif
-
-#if STM32_USART_RTO_ENABLE
-    LL_USART_SetRxTimeout(USART1, STM32_RX_TIMEOUT);
+    while ((!(LL_USART_IsActiveFlag_TEACK(USART1))) ||
+           (!(LL_USART_IsActiveFlag_REACK(USART1)))) {
+    }
+#if STM32_USART1_RTO_ENABLE
+    LL_USART_SetRxTimeout(USART1, STM32_USART1_RX_TIMEOUT);
     LL_USART_EnableRxTimeout(USART1);
-    LL_USART_ClearFlag_RTO(USART1);
-
-#ifndef SIMULATED
-    while (LL_USART_IsActiveFlag_RTO(USART1));
 #endif
-    LL_USART_EnableIT_RTO(USART1);
+    __SET_IT(USART1, RTO);
+    __SET_IT(USART1, TC);
+    __SET_IT(USART1, PE);
+#if STM32_USART1_ERROR_ENABLE
+    LL_USART_EnableIT_##it(inst);
 #else
-
-#endif //STM32_USART_RTO_ENABLE
-
-    LL_USART_DisableIT_PE(USART1);
     LL_USART_DisableIT_ERROR(USART1);
-
-#if STM32_USART_TC_ENABLE
-    LL_USART_ClearFlag_TC(USART1);
-#ifndef SIMULATED
-    while (LL_USART_IsActiveFlag_TC(USART1));
 #endif
-    LL_USART_EnableIT_TC(USART1);
-#else
-    LL_USART_DisableIT_TC(USART1);
-#endif //STM32_USART_TC_ENABLE
 
-#endif // STM32_ENABLE_USART1
+}
 
 #if STM32_ENABLE_USART2
-    uart_params.PrescalerValue      = STM32_USART2_PRESCALER_VALUE;
-    uart_params.BaudRate            = STM32_USART2_BAUD_RATE;
-    uart_params.DataWidth           = STM32_USART2_DATA_WIDTH;
-    uart_params.StopBits            = STM32_USART2_STOP_BITS;
-    uart_params.Parity              = STM32_USART2_PARITY;
-    uart_params.TransferDirection   = STM32_USART2_TRANSFER_DIRECTION;
-    uart_params.HardwareFlowControl = STM32_USART2_HARDWARE_FC;
-    uart_params.OverSampling        = STM32_USART2_OVER_SAMPLING;
-    LL_USART_Init(USART2, &uart_params);
+static void
+uart2_init(LL_USART_InitTypeDef * uart_params)
+{
+    __INIT_USART(uart_params, USART2);
+#if STM32_USART2_RS485
+    __INIT_RS485(USART2);
+#endif // STM32_USART2_RS485
 
 #if STM32_USART2_FIFO
     LL_USART_EnableFIFO(USART2);
 #else
     LL_USART_DisableFIFO(USART2);
-#endif // STM32_USART1_FIFO
+#endif // STM32_USART2_FIFO
 
 #if STM32_USART2_ASYNC
     LL_USART_ConfigAsyncMode(USART2);
-#endif // STM32_USART1_ASYNC
+#endif // STM32_USART2_ASYNC
 
-#endif // STM32_ENABLE_USART2
-}
-#if 0
+#if STM32_ENABLE_USART2_RX_DMA
+    LL_USART_EnableDMAReq_RX(USART2);
+#else
+    LL_USART_DisableDMAReq_RX(USART2);
 
+#endif // STM32_USART_RX_DMA
 
-static void
-stm32_dma_transfer(uint16_t size)
-{
-    self.dma_pos_old = self.dma_pos_new;
+#if STM32_ENABLE_USART2_TX_DMA
+    LL_USART_EnableDMAReq_TX(USART2);
+#else
+    LL_USART_DisableDMAReq_TX(USART2);
 
-    if (self.dma_pos_old + size > RX_BUFFER_SIZE) {
-        uint16_t space = RX_BUFFER_SIZE - self.dma_pos_old;
-        copy(self.rx_buffer + self.dma_pos_old, self.usart1_dma_buffer, space);
-        self.dma_pos_old = 0;
-        self.dma_pos_new = size - space;
-        copy(self.rx_buffer, self.usart1_dma_buffer + space, self.dma_pos_new);
-    } else {
-        copy(self.rx_buffer + self.dma_pos_old, self.usart1_dma_buffer, size);
-        self.dma_pos_new = size + self.dma_pos_old;
-    }
-}
-
-__INTERRUPT
-DMA1_Channel1_IRQHandler(void)
-{
-    stm32_dma_transfer(STM32_USART_DMA_BUFFER_SIZE);
-    LL_DMA_ClearFlag_TC1(DMA1);
-    self.base.buffer_position += STM32_USART_DMA_BUFFER_SIZE;
-    LL_DMA_DisableChannel(RX_DMA, RX_CHANNEL);
-    LL_DMA_SetDataLength(RX_DMA, RX_CHANNEL, STM32_USART_DMA_BUFFER_SIZE);
-    LL_DMA_EnableChannel(RX_DMA, RX_CHANNEL);
+#endif // STM32_USART_TX_DMA
+    __SET_IT(USART2, TC);
+    __SET_IT(USART2, RTO);
+    __SET_IT(USART2, PE);
+#if STM32_USART2_ERROR_ENABLE
+    LL_USART_EnableIT_##it(inst);
+#else
+    LL_USART_DisableIT_ERROR(USART2);
+#endif
 }
 #endif
+
+static void
+uart_init()
+{
+    LL_USART_InitTypeDef uart_params;
+
+#if STM32_ENABLE_USART1
+    uart1_init(&uart_params);
+    usart1_rx_circ.empty = false;
+#endif // STM32_ENABLE_USART1
+
+#if STM32_ENABLE_USART2
+    uart2_init(&uart_params);
+#endif // STM32_ENABLE_USART2
+
+}
+
+uint16_t
+available(void * instance)
+{
+    if (self.new_data)
+        return circ_buf_waiting(self.base.serial_buffer);
+    return 0;
+}
+
+static inline void
+clear(void * instance)
+{
+    self.new_data = false;
+}
+
 __INTERRUPT
 USART1_IRQHandler()
 {
     if (LL_USART_IsActiveFlag_TC(USART1)) {
+        stm32_dma_stop_channel(STM32_USART1_TX_DMA_CHANNEL);
 #if STM32_USART1_RS485
         LL_GPIO_ResetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
 #endif
         LL_USART_ClearFlag_TC(USART1);
     }
     if (LL_USART_IsActiveFlag_RXNE_RXFNE(USART1)) {
+        usart1_rx_circ.empty = false;
         return;
     } else if (LL_USART_IsActiveFlag_RTO(USART1)) {
-#if 0
-        if (DMA1_Channel1->CNDTR != STM32_USART_DMA_BUFFER_SIZE) {
-            if (LL_DMA_IsActiveFlag_TC1(DMA1)) return;
-            uint16_t size = STM32_USART_DMA_BUFFER_SIZE - DMA1_Channel1->CNDTR;
-            stm32_dma_transfer(size);
-            self.base.buffer_position += self.dma_pos_new;
-        }
-        self.rx_callback(0, self.base.buffer_position - self.rx_pos_old);
         LL_USART_ClearFlag_RTO(USART1);
-        self.rx_pos_old = self.base.buffer_position;
-#endif
     }
 }

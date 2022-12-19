@@ -16,13 +16,9 @@
 #ifndef DRIVERS_SERIAL_PRIVATE_H
 #define DRIVERS_SERIAL_PRIVATE_H
 
-#include "serial.h"
-
 /** @addtogroup Serial
  * @{
  */
-
-
 
 /**
  * @brief Serial interface function data structure.
@@ -35,6 +31,16 @@ typedef struct serial_interface_t
      */
     void (* open)(void * instance);
 
+    /**
+     * @brief Returns number of bytes ready to be read
+     * @param instance Serial instance if needed by target.
+     */
+    uint16_t (* available)(void * instance);
+    /**
+     * @brief Clears new data flag
+     * @param instance Serial instance if needed by target.
+     */
+    void (* clear)(void * instance);
     /**
      * @brief Closes specified serial instance
      * @param instance Serial instance if needed by target.

@@ -22,7 +22,6 @@ int main()
     uint32_t cnt = 0;
     hal = bootstrap(stm32_dependency_injection, 0);
     adc_start(hal->analog);
-
     while (1) {
         if (cnt++ > 100000) {
             reading = adc_average(hal->analog);

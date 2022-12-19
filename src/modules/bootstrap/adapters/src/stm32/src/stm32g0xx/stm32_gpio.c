@@ -35,7 +35,7 @@ stm32_gpio_create()
     LL_GPIO_InitTypeDef init;
     init_gpio(&init);
     init_adc(&init);
-    //init_usart(&init);
+    init_usart(&init);
     //init_timers(&init);
     return 0;
 }

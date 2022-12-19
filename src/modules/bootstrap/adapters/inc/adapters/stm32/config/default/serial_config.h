@@ -37,7 +37,7 @@
  * @brief whether to configure and enable USART2 instance
  * @ingroup STM32G0xx_USART2Config
  * */
-#define STM32_ENABLE_USART2            1
+#define STM32_ENABLE_USART2            0
 
 #if STM32_ENABLE_USART1
 /**
@@ -94,14 +94,17 @@
 
 #define STM32_USART1_TX_BUFFER_SIZE     256
 
-/** @brief Enable DMA transfers for TX */
-#define STM32_USART1_TX_DMA             0
-
 /** @brief Enable STM32 RTO interrupt */
 #define STM32_USART1_RTO_ENABLE         1
 
 /** @brief Enable STM32 TC interrupt */
 #define STM32_USART1_TC_ENABLE          1
+
+/** @brief Enable STM32 PE interrupt */
+#define STM32_USART1_PE_ENABLE          0
+
+/** @brief Enable STM32 ERROR interrupt */
+#define STM32_USART1_ERROR_ENABLE       0
 
 /** @brief bits time to trigger rx timeout interrupt */
 #define STM32_USART1_RX_TIMEOUT         39
@@ -178,6 +181,12 @@
 
 /** @brief Enable STM32 TC interrupt */
 #define STM32_USART2_TC_ENABLE          1
+
+/** @brief Enable STM32 PE interrupt */
+#define STM32_USART2_PE_ENABLE          0
+
+/** @brief Enable STM32 ERROR interrupt */
+#define STM32_USART2_ERROR_ENABLE       0
 
 /** @brief bits time to trigger rx timeout interrupt */
 #define STM32_USART2_RX_TIMEOUT         39
