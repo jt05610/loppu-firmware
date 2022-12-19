@@ -60,7 +60,7 @@
 #define STM32_USART1_DATA_WIDTH         LL_USART_DATAWIDTH_8B
 
 /** @brief USART1 number of stop bits */
-#define STM32_USART1_STOP_BITS          LL_USART_STOPBITS_1
+#define STM32_USART1_STOP_BITS          LL_USART_STOPBITS_2
 
 /** @brief USART1 parity */
 #define STM32_USART1_PARITY             LL_USART_PARITY_NONE
@@ -102,6 +102,9 @@
 
 /** @brief Enable STM32 PE interrupt */
 #define STM32_USART1_PE_ENABLE          0
+
+/** @brief Enable STM32 character match interrupt */
+#define STM32_USART1_CM_ENABLE          0
 
 /** @brief Enable STM32 ERROR interrupt */
 #define STM32_USART1_ERROR_ENABLE       0

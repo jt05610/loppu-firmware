@@ -319,12 +319,9 @@ write(void * instance, uint8_t * bytes, uint16_t size)
     while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN));
 #endif // STM32_USART1_RS485
 #if STM32_ENABLE_USART1_TX_DMA
-    uint8_t * ptr = bytes;
-    while (size--) {
-        circ_buf_push(&usart1_tx_circ, *ptr++);
-    }
+    LL_DMA_SetDataLength(DMA1, STM32_USART1_TX_DMA_CHANNEL, size);
+    LL_DMA_SetMemoryAddress(DMA1, STM32_USART1_TX_DMA_CHANNEL, (uint32_t) bytes);
     stm32_dma_start_channel(STM32_USART1_TX_DMA_CHANNEL);
-
 #else
     for (uint16_t i = 0; i < size; i++) {
         LL_USART_TransmitData8((USART_TypeDef *) instance, bytes[i]);
@@ -390,11 +387,12 @@ _putchar(void * instance, char a)
     LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
     while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN));
 #endif // STM32_USART1_RS485
-#if !STM32_ENABLE_USART1_TX_DMA
+#if STM32_ENABLE_USART1_TX_DMA
     (void) instance;
     circ_buf_push(&usart1_tx_circ, (uint8_t) a);
 #else
     LL_USART_TransmitData8(USART1, (uint8_t) a);
+    while (!LL_USART_IsActiveFlag_TXE_TXFNF(USART1));
     return a;
 #endif
 #elif STM32_ENABLE_USART2
@@ -479,9 +477,12 @@ uart1_init(LL_USART_InitTypeDef * uart_params)
     LL_USART_SetRxTimeout(USART1, STM32_USART1_RX_TIMEOUT);
     LL_USART_EnableRxTimeout(USART1);
 #endif
+    LL_USART_ConfigNodeAddress(USART1, LL_USART_ADDRESS_DETECT_7B, 0x0A);
     __SET_IT(USART1, RTO);
     __SET_IT(USART1, TC);
     __SET_IT(USART1, PE);
+    __SET_IT(USART1, CM);
+
 #if STM32_USART1_ERROR_ENABLE
     LL_USART_EnableIT_##it(inst);
 #else
@@ -553,7 +554,7 @@ uint16_t
 available(void * instance)
 {
     if (self.new_data)
-        return circ_buf_waiting(self.base.serial_buffer);
+        return circ_buf_waiting(self.base.serial_buffer) + circ_buf_waiting(&usart1_rx_dma_circ);
     return 0;
 }
 
@@ -567,16 +568,14 @@ __INTERRUPT
 USART1_IRQHandler()
 {
     if (LL_USART_IsActiveFlag_TC(USART1)) {
-        stm32_dma_stop_channel(STM32_USART1_TX_DMA_CHANNEL);
 #if STM32_USART1_RS485
         LL_GPIO_ResetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
 #endif
         LL_USART_ClearFlag_TC(USART1);
     }
-    if (LL_USART_IsActiveFlag_RXNE_RXFNE(USART1)) {
-        usart1_rx_circ.empty = false;
-        return;
-    } else if (LL_USART_IsActiveFlag_RTO(USART1)) {
+    else if (LL_USART_IsActiveFlag_RTO(USART1)) {
+        usart1_rx_dma_circ.head = STM32_USART1_RX_DMA_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, STM32_USART1_RX_DMA_CHANNEL);
+        self.new_data = true;
         LL_USART_ClearFlag_RTO(USART1);
     }
 }
