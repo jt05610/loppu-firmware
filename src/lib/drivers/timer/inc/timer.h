@@ -164,6 +164,14 @@ void timer_stop_pwm(Timer self, void * pwm_instance);
 void timer_set_pwm_freq(Timer self, void * pwm_instance, uint32_t freq);
 
 /**
+ * @brief Sets PWM period
+ * @param self Timer instance
+ * @param pwm_instance PWM timer instance if needed for target mcu.
+ * @param period Period in umber of ticks at the timer's set frequency.
+ */
+void timer_set_pwm_period(Timer self, void * pwm_instance, uint32_t period);
+
+/**
  * @brief Sets duty cycle for pwm.
  * @param self Timer instance.
  * @param pwm_instance PWM timer instance if needed by target mcu.

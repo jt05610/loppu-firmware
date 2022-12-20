@@ -88,6 +88,9 @@ typedef struct timer_interface_t
     /** @brief set pwm frequency for specified timer instance */
     void (* set_pwm_freq)(void * timer_instance, uint32_t freq_Hz);
 
+    /** @brief set pwm period for specified timer instance */
+    void (* set_pwm_period)(void * timer_instance, uint32_t period);
+
     /** @brief set pwm duty cycle for specified timer instance */
     void (* set_pwm_duty_cycle)(void * timer_instance, uint16_t duty_cycle);
 

@@ -35,7 +35,7 @@
  */
 
 /** @brief Enable Low power timer 1 */
-#define STM32_ENABLE_LPTIM1 0
+#define STM32_ENABLE_LPTIM1             0
 
 #if STM32_ENABLE_LPTIM1
 
@@ -114,7 +114,7 @@
  */
 
 /** @brief Enable Timer 1 */
-#define STM32_ENABLE_TIM1               0
+#define STM32_ENABLE_TIM1               1
 
 /**
  * @defgroup STM32G0xx_TIM1_NVIC_Config TIM1 interrupts
