@@ -19,19 +19,20 @@
 
 static Peripherals hal;
 
+static uint8_t result[10];
+
 int main()
 {
+    uint16_t size;
     hal = bootstrap(stm32_dependency_injection, 0);
     serial_open(hal->serial, USART1);
     while (1) {
-        uint8_t l = serial_available(hal->serial, USART1);
-        if (l) {
-            for (uint8_t i = 0; i < l; i++) {
-                serial_putchar(
-                        hal->serial, USART1,
-                        circ_buf_pop(hal->serial->serial_buffer));
+        if (serial_available(hal->serial, USART1)) {
+            size = serial_read(hal->serial, USART1, result);
+            if (size) {
+                serial_write(hal->serial, USART1, result, size);
+                serial_clear(hal->serial, USART1);
             }
-            serial_clear(hal->serial, USART1);
         }
     }
 }

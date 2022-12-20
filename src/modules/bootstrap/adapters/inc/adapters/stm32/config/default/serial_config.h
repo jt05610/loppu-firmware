@@ -92,8 +92,6 @@
 /** @brief Turn on STM32 Async mode for USART1 */
 #define STM32_USART1_ASYNC              1
 
-#define STM32_USART1_TX_BUFFER_SIZE     256
-
 /** @brief Enable STM32 RTO interrupt */
 #define STM32_USART1_RTO_ENABLE         1
 

@@ -90,9 +90,9 @@ stm32_dependency_injection()
     stm32_rcc_config();
     stm32_nvic_config();
     adc_config();
+    gpio_config();
     serial_config();
     dma_config();
-    gpio_config();
     timer_config();
 
     return &self;

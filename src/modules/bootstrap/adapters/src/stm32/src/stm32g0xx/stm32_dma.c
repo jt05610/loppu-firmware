@@ -93,11 +93,14 @@ __HNDLR(flag, channel).src_buf = src
 
 DMA_ISR_HANDLER(TC, 1)
 {
+    LL_DMA_DisableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
+    LL_DMA_SetDataLength(
+        DMA1, STM32_USART1_RX_DMA_CHANNEL, STM32_USART1_RX_DMA_BUFFER_SIZE
+        );
+    LL_DMA_EnableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
     LL_DMA_ClearFlag_TC1(DMA1);
-    uint8_t to_transfer = STM32_USART1_RX_DMA_BUFFER_SIZE;
-    while(to_transfer--)
-        circ_buf_push(data->circ_buf, circ_buf_pop(data->src_buf));
-    __RESET_CHANNEL(_USART1_RX);
+    data->src_buf->head = STM32_USART1_RX_DMA_BUFFER_SIZE - DMA1_Channel1->CNDTR;
+    data->src_buf->empty = false;
 }
 
 DMA_ISR_HANDLER(TC, 2)
