@@ -17,12 +17,9 @@
 
 #include <stdint.h>
 
-/** @addtogroup Peripherals
- *  @{
- */
-
 /**
  * @defgroup Timer
+ * @ingroup Peripherals
  * @brief Timer abstraction library.
  * @details To implement a timer library for a given mcu, a timer_interface_t
  * must be implemented with definitions for the given function prototypes.
@@ -135,7 +132,7 @@ uint32_t timer_millis(Timer self);
 /** @} */
 
 /**
- * @defgroup PWM
+ * @defgroup PWM Pulse width modulation (PWM)
  * @brief Functions to control pwm timers.
  * @{
  */
@@ -148,7 +145,8 @@ uint32_t timer_millis(Timer self);
  * @param duty_cycle Desired duty cycle in e-3%. Value between 0 and 100000.
  *                   Scales between 0% and 100%.
 */
-void timer_start_pwm(Timer self, void * pwm_instance, uint32_t freq, uint16_t duty_cycle);
+void timer_start_pwm(
+        Timer self, void * pwm_instance, uint32_t freq, uint16_t duty_cycle);
 
 /**
  * @brief Stops pwm timer.
@@ -182,8 +180,6 @@ timer_set_pwm_duty_cycle(Timer self, void * pwm_instance, uint16_t duty_cycle);
  * @param data Any additional data needed.
  */
 void timer_set_pwm_callback(Timer self, PeriodicCallback cb, void * data);
-
-/** @} */
 
 /** @} */
 
