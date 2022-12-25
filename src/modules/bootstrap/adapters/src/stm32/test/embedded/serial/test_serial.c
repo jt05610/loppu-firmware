@@ -13,7 +13,7 @@
   ******************************************************************************
   */
 
-#include "test_serial.h"
+#include "test_timer.h"
 #include "stm32g031xx.h"
 #include "stm32g0xx.h"
 #include "unity.h"

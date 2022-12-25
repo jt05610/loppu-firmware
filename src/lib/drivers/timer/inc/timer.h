@@ -43,12 +43,6 @@ typedef struct timer_interface_t * TimerInterface;
 typedef struct periodic_callback_t * PeriodicCallback;
 
 /**
- * @defgroup General
- * @brief General timer functions.
- * @{
- */
-
-/**
  * @brief Starts a timer with specified tick frequency.
  * @param self Timer instance.
  * @param timer_instance Timer instance if needed by target MCU.
@@ -70,8 +64,6 @@ void timer_stop(Timer self, void * timer_instance);
  * @return Current tick of timer.
  */
 uint32_t timer_get_tick(Timer self, void * timer_instance);
-
-/** @} */
 
 /**
  * @defgroup Microsecond

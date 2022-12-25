@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file   test_serial.c
+  * @file   serial_test.h
   * @author Jonathan Taylor
-  * @date   12/16/22
+  * @date   12/14/22
   * @brief  DESCRIPTION
   ******************************************************************************
   * @attention
@@ -13,3 +13,15 @@
   ******************************************************************************
   */
 
+#ifndef INJECTOR_TEST_TIMER_H
+#define INJECTOR_TEST_TIMER_H
+
+#include "stm32g0xx/stm32_serial.h"
+
+void set_serial_test_instance(Serial serial);
+
+void test_read();
+
+void test_write();
+
+#endif //INJECTOR_TEST_TIMER_H

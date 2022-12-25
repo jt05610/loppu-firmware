@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file   timer.c
+  * @file   stm32_timer.c
   * @author Jonathan Taylor
   * @date   12/13/22
   * @brief  DESCRIPTION
@@ -15,6 +15,7 @@
 
 #include "stm32_timer.h"
 #include "default/rcc_config.h"
+#include "default/timer_config.h"
 #include "stm32g0xx_ll_tim.h"
 #include "stm32_interrupts.h"
 
@@ -74,20 +75,67 @@ static timer_interface_t interface = {
         .stop_pwm=stop_pwm
 };
 
+#define __GET(inst, param) STM32_TIM##inst##_##param
+
+#define INIT_GEN_TIM(inst, p)                                       \
+p.Prescaler     = __GET(inst, PRESCALER);                           \
+p.CounterMode   = __GET(inst, COUNTER_MODE);                        \
+p.Autoreload    = __GET(inst, AUTORELOAD);                          \
+p.ClockDivision = __GET(inst, CLOCK_DIV);                           \
+LL_TIM_Init(TIM##inst, &p);                                         \
+__GET(inst, ENABLE_PRELOAD) ? LL_TIM_EnableARRPreload(TIM##inst)    \
+                            : LL_TIM_DisableARRPreload(TIM##inst);  \
+LL_TIM_SetClockSource(TIM##inst, __GET(inst, CLOCK_SOURCE))
+
+
+static inline void
+gen_tim_init()
+{
+    LL_TIM_InitTypeDef init;
+
+#if STM32_ENABLE_TIM1
+    INIT_GEN_TIM(1, init);
+#endif
+
+#if STM32_ENABLE_TIM2
+    INIT_GEN_TIM(2, init);
+#endif
+
+#if STM32_ENABLE_TIM3
+    INIT_GEN_TIM(3, init);
+#endif
+
+#if STM32_ENABLE_TIM14
+    INIT_GEN_TIM(14, init);
+#endif
+
+#if STM32_ENABLE_TIM16
+    INIT_GEN_TIM(16, init);
+#endif
+
+#if STM32_ENABLE_TIM17
+    INIT_GEN_TIM(17, init);
+#endif
+
+}
+
 Timer
 stm32_timer_create()
 {
     self.base.vtable = &interface;
+
     return &self.base;
 }
 
 static inline void
 start(void * timer_instance, uint32_t freq)
 {
-    LL_TIM_SetPrescaler(
-            (TIM_TypeDef *) timer_instance,
-            __LL_TIM_CALC_PSC(STM32_SYS_TICK, freq)
-    );
+    if (freq > 0) {
+        LL_TIM_SetPrescaler(
+                (TIM_TypeDef *) timer_instance,
+                __LL_TIM_CALC_PSC(STM32_SYS_TICK, freq)
+        );
+    }
     LL_TIM_EnableCounter((TIM_TypeDef *) timer_instance);
     while (!LL_TIM_IsEnabledCounter((TIM_TypeDef *) timer_instance));
 }
@@ -109,7 +157,7 @@ static inline void
 start_us_timer(void * timer_instance)
 {
     self.micros_timer = (TIM_TypeDef *) timer_instance;
-    start(self.micros_timer, 100000);
+    start(self.micros_timer, 1000000);
 }
 
 static inline void
@@ -185,7 +233,6 @@ set_pwm_duty_cycle(void * timer_instance, uint16_t duty_cycle)
             val * LL_TIM_GetAutoReload((TIM_TypeDef *) timer_instance));
 
 }
-
 
 static inline void
 set_pwm_callback(PeriodicCallback cb, void * data)

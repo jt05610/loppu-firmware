@@ -13,6 +13,8 @@
   ******************************************************************************
   */
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedMacroInspection"
 #ifndef INJECTOR_TIMER_CONFIG_H
 #define INJECTOR_TIMER_CONFIG_H
 
@@ -263,7 +265,7 @@
  */
 
 /** @brief Enable Timer 2 */
-#define STM32_ENABLE_TIM2               0
+#define STM32_ENABLE_TIM2               1
 
 /**
  * @defgroup STM32G0xx_TIM2_NVIC_Config TIM2 interrupts
@@ -276,14 +278,11 @@
 #define STM32_ENABLE_TIM2_IRQn          0
 
 
-#if STM32_ENABLE_TIM2_IRQn
 /** @brief TIM2 interrupt priority */
 #define STM32_TIM2_IRQn_priority        0
-#endif // STM32_ENABLE_TIM2_IRQn
 
 /** @} */
 
-#if STM32_ENABLE_TIM2
 /** @brief TIM2 enable Master/Slave mode */
 #define STM32_TIM2_M_S_MODE_ENABLE      0
 
@@ -308,13 +307,12 @@
 /** @brief TIM2 clock source */
 #define STM32_TIM2_CLOCK_SOURCE         LL_TIM_CLOCKSOURCE_INTERNAL
 
-/** @brief TIM2 enables or disables preload */
-#define STM32_TIM2_ENABLE_PRELOAD       1
-
 /** @brief TIM2 enable output compare */
 #define STM32_TIM2_ENABLE_OC            1
 
-#if STM32_TIM2_ENABLE_OC
+/** @brief TIM2 enables or disables preload */
+#define STM32_TIM2_ENABLE_PRELOAD       1
+
 /** @brief Output compare mode */
 #define STM32_TIM2_OCMODE               LL_TIM_OCMODE_PWM1
 
@@ -345,10 +343,6 @@
 /** @brief Trigger output used for timer synchronization  */
 #define STM32_TIM2_TRIGGER_OUT1         LL_TIM_TRGO_RESET
 
-#endif // STM32_TIM2_ENABLE_OC
-
-#endif // STM32_TIM2_ENABLE
-
 /** @} */
 
 /**
@@ -359,7 +353,7 @@
  */
 
 /** @brief Enable Timer 3 */
-#define STM32_ENABLE_TIM3               0
+#define STM32_ENABLE_TIM3               1
 
 /**
  * @defgroup STM32G0xx_TIM3_NVIC_Config TIM3 interrupts
@@ -454,7 +448,7 @@
  */
 
 /** @brief Enable Timer 14 */
-#define STM32_ENABLE_TIM14              0
+#define STM32_ENABLE_TIM14              1
 
 /**
  * @defgroup STM32G0xx_TIM14_NVIC_Config TIM14 interrupts
@@ -514,7 +508,7 @@
  */
 
 /** @brief Enable Timer 16 */
-#define STM32_ENABLE_TIM16              0
+#define STM32_ENABLE_TIM16              1
 
 /**
  * @defgroup STM32G0xx_TIM16_NVIC_Config TIM16 interrupts
@@ -575,7 +569,7 @@
  */
 
 /** @brief Enable Timer 17 */
-#define STM32_ENABLE_TIM17              0
+#define STM32_ENABLE_TIM17              1
 
 /**
  * @defgroup STM32G0xx_TIM17_NVIC_Config TIM17 interrupts
@@ -630,3 +624,5 @@
 /** @} */
 
 #endif //INJECTOR_TIMER_CONFIG_H
+
+#pragma clang diagnostic pop

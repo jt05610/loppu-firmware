@@ -13,9 +13,10 @@
   ******************************************************************************
   */
 #include "adapters/stm32/g031xx_adapter.h"
-#include "serial.h"
-#include "stm32g0xx_ll_dma.h"
-#include "stm32g0xx_ll_usart.h"
+#include "test_timer.h"
+#include "stm32g031xx.h"
+#include "unity_config.h"
+
 
 static Peripherals hal;
 
@@ -23,15 +24,32 @@ static uint8_t result[10];
 
 int main()
 {
-    uint16_t size;
     hal = bootstrap(stm32_dependency_injection, 0);
-    while (1) {
-        if (serial_available(hal->serial, USART1)) {
-            size = serial_read(hal->serial, USART1, result);
-            if (size) {
-                serial_write(hal->serial, USART1, result, size);
-                serial_clear(hal->serial, USART1);
-            }
-        }
-    }
+    setup_timer(hal->timer, TIM2);
+    run_all_tests();
+    while (1) {}
+}
+
+uint8_t
+unity_output_char(char a)
+{
+    return serial_putchar(hal->serial, USART1, a);
+}
+
+void
+unity_output_start()
+{
+
+}
+
+void
+unity_output_flush()
+{
+
+}
+
+void
+unity_output_complete()
+{
+
 }

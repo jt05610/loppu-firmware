@@ -15,7 +15,7 @@
 
 #include "stm32g031xx.h"
 #include "stm32g0xx/stm32_clock.h"
-#include "test_serial.h"
+#include "test_timer.h"
 #include "test_modbus.h"
 #include "peripherals.h"
 #include "fake_device.h"
