@@ -35,6 +35,7 @@ void setUp()
 
 void tearDown()
 {
+    LL_TIM_SetCounter()
     timer_stop(self.timer, self.instance);
 }
 

@@ -42,7 +42,7 @@ server_dl_update()
     dl_update_t ret = dl_receive(self.base, &self.received);
     if (ReceivedBroadcast == ret || ReceivedUnicast == ret)
     {
-        if (!dl_crc_check(&self.received))
+        if (!pdu_is_valid(&self.received))
         {
             INCREMENT_COUNTER(self, BusCommunicationErrorCount);
             ret = FrameError;
@@ -75,8 +75,8 @@ server_dl_create(
 )
 {
     server_interface.write_handler = write_handler;
-    base->serial_device = serial_device;
-    self.address                  = address;
+    base->serial                   = serial_device;
+    self.address                   = address;
     base->vtable                  = &server_interface;
     base->buffer                  = rx_buffer;
     self.base                     = base;
@@ -150,7 +150,7 @@ server_dl_format_response(sized_array_t * result)
 
         self.received.pdu->data.bytes[0] = result->size;
         self.received.pdu->data.size = result->size + 1;
-        self.received.crc = dl_crc16(
+        self.received.crc = pdu_crc16(
                 self.received.address, self.received.pdu
         );
     } else {

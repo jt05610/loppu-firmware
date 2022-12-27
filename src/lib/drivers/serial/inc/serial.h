@@ -103,6 +103,7 @@ uint16_t serial_available(Serial base, void * instance);
 
 void serial_clear(Serial base, void * instance);
 
+void serial_register_rx_callback(Serial base, void * instance, void (*cb)(void));
 
 /** @} */
 

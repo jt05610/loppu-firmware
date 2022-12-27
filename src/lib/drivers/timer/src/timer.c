@@ -41,6 +41,14 @@ timer_get_tick(Timer self, void * timer_instance)
 }
 
 void
+timer_reset(Timer self, void * timer_instance)
+{
+    if (self && self->vtable && self->vtable->reset) {
+        self->vtable->reset(timer_instance);
+    }
+}
+
+void
 timer_start_microsecond_timer(Timer self, void * timer_instance)
 {
     if (self && self->vtable && self->vtable->start_us_timer) {
@@ -138,5 +146,20 @@ timer_set_pwm_period(Timer self, void * pwm_instance, uint32_t period)
     if (self && self->vtable && self->vtable->set_pwm_period) {
         self->vtable->set_pwm_period(pwm_instance, period);
     }
+}
 
+void
+timer_register_update_callback(Timer self, void * timer_instance, void (* cb)())
+{
+    if (self && self->vtable && self->vtable->reg_update_callback) {
+        self->vtable->reg_update_callback(timer_instance, cb);
+    }
+}
+
+void
+timer_register_pwm_callback(Timer self, void * timer_instance, void (* cb)())
+{
+    if (self && self->vtable && self->vtable->reg_pwm_callback) {
+        self->vtable->reg_pwm_callback(timer_instance, cb);
+    }
 }

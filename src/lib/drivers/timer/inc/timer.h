@@ -65,6 +65,14 @@ void timer_stop(Timer self, void * timer_instance);
  */
 uint32_t timer_get_tick(Timer self, void * timer_instance);
 
+void timer_reset(Timer self, void * timer_instance);
+
+void timer_register_update_callback(
+        Timer self, void * timer_instance, void (* cb)(void));
+
+void timer_register_pwm_callback(
+        Timer self, void * timer_instance, void (* cb)(void));
+
 /**
  * @defgroup Microsecond
  * @brief Provides functions for timing with microsecond precision.

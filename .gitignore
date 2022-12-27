@@ -4,3 +4,5 @@
 /cmake-build-simulated/*
 /docs/*
 /src/lib/third_party/CMock/*
+/cmake-build-minsizerel/*
+/cmake-build-release/*

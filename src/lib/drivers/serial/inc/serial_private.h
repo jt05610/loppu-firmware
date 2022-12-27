@@ -36,11 +36,13 @@ typedef struct serial_interface_t
      * @param instance Serial instance if needed by target.
      */
     uint16_t (* available)(void * instance);
+
     /**
      * @brief Clears new data flag
      * @param instance Serial instance if needed by target.
      */
     void (* clear)(void * instance);
+
     /**
      * @brief Closes specified serial instance
      * @param instance Serial instance if needed by target.
@@ -70,6 +72,8 @@ typedef struct serial_interface_t
      * @return a as unsigned byte
      */
     uint8_t (* putchar)(void * instance, char a);
+
+    void (* reg_rx_cb)(void * instance, void (* cb)(void));
 
 } serial_interface_t;
 

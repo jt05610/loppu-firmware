@@ -23,12 +23,12 @@
 
 #define UINT16_TO_UINT8_ARRAY(array, start, value) {            \
     (array)[(start)]     = *((uint8_t *) &(value) + 1);         \
-    (array)[(start) + 1] = *((uint8_t *) &(value) + 0);         \
+    (array)[(start) + 1] = *((uint8_t *) &(value) + 0)         \
 }
 
 #define UINT32_TO_UINT16_ARRAY(array, start, value) {           \
     (array)[(start)]     = *((uint16_t *) &(value) + 1);        \
-    (array)[(start) + 1] = *((uint16_t *) &(value) + 0);        \
+    (array)[(start) + 1] = *((uint16_t *) &(value) + 0)        \
 }
 #define BYTE_COUNT(quantity)                                    \
     ((quantity) >> 3) + ((quantity) % 8 ? 1 : 0)

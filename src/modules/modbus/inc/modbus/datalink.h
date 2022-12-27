@@ -11,50 +11,69 @@
 #ifndef MICROFLUIDICSYSTEM_DATALINK_H
 #define MICROFLUIDICSYSTEM_DATALINK_H
 
+/**
+ * @defgroup Datalink
+ * @ingroup Modbus
+ * @{
+ */
 #include <stdint.h>
 #include "types.h"
+#include "serial.h"
+#include "timer.h"
 
 #define ERROR_COUNTERS 8
 
+/**
+ * @brief pointer to instantiated datalink
+ */
+typedef struct datalink_t * Datalink;
 
-typedef struct datalink_t           * Datalink;
-typedef struct datalink_interface_t * DatalinkInterface;
+/**
+ * @defgroup Datalink_update Datalink states
+ * @{
+ */
+#define DL_INITIAL_STATE    0xFF
+#define DL_IDLE_STATE       0x00
+#define DL_RX_STATE         0x01
+#define DL_CONTROL_STATE    0x02
+#define DL_TX_STATE         0x03
 
-typedef enum dl_update_t
-{
-    ReceivedUnicast,
-    ReceivedBroadcast,
-    None,
-    ResponseTimeout,
-    FrameError,
-}                                   dl_update_t;
+/** @} */
 
-typedef enum dl_counter_t
-{
-    BusMessageCount            = 0x0B,
-    BusCommunicationErrorCount = 0x0C,
-    BusExceptionErrorCount     = 0x0D,
-    ServerMessageCount         = 0x0E,
-    ServerNoResponseCount      = 0x0F,
-    ServerNAKCount             = 0x10,
-    ServerBusyCount            = 0x11,
-    BusCharacterOverrunCount   = 0x12
-}                                   dl_counter_t;
+#define DL_BusMessageCount             0x0B
+#define DL_BusCommunicationErrorCount  0x0C
+#define DL_BusExceptionErrorCount      0x0D
+#define DL_ServerMessageCount          0x0E
+#define DL_ServerNoResponseCount       0x0F
+#define DL_ServerNAKCount              0x10
+#define DL_ServerBusyCount             0x11
+#define DL_BusCharacterOverrunCount    0x12
 
-dl_update_t dl_update(Datalink base);
+/**
+ * @brief creates datalink
+ * @param serial_instance which serial device to read and write data to/from
+ * @return Pointer to instantiated datalink
+ */
+Datalink
+dl_create(Serial serial, Timer timer, void * ser_inst, void * tim_inst);
 
-void dl_format_pdu(uint8_t address, ModbusPDU pdu, SerialPDU dest);
+/**
+ * @brief Processes new data
+ * @param base
+ * @return
+ */
+uint8_t dl_update(Datalink base);
 
-void dl_transmit(Datalink base, SerialPDU pdu);
+bool dl_new_data(Datalink base);
 
-void dl_handle_error(Datalink base);
+void dl_reset(Datalink base);
 
-bool dl_crc_check(SerialPDU pdu);
+ModbusPDU dl_rx_pdu(Datalink base);
 
-dl_update_t dl_receive(Datalink base, SerialPDU data);
-
-uint16_t dl_crc16(uint8_t address, ModbusPDU pdu);
+void dl_send(Datalink base, ModbusPDU pdu);
 
 #include "datalink_private.h"
+
+/** @} */
 
 #endif //MICROFLUIDICSYSTEM_DATALINK_H

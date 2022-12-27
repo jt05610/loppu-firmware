@@ -31,14 +31,14 @@
 #include "pdu_types.h"
 
 /**
- * @defgroup ModbusTables
  * @brief tables
+ * @defgroup ModbusTables
  * @{
  */
-#define DI_TABLE 0x00        /**< @brief Discrete inputs table */
-#define COIL_TABLE 0x01      /**< @brief Coils table */
-#define IR_TABLE 0x02        /**< @brief Input registers table */
-#define HR_TABLE 0x03        /**< @brief Holding registers table */
+#define DI_TABLE    0x00    /**< @brief Discrete inputs table */
+#define COIL_TABLE  0x01    /**< @brief Coils table */
+#define IR_TABLE    0x02    /**< @brief Input registers table */
+#define HR_TABLE    0x03    /**< @brief Holding registers table */
 /** @} */
 
 typedef struct data_model_t * DataModel;
@@ -48,7 +48,7 @@ typedef struct data_model_t * DataModel;
  */
 typedef struct data_model_t
 {
-    void * device;               /**< @brief Pointer to data model device */
+    Device device;
     primary_table_t * tables;    /**< @brief One for each @ref ModbusTables */
 } data_model_t;
 

@@ -6,6 +6,8 @@
 #define MICROFLUIDICSYSTEM_PDU_TYPES_H
 
 #include "project_types.h"
+#include "crc.h"
+#include "buffer/circular_buffer.h"
 
 typedef struct modbus_pdu_t * ModbusPDU;
 typedef struct serial_pdu_t * SerialPDU;
@@ -42,8 +44,7 @@ create_serial_pdu(uint8_t addr, ModbusPDU pdu, uint16_t crc, SerialPDU dest)
 static inline void
 serialize_modbus_pdu(ModbusPDU pdu, sized_array_t * dest)
 {
-    for (size_t i      = pdu->data.size; i > 0; i--)
-    {
+    for (size_t i      = pdu->data.size; i > 0; i--) {
         pdu->data.bytes[i] = pdu->data.bytes[i - 1];
     }
     pdu->data.bytes[0] = pdu->func_code;
@@ -54,8 +55,7 @@ static inline void
 serialize_serial_pdu(SerialPDU data, sized_array_t * dest)
 {
     dest->bytes    = data->pdu->data.bytes;
-    for (size_t i  = data->pdu->data.size; i > 0; i--)
-    {
+    for (size_t i  = data->pdu->data.size; i > 0; i--) {
         dest->bytes[i + 1] = dest->bytes[i - 1];
     }
     dest->bytes[0] = data->address;
@@ -85,8 +85,7 @@ extract_data(SerialPDU pdu, uint8_t byte)
     uint8_t         ret = 2;
     static uint16_t pos = 0;
     pdu->pdu->data.bytes[pos++] = byte;
-    if (pos == pdu->pdu->data.size)
-    {
+    if (pos == pdu->pdu->data.size) {
         ret = 3;
         pos = 0;
     }
@@ -125,33 +124,12 @@ process_byte(SerialPDU pdu, uint8_t byte)
     state = extractors[state](pdu, byte);
 }
 
-static inline uint16_t
-extract_pdu(volatile uint8_t * buffer, uint16_t start, uint16_t size, SerialPDU pdu)
-{
-    static bool recurse = false;
-    uint16_t go_to = start + size;
-    uint16_t remaining = 0;
-    if (!recurse)
-        pdu->pdu->data.size = size - 4;
-    else
-        recurse = false;
-    if (go_to >= RX_BUFFER_SIZE)
-    {
-        remaining = go_to - RX_BUFFER_SIZE;
-        go_to     = RX_BUFFER_SIZE;
-        recurse = true;
-    }
+#define EXTRACT_PDU(dest, src)                          \
+    (dest)->pdu->data.size = circ_buf_waiting(src) - 4; \
+    do {                                                \
+        process_byte((dest), circ_buf_pop(src));        \
+    } while(circ_buf_waiting(src) > 0)
 
-    for (uint16_t i = start; i < go_to; i++)
-    {
-        process_byte(pdu, buffer[i]);
-    }
-    if (recurse)
-    {
-        go_to = extract_pdu(buffer, 0, remaining, pdu);
-    }
-    return go_to;
-}
 
 static inline void
 deserialize_pdu(sized_array_t * array, SerialPDU pdu)
@@ -165,7 +143,6 @@ deserialize_pdu(sized_array_t * array, SerialPDU pdu)
     );
 }
 
-
 static inline bool
 equal_serial_pdu(SerialPDU first, SerialPDU second)
 {
@@ -173,14 +150,39 @@ equal_serial_pdu(SerialPDU first, SerialPDU second)
     if (first->address == second->address
         && first->crc == second->crc
         && first->pdu->func_code == second->pdu->func_code
-            )
-    {
-        if (equal_sized_array(&first->pdu->data, &second->pdu->data))
-        {
+            ) {
+        if (equal_sized_array(&first->pdu->data, &second->pdu->data)) {
             ret = true;
         }
     }
     return ret;
+}
+
+uint16_t
+pdu_crc16(uint8_t address, ModbusPDU pdu)
+{
+    sized_array_t array;
+    array.size = pdu->data.size + 2;
+    static uint8_t bytes[256];
+    bytes[0] = address;
+    bytes[1] = pdu->func_code;
+    for (size_t i = 2; i < array.size; i++) {
+        bytes[i] = pdu->data.bytes[i - 2];
+    }
+    sized_array_create(bytes, array.size, &array);
+    return crc16(&array);
+}
+
+bool
+pdu_is_valid(SerialPDU pdu)
+{
+    return pdu_crc16(pdu->address, pdu->pdu) == pdu->crc;
+}
+
+void
+pdu_format(uint8_t address, ModbusPDU pdu, SerialPDU dest)
+{
+    create_serial_pdu(address, pdu, pdu_crc16(address, pdu), dest);
 }
 
 #endif //MICROFLUIDICSYSTEM_PDU_TYPES_H

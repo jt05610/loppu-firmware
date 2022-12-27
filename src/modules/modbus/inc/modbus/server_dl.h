@@ -4,6 +4,7 @@
 #ifndef MICROFLUIDICSYSTEM_CLIENTAPPLICATION_H
 #define MICROFLUIDICSYSTEM_CLIENTAPPLICATION_H
 
+#if 0
 #include "datalink.h"
 #include "types.h"
 
@@ -36,5 +37,5 @@ uint16_t server_dl_get_diag_register();
 void server_dl_clear_counters();
 
 void server_dl_set_counter(dl_counter_t counter, uint16_t value);
-
+#endif
 #endif //MICROFLUIDICSYSTEM_CLIENTAPPLICATION_H
