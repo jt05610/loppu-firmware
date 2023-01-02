@@ -5,6 +5,7 @@
 #ifndef MICROFLUIDICSYSTEM_SERVER_APP_H
 #define MICROFLUIDICSYSTEM_SERVER_APP_H
 
+#include "peripherals.h"
 #include "data_model.h"
 
 typedef struct server_app_t * ServerApp;

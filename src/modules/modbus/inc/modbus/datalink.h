@@ -72,8 +72,6 @@ ModbusPDU dl_rx_pdu(Datalink base);
 
 void dl_send(Datalink base, ModbusPDU pdu);
 
-#include "datalink_private.h"
-
 /** @} */
 
 #endif //MICROFLUIDICSYSTEM_DATALINK_H

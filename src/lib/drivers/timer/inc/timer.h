@@ -58,6 +58,14 @@ void timer_start(Timer self, void * timer_instance, uint32_t freq);
 void timer_stop(Timer self, void * timer_instance);
 
 /**
+ * @brief Stops the timer.
+ * @param self Timer instance.
+ * @param timer_instance Timer instance if needed by target MCU.
+ * @param timeout counter value to trigger update event at
+ */
+void timer_set_timeout(Timer self, void * timer_instance, uint32_t timeout);
+
+/**
  * @brief Gets the current tick count.
  * @param self Timer instance.
  * @param timer_instance timer instance of MCU if needed.

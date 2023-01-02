@@ -23,6 +23,9 @@ static struct
 {
     timer_base_t base;
     TIM_TypeDef * micros_timer;
+    TIM_TypeDef * update_cb_inst;
+
+    void (* update_cb)(void);
 } self = {0};
 
 static inline void start(void * timer_instance, uint32_t freq);
@@ -45,6 +48,8 @@ static inline uint32_t millis();
 
 static inline void set_pwm_freq(void * timer_instance, uint32_t freq_Hz);
 
+static inline void set_timeout(void * timer_instance, uint32_t timeout);
+
 static inline void set_pwm_period(void * timer_instance, uint32_t period);
 
 static inline void
@@ -57,6 +62,10 @@ start_pwm(void * instance, uint32_t freq, uint16_t duty_cycle);
 
 static inline void stop_pwm(void * instance);
 
+static inline void reg_update_cb(void * tim_inst, void (* cb)(void));
+
+static inline void reset(void * instance);
+
 static timer_interface_t interface = {
         .start=start,
         .stop=stop,
@@ -65,6 +74,9 @@ static timer_interface_t interface = {
         .stop_us_timer=stop_us_timer,
         .delay=delay,
         .delay_micros=delay_micros,
+        .reg_update_callback=reg_update_cb,
+        .reg_pwm_callback=0,
+        .set_timeout=set_timeout,
         .micros=micros,
         .millis=millis,
         .set_pwm_freq=set_pwm_freq,
@@ -72,6 +84,7 @@ static timer_interface_t interface = {
         .set_pwm_duty_cycle=set_pwm_duty_cycle,
         .set_pwm_callback=set_pwm_callback,
         .start_pwm=start_pwm,
+        .reset=reset,
         .stop_pwm=stop_pwm
 };
 
@@ -128,6 +141,12 @@ stm32_timer_create()
 }
 
 static inline void
+set_timeout(void * timer_instance, uint32_t timeout)
+{
+    LL_TIM_SetAutoReload(timer_instance, timeout);
+}
+
+static inline void
 start(void * timer_instance, uint32_t freq)
 {
     if (freq > 0) {
@@ -136,6 +155,8 @@ start(void * timer_instance, uint32_t freq)
                 __LL_TIM_CALC_PSC(STM32_SYS_TICK, freq)
         );
     }
+
+    LL_TIM_EnableIT_UPDATE(TIM1);
     LL_TIM_EnableCounter((TIM_TypeDef *) timer_instance);
     while (!LL_TIM_IsEnabledCounter((TIM_TypeDef *) timer_instance));
 }
@@ -170,6 +191,16 @@ static inline void
 delay(uint32_t millis)
 {
     delay_micros(millis * 1000);
+}
+
+static inline void
+reset(void * instance)
+{
+
+    if (!LL_TIM_IsEnabledCounter(instance)) {
+        LL_TIM_EnableCounter(TIM1);
+    }
+    LL_TIM_SetCounter(instance, 0);
 }
 
 static inline void
@@ -252,3 +283,16 @@ stop_pwm(void * instance)
 
 }
 
+static inline void
+reg_update_cb(void * tim_inst, void (* cb)(void))
+{
+    self.update_cb_inst = tim_inst;
+    self.update_cb      = cb;
+}
+
+__INTERRUPT
+TIM1_BRK_UP_TRG_COM_IRQHandler()
+{
+    self.update_cb();
+    LL_TIM_ClearFlag_UPDATE(TIM1);
+}

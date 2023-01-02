@@ -62,6 +62,9 @@ typedef struct timer_interface_t
     /** @brief Starts timer */
     void (* start)(void * timer_instance, uint32_t freq);
 
+    /** @brief Sets timeout */
+    void (* set_timeout)(void * timer_instance, uint32_t timeout);
+
     /** @brief Stops timer */
     void (* stop)(void * timer_instance);
 

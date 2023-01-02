@@ -12,6 +12,7 @@
   *
   ******************************************************************************
   */
+
 #include "device.h"
 #include "needle_positioner.h"
 
@@ -27,40 +28,31 @@ static primary_table_t tables[N_TABLES];
 
 static struct needle_positioner_t
 {
-    ServerApp server;
-    needle_positioner_init_t * ctx;
-    uint8_t rx_buffer[STM32_USART1_RX_BUFFER_SIZE];
+    device_t base;
 
 } self = {0};
 
-static void
-write_handler(void * device, uint8_t * bytes, uint16_t size)
-{
-    Serial d = (Serial) device;
-    serial_write(d, bytes, size);
-}
-
 NeedlePositioner
-needle_positioner_create(needle_positioner_init_t * params)
+needle_positioner_create(Peripherals hal, void * uart_inst, void * tim_inst)
 {
-    self.ctx              = params;
+    self.base.hal = hal;
     app_init_t app_params = {
             .address = MODBUS_ADDRESS,
-            .rx_buffer=self.rx_buffer,
-            .serial_device = self.ctx->serial,
-            .write_handler = write_handler,
-            .restart = 0,
+            .serial = hal->serial,
+            .ser_inst = uart_inst,
+            .timer = hal->timer,
+            .tim_inst = tim_inst
     };
-    discrete_inputs_create(&tables[DI_TABLE], &self.ctx);
-    coils_create(&tables[COIL_TABLE], &self.ctx);
-    input_registers_create(&tables[IR_TABLE], &self.ctx);
-    holding_registers_create(&tables[HR_TABLE], &self.ctx);
-    self.server = server_create(&app_params);
+    self.base.server = server_create(&app_params);
+    discrete_inputs_create(&tables[DI_TABLE]);
+    coils_create(&tables[COIL_TABLE]);
+    input_registers_create(&tables[IR_TABLE]);
+    holding_registers_create(&tables[HR_TABLE]);
     return &self;
 }
 
 void
 needle_positioner_run(NeedlePositioner positioner)
 {
-    server_update(positioner->server);
+    server_update(positioner->base.server);
 }

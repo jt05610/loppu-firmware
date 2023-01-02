@@ -4,7 +4,10 @@
 #include "modbus/datalink.h"
 #include "modbus/pdu_types.h"
 
-#define HALF_CHAR_TIME(baud) ((baud) / 39)
+static uint8_t      buffer[RX_BUFFER_SIZE - 4];
+static modbus_pdu_t mod_pdu = {0};
+static serial_pdu_t rx_pdu  = {0};
+static serial_pdu_t tx_pdu  = {0};
 
 typedef struct datalink_t
 {
@@ -22,10 +25,6 @@ static datalink_t self = {0};
 
 static inline uint8_t init(Datalink dl);
 
-static inline void tim_update_cb(void);
-
-static inline void serial_rx_cb(void);
-
 static inline uint8_t idle_handler(Datalink dl);
 
 static inline uint8_t rx_handler(Datalink dl);
@@ -37,14 +36,16 @@ static inline uint8_t tx_handler(Datalink dl);
 Datalink
 dl_create(Serial serial, Timer timer, void * serial_inst, void * tim_inst)
 {
-    self.new_data = false;
-    self.serial = serial;
-    self.timer = timer;
+    self.new_data        = false;
+    self.serial          = serial;
+    self.timer           = timer;
     self.serial_instance = serial_inst;
     self.half_char_timer = tim_inst;
-
-    self.state = init(&self);
-
+    mod_pdu.data.bytes   = buffer;
+    mod_pdu.data.size    = 0;
+    self.rx_pdu          = &rx_pdu;
+    self.rx_pdu->pdu     = &mod_pdu;
+    self.state           = init(&self);
     return &self;
 }
 
@@ -57,8 +58,8 @@ dl_update(Datalink base)
             control_handler,
             tx_handler,
     };
-
-    return handlers[base->state](base);
+    base->state = handlers[base->state](base);
+    return base->state;
 }
 
 static inline void
@@ -66,6 +67,7 @@ tim_update_cb(void)
 {
     if (self.state == DL_RX_STATE) {
         self.state = DL_CONTROL_STATE;
+        timer_stop(self.timer, self.half_char_timer);
     } else {
         self.state = DL_IDLE_STATE;
     }
@@ -107,11 +109,12 @@ void dl_send(Datalink base, ModbusPDU pdu)
 uint8_t
 init(Datalink dl)
 {
-    timer_start(dl->timer, dl->half_char_timer, HALF_CHAR_TIME(115200));
     serial_open(dl->serial, dl->serial_instance);
+    timer_set_timeout(dl->timer, dl->half_char_timer, 7);
     timer_register_update_callback(
             dl->timer, dl->half_char_timer, tim_update_cb);
     serial_register_rx_callback(dl->serial, dl->serial_instance, serial_rx_cb);
+    timer_start(self.timer, self.half_char_timer, (115200 * 2 / 39));
     return DL_IDLE_STATE;
 }
 
@@ -130,8 +133,10 @@ rx_handler(Datalink dl)
 uint8_t
 control_handler(Datalink dl)
 {
-    EXTRACT_PDU(dl->rx_pdu, dl->serial->serial_buffer);
+    EXTRACT_PDU(dl->rx_pdu, dl->serial->serial_buffer,
+                serial_available(dl->serial, dl->serial_instance));
     self.new_data = pdu_is_valid(dl->rx_pdu);
+    serial_clear(dl->serial, dl->serial_instance);
     return DL_IDLE_STATE;
 }
 

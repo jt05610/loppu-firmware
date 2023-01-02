@@ -67,7 +67,7 @@ extern "C" {
 /** @brief Enable DMA1 Channel 1 interrupt handler */
 #define STM32_ENABLE_DMA1_Channel1_IRQn                 1
 /** @brief DMA1 Channel 1 interrupt priority */
-#define STM32_DMA1_Channel1_IRQn_PRIORITY               0
+#define STM32_DMA1_Channel1_IRQn_PRIORITY               2
 
 /** @brief Enable DMA1 Channel 2 and Channel 3 interrupt handler */
 #define STM32_ENABLE_DMA1_Channel2_3_IRQn               0
@@ -98,7 +98,7 @@ extern "C" {
 
 /** @brief Enable TIM1 Break, Update, Trigger, and Commutation
  *         interrupt handler */
-#define STM32_ENABLE_TIM1_BRK_UP_TRG_COM_IRQn           0
+#define STM32_ENABLE_TIM1_BRK_UP_TRG_COM_IRQn           1
 /** @brief TIM1 Break, Update, Trigger and Commutation interrupt priority */
 #define STM32_TIM1_BRK_UP_TRG_COM_IRQn_PRIORITY         0
 

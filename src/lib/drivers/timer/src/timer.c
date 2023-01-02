@@ -163,3 +163,10 @@ timer_register_pwm_callback(Timer self, void * timer_instance, void (* cb)())
         self->vtable->reg_pwm_callback(timer_instance, cb);
     }
 }
+
+void timer_set_timeout(Timer self, void * timer_instance, uint32_t timeout)
+{
+    if (self && self->vtable && self->vtable->set_timeout) {
+        self->vtable->set_timeout(timer_instance, timeout);
+    }
+}

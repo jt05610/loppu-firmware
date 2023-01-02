@@ -66,10 +66,9 @@ static primary_table_interface_t interface = {
 };
 
 void
-holding_registers_create(PrimaryTable base, void * device)
+holding_registers_create(PrimaryTable base)
 {
     base->vtable = &interface;
-    base->device = device;
 
     /* start create code */
 

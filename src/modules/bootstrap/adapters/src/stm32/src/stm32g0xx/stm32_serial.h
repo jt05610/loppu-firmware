@@ -39,13 +39,13 @@ Serial stm32_serial_create();
  * @brief Gets USART1 RX buffer
  * @return USART1 RX buffer
  */
-circ_buf_t * stm32_get_usart1_rx_buffer();
+uint8_t * stm32_get_usart1_rx_buffer();
 
 /**
  * @brief Gets USART1 RX circular buffer
  * @return USART1 RX circular buffer
  */
-circ_buf_t * stm32_get_usart1_rx_circ_buffer();
+uint8_t * stm32_get_usart1_rx_circ_buffer();
 
 /**
  * @brief Gets USART1 TX buffer

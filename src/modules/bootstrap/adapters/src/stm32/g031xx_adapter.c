@@ -24,7 +24,7 @@
 #include "stm32g0xx/stm32_dma.h"
 #include "stm32g0xx/stm32_nvic.h"
 
-peripherals_t self = {0};
+static peripherals_t self = {0};
 
 static inline void
 adc_config()
@@ -43,11 +43,11 @@ dma_config()
             .adc=(uint32_t) stm32_adc_get_buffer(),
 #endif
 #if STM32_ENABLE_USART1_RX_DMA
-            .usart1_rx=stm32_get_usart1_rx_buffer(),
+            .usart1_rx=stm32_get_usart1_rx_circ_buffer(),
              .usart1_rx_buffer=stm32_get_usart1_rx_circ_buffer(),
 #endif
 #if STM32_ENABLE_USART1_TX_DMA
-            .usart1_tx=(uint32_t) stm32_get_usart1_tx_buffer(),
+            .usart1_tx=0,
 #endif
 #if STM32_ENABLE_USART2_RX_DMA
             .usart2_rx=(uint32_t) stm32_get_usart2_rx_buffer(),
@@ -88,12 +88,11 @@ Peripherals
 stm32_dependency_injection()
 {
     stm32_rcc_config();
-    stm32_nvic_config();
     adc_config();
     gpio_config();
     serial_config();
     dma_config();
     timer_config();
-
+    stm32_nvic_config();
     return &self;
 }

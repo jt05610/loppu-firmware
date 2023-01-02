@@ -37,7 +37,7 @@ extern "C" {
  */
 #define STM32_ENABLE_ADC                1   /**< @brief Enable ADC peripheral */
 #define STM32_ADC_BUFFER_SIZE           100 /**< @brief # of samples to store */
-#define STM32_ADC_ENABLE_DMA            1   /**< @brief Enable DMA requests */
+#define STM32_ADC_ENABLE_DMA            0   /**< @brief Enable DMA requests */
 
 /** @brief Clock prescaler */
 #define STM32_ADC_CLOCK                 LL_ADC_CLOCK_SYNC_PCLK_DIV2

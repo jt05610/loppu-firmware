@@ -82,8 +82,9 @@ typedef struct serial_interface_t
  */
 typedef struct serial_base_t
 {
-    SerialInterface vtable;         /** @brief Pointer to interface. */
-    circ_buf_t * serial_buffer;     /** @brief Circular buffer to store data. */
+    SerialInterface vtable;         /**< @brief Pointer to interface. */
+    uint8_t * serial_buffer;        /**< @brief Buffer to store data. */
+    uint16_t size;                  /**< @brief size of buffer. */
 } serial_base_t;
 
 /** @} */

@@ -22,7 +22,8 @@
  */
 
 #include "peripherals.h"
-#include "modbus.h"
+#include "modbus/data_model.h"
+#include "modbus/server_app.h"
 
 /**
  * @brief Device structure

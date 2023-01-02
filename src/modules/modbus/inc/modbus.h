@@ -26,5 +26,6 @@
 
 #include "modbus/util.h"
 #include "modbus/server_app.h"
+#include "modbus/data_model.h"
 
 #endif //INJECTOR_MODBUS_H

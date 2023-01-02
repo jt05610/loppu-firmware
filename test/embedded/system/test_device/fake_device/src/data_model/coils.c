@@ -70,17 +70,16 @@ static primary_table_interface_t interface = {
 };
 
 void
-coils_create(PrimaryTable base, void * device)
+coils_create(PrimaryTable base)
 {
     base->vtable = &interface;
-    base->device = device;
 
     /* start create code */
 
     /* end create code */
 }
-static inline void
-read_home(void * device, sized_array_t * dest)
+
+static inline void read_home(void * device, sized_array_t * dest)
 {
     NeedlePositioner d = (NeedlePositioner) device;
     /* start read_home code */

@@ -13,6 +13,7 @@
   ******************************************************************************
   */
 
+#include <string.h>
 #include "stm32_serial.h"
 
 #include "default/serial_config.h"
@@ -23,11 +24,14 @@
 #include "stm32_interrupts.h"
 #include "stm32_dma.h"
 
+static uint8_t rx_buffer[STM32_USART1_RX_BUFFER_SIZE];
+
 static struct
 {
     serial_base_t base;
     bool new_data;
-} self = {0};
+    void (*rto_cb)(void);
+}              self = {0};
 
 static inline void uart_init();
 
@@ -43,6 +47,7 @@ static inline uint16_t read(void * instance, uint8_t * bytes);
 
 static inline void write(void * instance, uint8_t * bytes, uint16_t size);
 
+static inline void reg_rx_cb(void * instance, void(*cb)(void));
 static inline uint8_t _putchar(void * instance, char a);
 
 static serial_interface_t interface = {
@@ -52,37 +57,9 @@ static serial_interface_t interface = {
         .clear=clear,
         .read=read,
         .write=write,
-        .putchar=_putchar
+        .putchar=_putchar,
+        .reg_rx_cb=reg_rx_cb
 };
-
-#if STM32_ENABLE_USART1_RX_DMA
-STATIC_CIRC_BUF(usart1_rx_circ, STM32_USART1_RX_BUFFER_SIZE);
-STATIC_CIRC_BUF(usart1_rx_dma_circ, STM32_USART1_RX_DMA_BUFFER_SIZE);
-
-circ_buf_t *
-stm32_get_usart1_rx_buffer()
-{
-    return &usart1_rx_dma_circ;
-}
-
-circ_buf_t *
-stm32_get_usart1_rx_circ_buffer()
-{
-    return &usart1_rx_circ;
-}
-
-# endif
-
-#if STM32_ENABLE_USART1_TX_DMA
-STATIC_CIRC_BUF(usart1_tx_circ, STM32_USART1_TX_BUFFER_SIZE);
-
-uint8_t *
-stm32_get_usart1_tx_buffer()
-{
-    return usart1_tx_circ_buffer;
-}
-
-#endif
 
 #if STM32_ENABLE_USART2_RX_DMA
 STATIC_CIRC_BUF(usart2_rx_circ, STM32_USART2_RX_BUFFER_SIZE);
@@ -106,7 +83,7 @@ Serial
 stm32_serial_create()
 {
     self.base.vtable        = &interface;
-    self.base.serial_buffer = &usart1_rx_circ;
+    self.base.serial_buffer = rx_buffer;
     self.new_data           = false;
 
 #ifndef SIMULATED
@@ -119,6 +96,12 @@ stm32_serial_create()
 bool stm32_serial_new_data()
 {
     return self.new_data;
+}
+
+uint8_t *
+stm32_get_usart1_rx_circ_buffer()
+{
+    return rx_buffer;
 }
 
 static void
@@ -228,6 +211,7 @@ for (uint16_t i = 0; i < size; i++)             \
 static uint16_t
 read(void * instance, uint8_t * bytes)
 {
+    uint16_t size;
 #if (STM32_ENABLE_USART1 & STM32_ENABLE_USART2)
     if ((USART_TypeDef *) instance == USART1) {
 #if STM32_ENABLE_USART1_RX_DMA
@@ -251,52 +235,23 @@ read(void * instance, uint8_t * bytes)
 #elif STM32_ENABLE_USART1
     (void) instance;
 #if STM32_ENABLE_USART1_RX_DMA
-    if (self.new_data & !circ_buf_waiting(&usart1_rx_circ)) {
-        /* if we have new data but dma hasn't processed yet */
-        if (!circ_buf_waiting(&usart1_rx_circ)) {
-            /* if there isn't data in the dma buffer yet */
-            uint16_t initial        = DMA1_Channel1->CNDTR;
-            uint16_t retries        = 10000;
-            while (1) {
-                if (DMA1_Channel1->CNDTR == initial) {
-                    retries--;
-                    if (retries == 0) {
-                        usart1_rx_dma_circ.empty = false;
-                        break;
-                    }
-                } else {
-                    initial = DMA1_Channel1->CNDTR;
-                }
-            }
-            usart1_rx_dma_circ.head =
-                    STM32_USART1_RX_DMA_BUFFER_SIZE - DMA1_Channel1->CNDTR;
-        }
-        uint16_t size = circ_buf_waiting(&usart1_rx_dma_circ);
-        if (size) {
-            circ_buf_transfer(&usart1_rx_circ, &usart1_rx_dma_circ);
-        }
-    }
-    uint16_t size = circ_buf_waiting(&usart1_rx_circ);
-    if (size) {
-        __BUFF_TRANSFER(&usart1_rx_circ, bytes, size);
-    } else {
-        size = 0;
-    }
+    size = STM32_USART1_RX_DMA_BUFFER_SIZE - DMA1_Channel1->CNDTR;
+    copy(bytes, rx_buffer, size);
 #else
     *bytes++ = LL_USART_ReceiveData8(USART1);
-    return 1;
+    size =  1;
+
 #endif
 #elif STM32_ENABLE_USART2
     (void) instance;
 #if STM32_ENABLE_USART2_RX_DMA
-        uint16_t size;
         __BUFF_TRANSFER(&usart2_rx_circ, bytes, size);
 #else
         *bytes++ = LL_USART_ReceiveData8(USART2);
-        return 1;
+        size = 1;
 #endif
 #else
-        return 0;
+        size = 0;
 #endif
     return size;
 }
@@ -350,7 +305,8 @@ write(void * instance, uint8_t * bytes, uint16_t size)
 #endif // STM32_USART1_RS485
 #if STM32_ENABLE_USART1_TX_DMA
     LL_DMA_SetDataLength(DMA1, STM32_USART1_TX_DMA_CHANNEL, size);
-    LL_DMA_SetMemoryAddress(DMA1, STM32_USART1_TX_DMA_CHANNEL, (uint32_t) bytes);
+    LL_DMA_SetMemoryAddress(DMA1, STM32_USART1_TX_DMA_CHANNEL,
+                            (uint32_t) bytes);
     stm32_dma_start_channel(STM32_USART1_TX_DMA_CHANNEL);
 #else
     for (uint16_t i = 0; i < size; i++) {
@@ -419,10 +375,8 @@ _putchar(void * instance, char a)
 #endif // STM32_USART1_RS485
 #if STM32_ENABLE_USART1_TX_DMA
     (void) instance;
-    circ_buf_push(&usart1_tx_circ, (uint8_t) a);
 #else
     LL_USART_TransmitData8(USART1, (uint8_t) a);
-    while (!LL_USART_IsActiveFlag_TXE_TXFNF(USART1));
     return a;
 #endif
 #elif STM32_ENABLE_USART2
@@ -441,6 +395,7 @@ _putchar(void * instance, char a)
 #else
     return a + 20;
 #endif
+    return 0;
 }
 
 #define __INIT_USART(params, inst)                           \
@@ -512,7 +467,7 @@ uart1_init(LL_USART_InitTypeDef * uart_params)
     __SET_IT(USART1, TC);
     __SET_IT(USART1, PE);
     __SET_IT(USART1, CM);
-
+    LL_USART_EnableIT_RXNE_RXFNE(USART1);
 #if STM32_USART1_ERROR_ENABLE
     LL_USART_EnableIT_##it(inst);
 #else
@@ -571,29 +526,36 @@ uart_init()
 
 #if STM32_ENABLE_USART1
     uart1_init(&uart_params);
+    LL_USART_Enable(USART1);
 #endif // STM32_ENABLE_USART1
 
 #if STM32_ENABLE_USART2
     uart2_init(&uart_params);
 #endif // STM32_ENABLE_USART2
-    self.new_data = false;
+
 }
 
 uint16_t
 available(void * instance)
 {
-    if (!self.new_data) {
-        usart1_rx_dma_circ.head = STM32_USART1_RX_DMA_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, STM32_USART1_RX_DMA_CHANNEL);
-        usart1_rx_dma_circ.empty = usart1_rx_dma_circ.head == usart1_rx_dma_circ.tail;
-        self.new_data = circ_buf_waiting(&usart1_rx_dma_circ);
-    }
-    return self.new_data;
+    return self.new_data ? STM32_USART1_RX_BUFFER_SIZE - DMA1_Channel1->CNDTR
+                         : 0;
 }
 
 static inline void
 clear(void * instance)
 {
+    LL_DMA_DisableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
+    LL_DMA_SetDataLength(DMA1, STM32_USART1_RX_DMA_CHANNEL, STM32_USART1_RX_DMA_BUFFER_SIZE);
+    LL_DMA_EnableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
     self.new_data = false;
+    self.base.size = 0;
+}
+
+static inline void
+reg_rx_cb(void * instance, void(*cb)(void))
+{
+    self.rto_cb = cb;
 }
 
 __INTERRUPT
@@ -605,9 +567,9 @@ USART1_IRQHandler()
 #endif
         LL_USART_ClearFlag_TC(USART1);
     } else if (LL_USART_IsActiveFlag_RTO(USART1)) {
-        while (!LL_USART_IsActiveFlag_REACK(USART1));
-
-        self.new_data = true;
         LL_USART_ClearFlag_RTO(USART1);
+        if (self.rto_cb)
+            self.rto_cb();
+        self.new_data = true;
     }
 }

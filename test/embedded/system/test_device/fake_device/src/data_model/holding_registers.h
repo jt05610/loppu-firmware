@@ -15,8 +15,8 @@
 #ifndef NEEDLEPOSITIONER_HOLDING_REGISTERS_H
 #define NEEDLEPOSITIONER_HOLDING_REGISTERS_H
 
-#include "../../../../modules/modbus/inc/modbus.h"
+#include "modbus/primary_table.h"
 
-void holding_registers_create(PrimaryTable base, void * device);
+void holding_registers_create(PrimaryTable base);
 
 #endif //NEEDLEPOSITIONER_HOLDING_REGISTERS_H

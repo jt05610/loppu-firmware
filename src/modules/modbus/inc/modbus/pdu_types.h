@@ -124,11 +124,11 @@ process_byte(SerialPDU pdu, uint8_t byte)
     state = extractors[state](pdu, byte);
 }
 
-#define EXTRACT_PDU(dest, src)                          \
-    (dest)->pdu->data.size = circ_buf_waiting(src) - 4; \
-    do {                                                \
-        process_byte((dest), circ_buf_pop(src));        \
-    } while(circ_buf_waiting(src) > 0)
+#define EXTRACT_PDU(dest, src, n)                       \
+    uint16_t size = n;                                  \
+    (dest)->pdu->data.size = size - 4;                     \
+    for (uint16_t i = 0; i < size; i ++)                   \
+        process_byte((dest), (src)[i])
 
 
 static inline void
@@ -158,7 +158,7 @@ equal_serial_pdu(SerialPDU first, SerialPDU second)
     return ret;
 }
 
-uint16_t
+static inline uint16_t
 pdu_crc16(uint8_t address, ModbusPDU pdu)
 {
     sized_array_t array;
@@ -173,13 +173,13 @@ pdu_crc16(uint8_t address, ModbusPDU pdu)
     return crc16(&array);
 }
 
-bool
+static inline bool
 pdu_is_valid(SerialPDU pdu)
 {
     return pdu_crc16(pdu->address, pdu->pdu) == pdu->crc;
 }
 
-void
+static inline void
 pdu_format(uint8_t address, ModbusPDU pdu, SerialPDU dest)
 {
     create_serial_pdu(address, pdu, pdu_crc16(address, pdu), dest);

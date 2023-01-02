@@ -67,8 +67,8 @@ __ENABLE(periph, TE)
 
 typedef struct dma_isr_handler_t
 {
-    circ_buf_t * circ_buf;
-    circ_buf_t * src_buf;
+    uint8_t * circ_buf;
+    uint8_t * src_buf;
 
     void (* handle)();
 } dma_isr_handler_t;
@@ -93,19 +93,16 @@ __HNDLR(flag, channel).src_buf = src
 
 DMA_ISR_HANDLER(TC, 1)
 {
-    LL_DMA_DisableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
-    LL_DMA_SetDataLength(
-        DMA1, STM32_USART1_RX_DMA_CHANNEL, STM32_USART1_RX_DMA_BUFFER_SIZE
-        );
-    LL_DMA_EnableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
     LL_DMA_ClearFlag_TC1(DMA1);
-    data->src_buf->head = STM32_USART1_RX_DMA_BUFFER_SIZE - DMA1_Channel1->CNDTR;
-    data->src_buf->empty = false;
+    __RESET_CHANNEL(_USART1_RX);
 }
 
 DMA_ISR_HANDLER(TC, 2)
 {
     LL_DMA_DisableChannel(DMA1, STM32_USART1_TX_DMA_CHANNEL);
+    LL_DMA_SetDataLength(
+            DMA1, STM32_USART1_TX_DMA_CHANNEL, STM32_USART1_TX_DMA_BUFFER_SIZE
+    );
 }
 
 void
@@ -116,7 +113,7 @@ stm32_dma_create(stm32_dma_mem_addr_t * params)
 #endif
 #if STM32_ENABLE_USART1_RX_DMA
     DMA_ISR_ATTACH(TC, 1, params->usart1_rx_buffer, params->usart1_rx);
-    __INIT_PERIPH(_USART1_RX, params->usart1_rx->bytes, nvic_tracker);
+    __INIT_PERIPH(_USART1_RX, params->usart1_rx, nvic_tracker);
 #endif
 #if STM32_ENABLE_USART1_TX_DMA
     __INIT_PERIPH(_USART1_TX, params->usart1_tx, nvic_tracker);
