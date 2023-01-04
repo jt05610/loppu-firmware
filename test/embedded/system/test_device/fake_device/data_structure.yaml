@@ -1,40 +1,19 @@
 meta:
-  device_name: NeedlePositioner
-  author: Jonathan Taylor
-  date: 11 Dec 2022
+  device_name: FakeDevice
+  author: jtaylor
+  date: 03 Jan 2023
+  description: blinky device for testing
 
 discrete_inputs:
-  - name: btn_forward
-
-
-  - name: btn_backward
-
-
-  - name: btn_inject
+- name: on_button
 
 coils:
-  - name: home
+- name: on_off
 
-  - name: go_to_target
-
-  - name: stop
-
-  - name: nudge
-
-  - name: zero
+- name: flash
 
 input_registers:
-  - name: current_position
-
-  - name: button_state
-
-  - name: current_velocity
+- name: on_time
 
 holding_registers:
-  - name: velocity
-
-  - name: target_position
-
-  - name: steps_per_mm
-
-  - name: nudge_increment
+- name: blink_frequency

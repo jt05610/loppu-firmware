@@ -31,7 +31,6 @@
  *          prototypes.
  * @{
  */
-#include "buffer/circular_buffer.h"
 
 /**
  * @brief Pointer to @ref serial_base_t.
@@ -83,21 +82,6 @@ void serial_write(Serial base, void * instance, uint8_t * data, uint16_t size);
  * @return Unsigned version of given char.
  */
 uint8_t serial_putchar(Serial base, void * instance, char a);
-
-/**
- * @brief Sets internal buffer for serial to read from
- * @param base Serial instance
- * @param buffer Instantiated circular buffer to read into
- */
-void serial_attach_buffer(Serial base, circ_buf_t * buffer);
-
-/**
- * @brief Transfers from passed source buffer into serial's circular buffer
- * @param base Serial instance
- * @param src Buffer to transfer from
- * @return true if okay, false if error occurred
- */
-bool serial_buffer_transfer(Serial base, circ_buf_t * src);
 
 uint16_t serial_available(Serial base, void * instance);
 

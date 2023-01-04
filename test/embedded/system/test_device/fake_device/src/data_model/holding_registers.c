@@ -1,63 +1,49 @@
 /**
   ******************************************************************************
   * @file   holding_registers.c
-  * @author Jonathan Taylor
-  * @date   11 Dec 2022
+  * @author jtaylor
+  * @date   03 Jan 2023
   * @brief  DESCRIPTION
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 Jonathan Taylor.
+  * Copyright (c) 2023 jtaylor.
   * All rights reserved.
   *
   ******************************************************************************
   */
-
 /* start includes code */
 
-#include "needle_positioner.h"
+#include "fake_device.h"
 #include "holding_registers.h"
 
 /* end includes code */
 
-
 /* start macros code */
 
-#define N_HOLDING_REGISTERS 4
+#define N_HOLDING_REGISTERS 1
 
 /* end macros code */
 
-
 /* start struct code */
 
+
 static struct {
-    void * device;
+   Device base;
+
 } self = {0};
 
 /* end struct code */
 
-
-static inline void read_velocity(void * device, sized_array_t * dest);
-static inline void write_velocity(void * device, uint16_t value);
-static inline void read_target_position(void * device, sized_array_t * dest);
-static inline void write_target_position(void * device, uint16_t value);
-static inline void read_steps_per_mm(void * device, sized_array_t * dest);
-static inline void write_steps_per_mm(void * device, uint16_t value);
-static inline void read_nudge_increment(void * device, sized_array_t * dest);
-static inline void write_nudge_increment(void * device, uint16_t value);
+static inline void read_blink_frequency(sized_array_t * dest);
+static inline void write_blink_frequency(uint16_t value);
 
 static pt_read_t read_handlers[N_HOLDING_REGISTERS] = {
-    read_velocity,
-    read_target_position,
-    read_steps_per_mm,
-    read_nudge_increment,
+    read_blink_frequency,
 };
 
 static pt_write_t write_handlers[N_HOLDING_REGISTERS] = {
-    write_velocity,
-    write_target_position,
-    write_steps_per_mm,
-    write_nudge_increment,
+    write_blink_frequency,
 };
 
 static primary_table_interface_t interface = {
@@ -66,87 +52,37 @@ static primary_table_interface_t interface = {
 };
 
 void
-holding_registers_create(PrimaryTable base)
+holding_registers_create(PrimaryTable base, Device device)
 {
     base->vtable = &interface;
+    self.base = device;
 
     /* start create code */
 
     /* end create code */
 }
+
+/**
+ * @brief reads blink_frequency
+ * @param dest Array to store results into.
+ **/
 static inline void
-read_velocity(void * device, sized_array_t * dest)
+read_blink_frequency(sized_array_t * dest)
 {
-    NeedlePositioner d = (NeedlePositioner) device;
-    /* start read_velocity code */
+    /* start read_blink_frequency code */
     
-    /* end read_velocity code */
+    /* end read_blink_frequency code */
 }
 
+/**
+ * @brief writes blink_frequency
+ * @param value value to write to blink_frequency.
+ **/
 static inline void
-write_velocity(void * device, uint16_t value)
+write_blink_frequency(uint16_t value)
 {
-    NeedlePositioner d = (NeedlePositioner) device;
-
-    /* start write_velocity code */
+    /* start write_blink_frequency code */
     
-    /* end write_velocity code */
-}
-
-static inline void
-read_target_position(void * device, sized_array_t * dest)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-    /* start read_target_position code */
-    
-    /* end read_target_position code */
-}
-
-static inline void
-write_target_position(void * device, uint16_t value)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-
-    /* start write_target_position code */
-    
-    /* end write_target_position code */
-}
-
-static inline void
-read_steps_per_mm(void * device, sized_array_t * dest)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-    /* start read_steps_per_mm code */
-    
-    /* end read_steps_per_mm code */
-}
-
-static inline void
-write_steps_per_mm(void * device, uint16_t value)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-
-    /* start write_steps_per_mm code */
-    
-    /* end write_steps_per_mm code */
-}
-
-static inline void
-read_nudge_increment(void * device, sized_array_t * dest)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-    /* start read_nudge_increment code */
-    
-    /* end read_nudge_increment code */
-}
-
-static inline void
-write_nudge_increment(void * device, uint16_t value)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-
-    /* start write_nudge_increment code */
-    
-    /* end write_nudge_increment code */
+    /* end write_blink_frequency code */
 }
 

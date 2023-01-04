@@ -9,9 +9,9 @@
 #include "primary_table.h"
 #endif
 
-typedef void (* pt_read_t)(void * device, sized_array_t * dest);
+typedef void (* pt_read_t)(sized_array_t * dest);
 
-typedef void (* pt_write_t)(void * device, uint16_t value);
+typedef void (* pt_write_t)(uint16_t value);
 
 typedef struct primary_table_interface_t
 {
@@ -23,7 +23,6 @@ typedef struct primary_table_interface_t
 
 typedef struct primary_table_t
 {
-    void * device;
     PrimaryTableInterface vtable;
 
 } primary_table_t;

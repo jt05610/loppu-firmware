@@ -13,12 +13,12 @@
   ******************************************************************************
   */
 
+#include "fake_device.h"
 #include "adapters/stm32/g031xx_adapter.h"
-#include "device.h"
 #include "unity.h"
 #include "stm32g031xx.h"
 
-static device_t self;
+static Device self;
 
 void setUp()
 {
@@ -30,29 +30,19 @@ void tearDown()
 
 }
 
+static Peripherals hal;
+
 int main()
 {
-
-    self.hal = bootstrap(stm32_dependency_injection, 0);
-    app_init_t app_init = {
-            .address=0x01,
-            .serial=self.hal->serial,
-            .ser_inst=USART1,
-            .timer=self.hal->timer,
-            .tim_inst=TIM1,
-    };
-    self.server = server_create(&app_init);
-    //UNITY_BEGIN();
-    //UNITY_END();
-    while (1) {
-        server_update(self.server);
-    }
+    hal = bootstrap(stm32_dependency_injection, 0);
+    self = fake_device_create(hal, USART1, TIM1);
+    fake_device_run(self);
 }
 
 uint8_t
 unity_output_char(char a)
 {
-    return serial_putchar(self.hal->serial, USART1, a);
+    return serial_putchar(self->hal->serial, USART1, a);
 }
 
 void

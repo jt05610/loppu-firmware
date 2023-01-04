@@ -1,13 +1,13 @@
-add_library(fake_device)
+add_library(FakeDevice)
 
 file(
     GLOB_RECURSE
-    DEVICE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.*
+    FAKEDEVICE_SOURCES
+    src/*.*
 )
 
-target_sources(fake_device PUBLIC ${DEVICE_SOURCES})
+target_sources(FakeDevice PUBLIC ${FAKEDEVICE_SOURCES})
 
-target_include_directories(fake_device PUBLIC inc src/data_model)
+target_include_directories(FakeDevice PUBLIC inc src/data_model)
 
-target_link_libraries(fake_device PUBLIC device tools)
+target_link_libraries(FakeDevice PUBLIC device)

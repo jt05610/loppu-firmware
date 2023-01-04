@@ -82,15 +82,3 @@ serial_register_rx_callback(Serial base, void * instance, void (* cb)(void))
         base->vtable->reg_rx_cb(instance, cb);
     }
 }
-
-void
-serial_attach_buffer(Serial base, circ_buf_t * buffer)
-{
-    base->serial_buffer = buffer;
-}
-
-bool
-serial_buffer_transfer(Serial base, circ_buf_t * src)
-{
-    return circ_buf_transfer(base->serial_buffer, src);
-}

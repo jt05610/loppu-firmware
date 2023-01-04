@@ -7,7 +7,6 @@
 void
 gpio_set_pin(GPIO base, gpio_port_t port, gpio_pin_t pin)
 {
-
     if (base && base->vtable && base->vtable->set_pin)
         base->vtable->set_pin(port, pin);
 }

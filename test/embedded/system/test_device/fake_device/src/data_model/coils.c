@@ -1,67 +1,53 @@
 /**
   ******************************************************************************
   * @file   coils.c
-  * @author Jonathan Taylor
-  * @date   11 Dec 2022
+  * @author jtaylor
+  * @date   03 Jan 2023
   * @brief  DESCRIPTION
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 Jonathan Taylor.
+  * Copyright (c) 2023 jtaylor.
   * All rights reserved.
   *
   ******************************************************************************
   */
-
 /* start includes code */
 
-#include "needle_positioner.h"
+#include "fake_device.h"
 #include "coils.h"
 
 /* end includes code */
 
-
 /* start macros code */
 
-#define N_COILS 5
+#define N_COILS 2
 
 /* end macros code */
 
-
 /* start struct code */
 
+
 static struct {
-    void * device;
+   Device base;
+
 } self = {0};
 
 /* end struct code */
 
-
-static inline void read_home(void * device, sized_array_t * dest);
-static inline void write_home(void * device, uint16_t value);
-static inline void read_go_to_target(void * device, sized_array_t * dest);
-static inline void write_go_to_target(void * device, uint16_t value);
-static inline void read_stop(void * device, sized_array_t * dest);
-static inline void write_stop(void * device, uint16_t value);
-static inline void read_nudge(void * device, sized_array_t * dest);
-static inline void write_nudge(void * device, uint16_t value);
-static inline void read_zero(void * device, sized_array_t * dest);
-static inline void write_zero(void * device, uint16_t value);
+static inline void read_on_off(sized_array_t * dest);
+static inline void write_on_off(uint16_t value);
+static inline void read_flash(sized_array_t * dest);
+static inline void write_flash(uint16_t value);
 
 static pt_read_t read_handlers[N_COILS] = {
-    read_home,
-    read_go_to_target,
-    read_stop,
-    read_nudge,
-    read_zero,
+    read_on_off,
+    read_flash,
 };
 
 static pt_write_t write_handlers[N_COILS] = {
-    write_home,
-    write_go_to_target,
-    write_stop,
-    write_nudge,
-    write_zero,
+    write_on_off,
+    write_flash,
 };
 
 static primary_table_interface_t interface = {
@@ -70,106 +56,65 @@ static primary_table_interface_t interface = {
 };
 
 void
-coils_create(PrimaryTable base)
+coils_create(PrimaryTable base, Device device)
 {
     base->vtable = &interface;
+    self.base = device;
 
     /* start create code */
 
     /* end create code */
 }
 
-static inline void read_home(void * device, sized_array_t * dest)
+/**
+ * @brief reads on_off
+ * @param dest Array to store results into.
+ **/
+static inline void
+read_on_off(sized_array_t * dest)
 {
-    NeedlePositioner d = (NeedlePositioner) device;
-    /* start read_home code */
-    
-    /* end read_home code */
+    /* start read_on_off code */
+    dest->size = 1;
+    dest->bytes[0] = gpio_read_pin(self.base->hal->gpio, GPIO_PORT_A, 0);
+    /* end read_on_off code */
 }
 
+/**
+ * @brief writes on_off
+ * @param value value to write to on_off.
+ **/
 static inline void
-write_home(void * device, uint16_t value)
+write_on_off(uint16_t value)
 {
-    NeedlePositioner d = (NeedlePositioner) device;
-
-    /* start write_home code */
-    
-    /* end write_home code */
+    /* start write_on_off code */
+    if (value)
+        gpio_set_pin(self.base->hal->gpio, GPIO_PORT_A, 0x01 << 0x01);
+    else
+        gpio_reset_pin(self.base->hal->gpio, GPIO_PORT_A, 0x01 << 0x01);
+    /* end write_on_off code */
 }
 
+/**
+ * @brief reads flash
+ * @param dest Array to store results into.
+ **/
 static inline void
-read_go_to_target(void * device, sized_array_t * dest)
+read_flash(sized_array_t * dest)
 {
-    NeedlePositioner d = (NeedlePositioner) device;
-    /* start read_go_to_target code */
+    /* start read_flash code */
     
-    /* end read_go_to_target code */
+    /* end read_flash code */
 }
 
+/**
+ * @brief writes flash
+ * @param value value to write to flash.
+ **/
 static inline void
-write_go_to_target(void * device, uint16_t value)
+write_flash(uint16_t value)
 {
-    NeedlePositioner d = (NeedlePositioner) device;
-
-    /* start write_go_to_target code */
+    /* start write_flash code */
     
-    /* end write_go_to_target code */
-}
-
-static inline void
-read_stop(void * device, sized_array_t * dest)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-    /* start read_stop code */
-    
-    /* end read_stop code */
-}
-
-static inline void
-write_stop(void * device, uint16_t value)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-
-    /* start write_stop code */
-    
-    /* end write_stop code */
-}
-
-static inline void
-read_nudge(void * device, sized_array_t * dest)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-    /* start read_nudge code */
-    
-    /* end read_nudge code */
-}
-
-static inline void
-write_nudge(void * device, uint16_t value)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-
-    /* start write_nudge code */
-    
-    /* end write_nudge code */
-}
-
-static inline void
-read_zero(void * device, sized_array_t * dest)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-    /* start read_zero code */
-    
-    /* end read_zero code */
-}
-
-static inline void
-write_zero(void * device, uint16_t value)
-{
-    NeedlePositioner d = (NeedlePositioner) device;
-
-    /* start write_zero code */
-    
-    /* end write_zero code */
+    /* end write_flash code */
 }
 

@@ -454,20 +454,21 @@ uart1_init(LL_USART_InitTypeDef * uart_params)
     LL_USART_DisableDMAReq_TX(USART1);
 
 #endif // STM32_USART_TX_DMA
-    LL_USART_Enable(USART1);
-    while ((!(LL_USART_IsActiveFlag_TEACK(USART1))) ||
-           (!(LL_USART_IsActiveFlag_REACK(USART1)))) {
-    }
+    //LL_USART_DisableOverrunDetect(USART1);
 #if STM32_USART1_RTO_ENABLE
     LL_USART_SetRxTimeout(USART1, STM32_USART1_RX_TIMEOUT);
     LL_USART_EnableRxTimeout(USART1);
 #endif
+    LL_USART_Enable(USART1);
+    while ((!(LL_USART_IsActiveFlag_TEACK(USART1))) ||
+           (!(LL_USART_IsActiveFlag_REACK(USART1)))) {
+    }
+
     LL_USART_ConfigNodeAddress(USART1, LL_USART_ADDRESS_DETECT_7B, 0x0A);
     __SET_IT(USART1, RTO);
     __SET_IT(USART1, TC);
     __SET_IT(USART1, PE);
     __SET_IT(USART1, CM);
-    LL_USART_EnableIT_RXNE_RXFNE(USART1);
 #if STM32_USART1_ERROR_ENABLE
     LL_USART_EnableIT_##it(inst);
 #else
@@ -538,8 +539,12 @@ uart_init()
 uint16_t
 available(void * instance)
 {
-    return self.new_data ? STM32_USART1_RX_BUFFER_SIZE - DMA1_Channel1->CNDTR
-                         : 0;
+    if (!LL_USART_IsActiveFlag_RXNE_RXFNE(USART1)) {
+        return self.new_data ? STM32_USART1_RX_BUFFER_SIZE - DMA1_Channel1->CNDTR
+                             : 0;
+    }
+    return 0;
+
 }
 
 static inline void
@@ -566,10 +571,10 @@ USART1_IRQHandler()
         LL_GPIO_ResetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
 #endif
         LL_USART_ClearFlag_TC(USART1);
-    } else if (LL_USART_IsActiveFlag_RTO(USART1)) {
+    } else if(LL_USART_IsActiveFlag_RTO(USART1)){
+        self.new_data = true;
         LL_USART_ClearFlag_RTO(USART1);
         if (self.rto_cb)
             self.rto_cb();
-        self.new_data = true;
     }
 }

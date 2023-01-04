@@ -49,7 +49,7 @@ typedef struct data_model_t * DataModel;
 typedef struct data_model_t
 {
     void * device;
-    primary_table_t * tables;    /**< @brief One for each @ref ModbusTables */
+    primary_table_t *tables;    /**< @brief One for each @ref ModbusTables */
 } data_model_t;
 
 /**

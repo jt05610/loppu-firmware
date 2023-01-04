@@ -64,7 +64,6 @@ read(DataModel dm, uint8_t table, ModbusPDU pdu)
     pdu->data.size = UINT8_TO_UINT16(pdu->data.bytes, 2) * (1 + ~(table>>1));
     primary_table_read(
             &dm->tables[table],
-            dm->device,
             UINT8_TO_UINT16(pdu->data.bytes, 0),
             &pdu->data
     );
@@ -75,10 +74,8 @@ write(DataModel dm, uint8_t table, ModbusPDU pdu)
 {
     primary_table_write(
             &dm->tables[table],
-            dm->device,
             UINT8_TO_UINT16(pdu->data.bytes, 0),
             UINT8_TO_UINT16(pdu->data.bytes, 2)
     );
-    pdu->data.size  = 0;
 }
 

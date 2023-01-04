@@ -197,10 +197,9 @@ static inline void
 reset(void * instance)
 {
 
-    if (!LL_TIM_IsEnabledCounter(instance)) {
-        LL_TIM_EnableCounter(TIM1);
-    }
+    LL_TIM_DisableCounter(instance);
     LL_TIM_SetCounter(instance, 0);
+    LL_TIM_EnableCounter(instance);
 }
 
 static inline void

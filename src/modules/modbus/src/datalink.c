@@ -67,7 +67,7 @@ tim_update_cb(void)
 {
     if (self.state == DL_RX_STATE) {
         self.state = DL_CONTROL_STATE;
-        timer_stop(self.timer, self.half_char_timer);
+        //timer_stop(self.timer, self.half_char_timer);
     } else {
         self.state = DL_IDLE_STATE;
     }
@@ -100,7 +100,11 @@ ModbusPDU dl_rx_pdu(Datalink base)
 void dl_send(Datalink base, ModbusPDU pdu)
 {
     if (base->rx_pdu->address != 0x00) {
-
+        sized_array_t to_send;
+        serialize_serial_pdu(base->rx_pdu, &to_send);
+        serial_write(
+                base->serial, base->serial_instance, to_send.bytes,
+                to_send.size);
     } else {
 
     }
@@ -110,11 +114,11 @@ uint8_t
 init(Datalink dl)
 {
     serial_open(dl->serial, dl->serial_instance);
-    timer_set_timeout(dl->timer, dl->half_char_timer, 7);
+    timer_set_timeout(dl->timer, dl->half_char_timer, 50);
     timer_register_update_callback(
             dl->timer, dl->half_char_timer, tim_update_cb);
     serial_register_rx_callback(dl->serial, dl->serial_instance, serial_rx_cb);
-    timer_start(self.timer, self.half_char_timer, (115200 * 2 / 39));
+    timer_start(self.timer, self.half_char_timer, (115200 / 11));
     return DL_IDLE_STATE;
 }
 
@@ -133,10 +137,12 @@ rx_handler(Datalink dl)
 uint8_t
 control_handler(Datalink dl)
 {
-    EXTRACT_PDU(dl->rx_pdu, dl->serial->serial_buffer,
-                serial_available(dl->serial, dl->serial_instance));
-    self.new_data = pdu_is_valid(dl->rx_pdu);
-    serial_clear(dl->serial, dl->serial_instance);
+    uint16_t size = serial_available(dl->serial, dl->serial_instance);
+    if (size > 4) {
+        EXTRACT_PDU(dl->rx_pdu, dl->serial->serial_buffer, size);
+        self.new_data = pdu_is_valid(dl->rx_pdu);
+        serial_clear(dl->serial, dl->serial_instance);
+    }
     return DL_IDLE_STATE;
 }
 

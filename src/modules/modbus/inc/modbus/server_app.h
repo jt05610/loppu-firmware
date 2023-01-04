@@ -17,6 +17,7 @@ typedef struct app_init_t
     void * ser_inst;
     Timer timer;
     void * tim_inst;
+    DataModel data_model;
 } app_init_t;
 
 ServerApp server_create(app_init_t * params);

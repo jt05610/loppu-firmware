@@ -1,4 +1,4 @@
-add_library(gpio)
-target_sources(gpio PRIVATE src/gpio.c)
-target_include_directories(gpio PUBLIC inc)
+add_library(gpio INTERFACE)
+target_sources(gpio INTERFACE src/gpio.c)
+target_include_directories(gpio INTERFACE inc)
 add_subdirectory(mocks)

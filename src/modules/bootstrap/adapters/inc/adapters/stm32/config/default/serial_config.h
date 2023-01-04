@@ -60,7 +60,7 @@
 #define STM32_USART1_DATA_WIDTH         LL_USART_DATAWIDTH_8B
 
 /** @brief USART1 number of stop bits */
-#define STM32_USART1_STOP_BITS          LL_USART_STOPBITS_2
+#define STM32_USART1_STOP_BITS          LL_USART_STOPBITS_1
 
 /** @brief USART1 parity */
 #define STM32_USART1_PARITY             LL_USART_PARITY_NONE
@@ -72,10 +72,10 @@
 #define STM32_USART1_HARDWARE_FC        LL_USART_HWCONTROL_NONE
 
 /** @brief Oversampling factor for USART1. */
-#define STM32_USART1_OVER_SAMPLING      LL_USART_OVERSAMPLING_8
+#define STM32_USART1_OVER_SAMPLING      LL_USART_OVERSAMPLING_16
 
 /** @brief Enables FIFO mode for USART1 */
-#define STM32_USART1_FIFO               0
+#define STM32_USART1_FIFO               1
 
 /** @brief Enables RS485 mode for USART1 */
 #define STM32_USART1_RS485              1
@@ -97,6 +97,9 @@
 /** @brief Enable STM32 RTO interrupt */
 #define STM32_USART1_RTO_ENABLE         1
 
+/** @brief Enable STM32 IDLE interrupt */
+#define STM32_USART1_IDLE_ENABLE        0
+
 /** @brief Enable STM32 TC interrupt */
 #define STM32_USART1_TC_ENABLE          1
 
@@ -110,7 +113,7 @@
 #define STM32_USART1_ERROR_ENABLE       0
 
 /** @brief bits time to trigger rx timeout interrupt */
-#define STM32_USART1_RX_TIMEOUT         39
+#define STM32_USART1_RX_TIMEOUT         10
 
 /** @) */
 #endif // STM32_ENABLE_USART1

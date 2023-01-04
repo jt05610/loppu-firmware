@@ -7,7 +7,6 @@
 
 #include "project_types.h"
 #include "crc.h"
-#include "buffer/circular_buffer.h"
 
 typedef struct modbus_pdu_t * ModbusPDU;
 typedef struct serial_pdu_t * SerialPDU;
@@ -124,10 +123,9 @@ process_byte(SerialPDU pdu, uint8_t byte)
     state = extractors[state](pdu, byte);
 }
 
-#define EXTRACT_PDU(dest, src, n)                       \
-    uint16_t size = n;                                  \
-    (dest)->pdu->data.size = size - 4;                     \
-    for (uint16_t i = 0; i < size; i ++)                   \
+#define EXTRACT_PDU(dest, src, n)                          \
+    (dest)->pdu->data.size = (n) - 4;                      \
+    for (uint16_t i = 0; i < (n); i ++)                     \
         process_byte((dest), (src)[i])
 
 

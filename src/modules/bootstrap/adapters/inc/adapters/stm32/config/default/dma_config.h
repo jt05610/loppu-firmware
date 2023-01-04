@@ -35,7 +35,7 @@ extern "C" {
 
 #define STM32_ENABLE_DMA                1   /**< @brief Enable DMA */
 #define STM32_ENABLE_USART1_RX_DMA      1   /**< @brief Enable USART1 RX DMA */
-#define STM32_ENABLE_USART1_TX_DMA      1   /**< @brief Enable USART1 TX DMA */
+#define STM32_ENABLE_USART1_TX_DMA      0   /**< @brief Enable USART1 TX DMA */
 #define STM32_ENABLE_USART2_RX_DMA      0   /**< @brief Enable USART2 RX DMA */
 #define STM32_ENABLE_USART2_TX_DMA      0   /**< @brief Enable USART2 TX DMA */
 
