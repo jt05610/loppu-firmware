@@ -1,0 +1,17 @@
+meta:
+  device_name: PresssureSensor
+  author: Jonathan Taylor
+  date: 04 Jan 2023
+
+discrete_inputs:
+- name: on_off
+
+coils:
+- name: run
+
+input_registers:
+- name: reading
+
+holding_registers:
+- name: cal_slope
+- name: cal_intercept

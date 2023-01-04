@@ -44,6 +44,7 @@ dl_create(Serial serial, Timer timer, void * serial_inst, void * tim_inst)
     mod_pdu.data.bytes   = buffer;
     mod_pdu.data.size    = 0;
     self.rx_pdu          = &rx_pdu;
+    self.tx_pdu          = &tx_pdu;
     self.rx_pdu->pdu     = &mod_pdu;
     self.state           = init(&self);
     return &self;
@@ -101,7 +102,8 @@ void dl_send(Datalink base, ModbusPDU pdu)
 {
     if (base->rx_pdu->address != 0x00) {
         sized_array_t to_send;
-        serialize_serial_pdu(base->rx_pdu, &to_send);
+        pdu_format(base->rx_pdu->address, pdu, base->tx_pdu);
+        serialize_serial_pdu(base->tx_pdu, &to_send);
         serial_write(
                 base->serial, base->serial_instance, to_send.bytes,
                 to_send.size);
@@ -138,11 +140,11 @@ uint8_t
 control_handler(Datalink dl)
 {
     uint16_t size = serial_available(dl->serial, dl->serial_instance);
+    EXTRACT_PDU(dl->rx_pdu, dl->serial->serial_buffer, size);
     if (size > 4) {
-        EXTRACT_PDU(dl->rx_pdu, dl->serial->serial_buffer, size);
         self.new_data = pdu_is_valid(dl->rx_pdu);
-        serial_clear(dl->serial, dl->serial_instance);
     }
+    serial_clear(dl->serial, dl->serial_instance);
     return DL_IDLE_STATE;
 }
 
