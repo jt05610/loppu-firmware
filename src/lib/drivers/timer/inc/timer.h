@@ -81,6 +81,8 @@ void timer_register_update_callback(
 void timer_register_pwm_callback(
         Timer self, void * timer_instance, void (* cb)(void));
 
+void timer_reg_periodic_job(
+        Timer self, void * timer_instance, void (* job)(void), uint32_t freq);
 /**
  * @defgroup Microsecond
  * @brief Provides functions for timing with microsecond precision.

@@ -9,6 +9,7 @@ else()
     FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP true
     )
 
     # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -66,16 +67,16 @@ target_compile_definitions(
 # TMC-API
 
 set(TMC_IC TMC2209)
-set(TMC_IC_PATH TMC-API/tmc/ic/${TMC_IC})
+set(TMC_IC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/TMC-API/tmc/ic/${TMC_IC})
 
-add_library(tmc)
+add_library(tmc INTERFACE)
 file(
     GLOB_RECURSE
     TMC_SOURCES
     TMC-API/tmc/helpers/*.*
     TMC-API/tmc/ramp/*.*
-    ${TMC_IC}*.*
+    ${TMC_IC_PATH}/*.*
 )
 
-target_sources(tmc PRIVATE ${TMC_SOURCES})
-target_include_directories(tmc PUBLIC TMC-API ${TMC_IC_PATH})
+target_sources(tmc INTERFACE ${TMC_SOURCES})
+target_include_directories(tmc INTERFACE TMC-API ${TMC_IC_PATH})

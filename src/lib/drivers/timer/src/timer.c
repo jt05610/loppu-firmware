@@ -170,3 +170,12 @@ void timer_set_timeout(Timer self, void * timer_instance, uint32_t timeout)
         self->vtable->set_timeout(timer_instance, timeout);
     }
 }
+
+void timer_reg_periodic_job(
+        Timer self, void * timer_instance, void (* job)(void), uint32_t freq)
+{
+
+    if (self && self->vtable && self->vtable->reg_periodic_job) {
+        self->vtable->reg_periodic_job(timer_instance, job, freq);
+    }
+}

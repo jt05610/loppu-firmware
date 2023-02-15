@@ -12,8 +12,8 @@
   *
   ******************************************************************************
   */
-#include "../inc/a4988_stepper.h"
-
+#include "ic/a4988_stepper.h"
+#if 0
 static a4988_init_t * self = {0};
 
 static inline void
@@ -73,8 +73,8 @@ disable(Stepper base)
 
 static stepper_interface_t interface = {
         .step = step,
-        .set_dir = set_dir,
-        .set_microstep = a4988_set_microstep,
+        .dir = set_dir,
+        .microstep = a4988_set_microstep,
         .enable = enable,
         .disable = disable
 };
@@ -108,3 +108,4 @@ a4988_wakeup(Stepper base)
 {
     gpio_set_pin(base->gpio, self->sleep_port, self->sleep_pin);
 }
+#endif

@@ -9,7 +9,7 @@ stm32_executable(stm32_adc_test test_adc/main.c )
 
 add_library(stm32_serial_test INTERFACE)
 target_sources(stm32_serial_test INTERFACE test_serial/test_serial.c)
-target_link_libraries(stm32_serial_test INTERFACE stm32_bootstrap)
+target_link_libraries(stm32_serial_test INTERFACE stm32_bootstrap unity_lib)
 stm32_executable(stm32_serial_test test_serial/main.c )
 
 # Timer test
@@ -28,3 +28,12 @@ target_sources(stm32_device_test INTERFACE test_device/test_device.c)
 target_include_directories(stm32_device_test INTERFACE test_device)
 target_link_libraries(stm32_device_test INTERFACE stm32_bootstrap unity_lib FakeDevice)
 stm32_executable(stm32_device_test test_device/main.c)
+
+# Stepper test
+
+add_subdirectory(test_stepper/TMC2209_eval)
+add_library(stm32_stepper_test INTERFACE)
+target_sources(stm32_stepper_test INTERFACE test_stepper/test_stepper.c)
+target_include_directories(stm32_stepper_test INTERFACE test_stepper)
+target_link_libraries(stm32_stepper_test INTERFACE stm32_bootstrap unity_lib TMC2209Eval)
+stm32_executable(stm32_stepper_test test_stepper/main.c)

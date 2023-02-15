@@ -22,6 +22,7 @@
 #include "helper_macros.h"
 #include "stm32_dma.h"
 #include "default/dma_config.h"
+#include "advanced/adc_adv_config.h"
 
 static struct
 {

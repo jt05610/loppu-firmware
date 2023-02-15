@@ -16,7 +16,7 @@
 #ifndef DRIVERS_FAKE_STEPPER_H
 #define DRIVERS_FAKE_STEPPER_H
 
-#include "../../../inc/stepper_driver.h"
+#include "../../../inc/stepper.h"
 
 void fake_stepper_create(Stepper base, gpio_t *gpio);
 

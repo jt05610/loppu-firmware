@@ -30,6 +30,7 @@ extern "C" {
 
 #include <stdint.h>
 #include "adapters/stm32/config/default/dma_config.h"
+#include "adapters/stm32/config/default/adc_config.h"
 #include "buffer/circular_buffer.h"
 
 /** @brief Struct to pass memory address to dma */
@@ -67,6 +68,15 @@ void stm32_dma_create(stm32_dma_mem_addr_t * params);
 void stm32_dma_start_channel(uint8_t channel);
 
 /**
+ * @brief transfers dma to from memory address to configured peripheral addr
+ * @param channel DMA channel
+ * @param mem_addr memory address to transfer from
+ * @param len number of bytes to transfer
+ * @return 1 if successful else 0
+ */
+uint8_t stm32_dma_transfer(uint8_t channel, uint32_t mem_addr, uint16_t len);
+
+/**
  * @brief Stops DMA channel
  * @param channel DMA channel
  */
@@ -78,6 +88,7 @@ void stm32_dma_stop_channel(uint8_t channel);
  */
 void stm32_dma_reset_channel(uint8_t channel);
 
+uint16_t stm32_dma_channel_remaining(uint8_t channel);
 /** @} */
 
 #ifdef __cplusplus

@@ -16,27 +16,34 @@
 #ifndef DRIVERS_STEPPER_PRIVATE_H
 #define DRIVERS_STEPPER_PRIVATE_H
 
-#include "../../../modbus/inc/public/modbus/project_types.h"
-#include "../stepper_driver.h"
+#include "stepper.h"
 
 typedef struct stepper_interface_t
 {
-    void (* step)(Stepper base);
+    uint8_t (* get_dir)();
 
-    void (* set_dir)(Stepper base, dir_t dir);
+    void (* set_dir)(uint8_t dir);
 
-    void (* set_microstep)(Stepper base, microstep_t microstep);
+    int32_t (* get_velocity)();
 
-    void (* enable)(Stepper base);
+    void (* set_velocity)(int32_t value);
 
-    void (* disable)(Stepper base);
+    microstep_t (* get_microstep)();
+
+    void (* set_microstep)(microstep_t microstep);
+
+    void (* set_enabled)(bool enabled);
+
+    bool (* get_enabled)();
+
+    void (* periodic_job)();
 
 } stepper_interface_t;
 
 typedef struct stepper_t
 {
-    StepperInterface vtable;
-    GPIO             gpio;
+    stepper_interface_t * vtable;
+    GPIO gpio;
 } stepper_t;
 
 #endif //DRIVERS_STEPPER_PRIVATE_H

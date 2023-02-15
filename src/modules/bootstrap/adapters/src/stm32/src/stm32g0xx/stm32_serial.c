@@ -16,21 +16,26 @@
 #include <string.h>
 #include "stm32_serial.h"
 
-#include "default/serial_config.h"
-#include "default/gpio_config.h"
 #include "stm32g0xx_ll_gpio.h"
 #include "stm32g0xx_ll_dma.h"
-#include "default/dma_config.h"
 #include "stm32_interrupts.h"
 #include "stm32_dma.h"
+#include "advanced/serial_adv_config.h"
+#include "advanced/gpio_adv_config.h"
+#include "advanced/dma_adv_config.h"
+#include "default/dma_config.h"
 
 static uint8_t rx_buffer[STM32_USART1_RX_BUFFER_SIZE];
+
 
 static struct
 {
     serial_base_t base;
     bool new_data;
-    void (*rto_cb)(void);
+
+    void (* rto_cb)(void);
+
+    uint8_t uart2_rx_buffer[STM32_USART2_RX_BUFFER_SIZE];
 }              self = {0};
 
 static inline void uart_init();
@@ -47,7 +52,11 @@ static inline uint16_t read(void * instance, uint8_t * bytes);
 
 static inline void write(void * instance, uint8_t * bytes, uint16_t size);
 
-static inline void reg_rx_cb(void * instance, void(*cb)(void));
+static inline void
+read_write(void * instance, uint8_t * bytes, uint16_t n_w, uint16_t n_r);
+
+static inline void reg_rx_cb(void * instance, void(* cb)(void));
+
 static inline uint8_t _putchar(void * instance, char a);
 
 static serial_interface_t interface = {
@@ -57,27 +66,10 @@ static serial_interface_t interface = {
         .clear=clear,
         .read=read,
         .write=write,
+        .read_write=read_write,
         .putchar=_putchar,
         .reg_rx_cb=reg_rx_cb
 };
-
-#if STM32_ENABLE_USART2_RX_DMA
-STATIC_CIRC_BUF(usart2_rx_circ, STM32_USART2_RX_BUFFER_SIZE);
-uint8_t *
-stm32_get_usart2_rx_buffer()
-{
-    return usart2_rx_circ_buffer;
-}
-# endif
-
-#if STM32_ENABLE_USART2_TX_DMA
-STATIC_CIRC_BUF(usart2_tx_circ, STM32_USART2_TX_BUFFER_SIZE);
-uint8_t *
-stm32_get_usart2_tx_buffer()
-{
-    return usart2_tx_circ_buffer;
-}
-#endif
 
 Serial
 stm32_serial_create()
@@ -102,6 +94,11 @@ uint8_t *
 stm32_get_usart1_rx_circ_buffer()
 {
     return rx_buffer;
+}
+
+uint8_t * stm32_get_usart2_rx_buffer()
+{
+    return self.uart2_rx_buffer;
 }
 
 static void
@@ -215,22 +212,26 @@ read(void * instance, uint8_t * bytes)
 #if (STM32_ENABLE_USART1 & STM32_ENABLE_USART2)
     if ((USART_TypeDef *) instance == USART1) {
 #if STM32_ENABLE_USART1_RX_DMA
-        uint16_t size;
-        __BUFF_TRANSFER(&usart1_rx_circ, bytes, size);
-        return size;
+
+        size = STM32_USART1_RX_DMA_BUFFER_SIZE - DMA1_Channel1->CNDTR;
+        copy(bytes, rx_buffer, size);
+
 #else
-        LL_USART_ReceiveData8(USART1);
+        *bytes++ = LL_USART_ReceiveData8(USART1);
+        size =  1;
+
 #endif
     } else if ((USART_TypeDef *) instance == USART2) {
 #if STM32_ENABLE_USART2_RX_DMA
-        uint16_t size;
-        __BUFF_TRANSFER(&usart2_rx_circ, bytes, size);
+        size = STM32_USART2_RX_DMA_BUFFER_SIZE - DMA1_Channel3->CNDTR;
+        copy(bytes, rx_buffer, size);
+
 #else
-        *bytes++ = LL_USART_ReceiveData8(USART2);
-        return 1;
+        bytes[0] = LL_USART_ReceiveData8(USART2);
+        size = 1;
 #endif
     } else {
-        return 0;
+        size = 0;
     }
 #elif STM32_ENABLE_USART1
     (void) instance;
@@ -259,6 +260,7 @@ read(void * instance, uint8_t * bytes)
 static void
 write(void * instance, uint8_t * bytes, uint16_t size)
 {
+
 #if STM32_ENABLE_USART1 & STM32_ENABLE_USART2
 
     if ((USART_TypeDef *) instance == USART1) {
@@ -268,15 +270,14 @@ write(void * instance, uint8_t * bytes, uint16_t size)
                                        STM32_USART1_RE_PIN)) {}
 #endif // STM32_USART1_RS485
 #if STM32_ENABLE_USART1_TX_DMA
-        uint8_t * ptr = bytes;
-        while (size--) {
-            circ_buf_push(&usart1_tx_circ, *ptr++);
-        }
+        while(stm32_dma_channel_remaining(STM32_USART1_TX_DMA_CHANNEL));
+        stm32_dma_transfer(STM32_USART1_TX_DMA_CHANNEL, (uint32_t) bytes, size);
 #else
         for (uint16_t i = 0; i < size; i++) {
-        LL_USART_TransmitData8((USART_TypeDef *) instance, bytes[i]);
-        while (!LL_USART_IsActiveFlag_TXE_TXFNF((USART_TypeDef *) instance));
-    }
+            LL_USART_TransmitData8((USART_TypeDef *) instance, bytes[i]);
+            while (!LL_USART_IsActiveFlag_TXE_TXFNF(
+                    (USART_TypeDef *) instance)) {}
+        }
 #endif
     } else if ((USART_TypeDef *) instance == USART2) {
 
@@ -287,13 +288,14 @@ write(void * instance, uint8_t * bytes, uint16_t size)
 #endif // STM32_USART2_RS485
 
 #if STM32_ENABLE_USART2_TX_DMA
-        uint8_t *ptr = bytes;
-        while (size --)
-            circ_buf_push(&usart2_tx_circ, *ptr++);
+        stm32_dma_transfer(STM32_USART2_TX_DMA_CHANNEL, (uint32_t) bytes, size);
 #else
-        for (uint16_t i = 0; i < size; i++) {
-            LL_USART_TransmitData8(USART2, bytes[i]);
-            while (!LL_USART_IsActiveFlag_TXE_TXFNF(USART2));
+
+        uint16_t i = 0;
+        while (i < size) {
+            if (LL_USART_IsActiveFlag_TXE_TXFNF(USART2)) {
+                LL_USART_TransmitData8(USART2, bytes[i++]);
+            }
         }
 #endif
     }
@@ -334,6 +336,15 @@ write(void * instance, uint8_t * bytes, uint16_t size)
 
 }
 
+static inline void
+read_write(void * instance, uint8_t * bytes, uint16_t n_w, uint16_t n_r)
+{
+    stm32_dma_transfer(STM32_USART2_RX_DMA_CHANNEL, (uint32_t)self.uart2_rx_buffer, n_w + n_r);
+    write(instance, bytes, n_w);
+    while(stm32_dma_channel_remaining(STM32_USART2_RX_DMA_CHANNEL));
+    memcpy(bytes, self.uart2_rx_buffer + n_w, n_r);
+}
+
 static uint8_t
 _putchar(void * instance, char a)
 {
@@ -343,28 +354,24 @@ _putchar(void * instance, char a)
         LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
         while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT,
                                        STM32_USART1_RE_PIN)) {}
+
 #endif // STM32_USART1_RS485
-#if STM32_ENABLE_USART1_TX_DMA
-        circ_buf_push(&usart1_tx_circ, (uint8_t) a);
-        return (uint8_t) a;
-#else
-        LL_USART_TransmitData8((USART_TypeDef *) instance, bytes[i]);
-        while (!LL_USART_IsActiveFlag_TXE_TXFNF((USART_TypeDef *) instance));
-    }
-#endif // STM32_ENABLE_USART1_TX_DMA
+        while(stm32_dma_channel_remaining(STM32_USART1_TX_DMA_CHANNEL));
+        while (!LL_USART_IsActiveFlag_TXE_TXFNF(
+                (USART_TypeDef *) instance)) {}
+        LL_USART_TransmitData8((USART_TypeDef *) instance, a);
     } else if ((USART_TypeDef *) instance == USART2) {
 #if STM32_USART2_RS485
         LL_GPIO_SetOutputPin(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN);
         while (!LL_GPIO_IsOutputPinSet(STM32_USART2_RE_PORT,
                                        STM32_USART2_RE_PIN)) {}
 #endif // STM32_USART2_RS485
-#if STM32_ENABLE_USART2_TX_DMA
-        circ_buf_push(&usart2_tx_circ, (uint8_t) a);
-#else
+
+        while (!LL_USART_IsActiveFlag_TXE_TXFNF(
+                (USART_TypeDef *) instance)) {}
+
         LL_USART_TransmitData8(USART2, (uint8_t) a);
-        while (!LL_USART_IsActiveFlag_TXE_TXFNF((USART_TypeDef *) instance));
         return (uint8_t) a;
-#endif
     }
 
 #elif STM32_ENABLE_USART1
@@ -422,6 +429,9 @@ STM32_##inst##_##it##_ENABLE    \
 ? LL_USART_EnableIT_##it(inst)  \
 : LL_USART_DisableIT_##it(inst) \
 
+#define __INIT_ONEWIRE(inst)            \
+LL_USART_ConfigHalfDuplexMode(inst)         \
+
 
 static void
 uart1_init(LL_USART_InitTypeDef * uart_params)
@@ -478,6 +488,7 @@ uart1_init(LL_USART_InitTypeDef * uart_params)
 }
 
 #if STM32_ENABLE_USART2
+
 static void
 uart2_init(LL_USART_InitTypeDef * uart_params)
 {
@@ -492,9 +503,14 @@ uart2_init(LL_USART_InitTypeDef * uart_params)
     LL_USART_DisableFIFO(USART2);
 #endif // STM32_USART2_FIFO
 
+
+#if STM32_ENABLE_USART2_ONEWIRE
+    __INIT_ONEWIRE(USART2);
+#endif // STM32_USART2_ASYNC
+
 #if STM32_USART2_ASYNC
     LL_USART_ConfigAsyncMode(USART2);
-#endif // STM32_USART2_ASYNC
+#endif
 
 #if STM32_ENABLE_USART2_RX_DMA
     LL_USART_EnableDMAReq_RX(USART2);
@@ -509,15 +525,22 @@ uart2_init(LL_USART_InitTypeDef * uart_params)
     LL_USART_DisableDMAReq_TX(USART2);
 
 #endif // STM32_USART_TX_DMA
-    __SET_IT(USART2, TC);
-    __SET_IT(USART2, RTO);
+
+    LL_USART_Enable(USART2);
+    while ((!(LL_USART_IsActiveFlag_TEACK(USART2))) ||
+           (!(LL_USART_IsActiveFlag_REACK(USART2)))) {
+    }
+
     __SET_IT(USART2, PE);
+
 #if STM32_USART2_ERROR_ENABLE
     LL_USART_EnableIT_##it(inst);
 #else
     LL_USART_DisableIT_ERROR(USART2);
 #endif
+
 }
+
 #endif
 
 static void
@@ -539,11 +562,17 @@ uart_init()
 uint16_t
 available(void * instance)
 {
-    if (!LL_USART_IsActiveFlag_RXNE_RXFNE(USART1)) {
-        return self.new_data ? STM32_USART1_RX_BUFFER_SIZE - DMA1_Channel1->CNDTR
-                             : 0;
+    if (instance == USART2) {
+        return LL_USART_IsActiveFlag_RXNE_RXFNE(USART2);
+    } else {
+        if (!LL_USART_IsActiveFlag_RXNE_RXFNE(USART1)) {
+            return self.new_data ? STM32_USART1_RX_BUFFER_SIZE -
+                                   DMA1_Channel1->CNDTR
+                                 : 0;
+        }
+        return 0;
     }
-    return 0;
+
 
 }
 
@@ -551,14 +580,15 @@ static inline void
 clear(void * instance)
 {
     LL_DMA_DisableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
-    LL_DMA_SetDataLength(DMA1, STM32_USART1_RX_DMA_CHANNEL, STM32_USART1_RX_DMA_BUFFER_SIZE);
+    LL_DMA_SetDataLength(DMA1, STM32_USART1_RX_DMA_CHANNEL,
+                         STM32_USART1_RX_DMA_BUFFER_SIZE);
     LL_DMA_EnableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
-    self.new_data = false;
+    self.new_data  = false;
     self.base.size = 0;
 }
 
 static inline void
-reg_rx_cb(void * instance, void(*cb)(void))
+reg_rx_cb(void * instance, void(* cb)(void))
 {
     self.rto_cb = cb;
 }
@@ -571,10 +601,16 @@ USART1_IRQHandler()
         LL_GPIO_ResetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
 #endif
         LL_USART_ClearFlag_TC(USART1);
-    } else if(LL_USART_IsActiveFlag_RTO(USART1)){
+    } else if (LL_USART_IsActiveFlag_RTO(USART1)) {
         self.new_data = true;
         LL_USART_ClearFlag_RTO(USART1);
-        if (self.rto_cb)
+        if (self.rto_cb) {
             self.rto_cb();
+        }
     }
+}
+
+__INTERRUPT
+USART2_IRQHandler()
+{
 }

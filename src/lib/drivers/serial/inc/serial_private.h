@@ -66,6 +66,15 @@ typedef struct serial_interface_t
     void (* write)(void * instance, uint8_t * data, uint16_t size);
 
     /**
+     * @brief Performs write request then read a read.
+     * @param instance Serial instance if needed by target.
+     * @param data Bytes to write. Stores read result.
+     * @param n_w Number of bytes to write.
+     * @param n_r Number of bytes to read.
+     */
+    void (* read_write)(void * instance, uint8_t * data, uint16_t n_w, uint16_t n_r);
+
+    /**
      * @brief Write single byte to serial port.
      * @param instance Serial instance if needed by target.
      * @param a Bytes to write.

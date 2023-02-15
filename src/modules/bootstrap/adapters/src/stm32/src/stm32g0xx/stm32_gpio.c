@@ -16,6 +16,7 @@
 #include "stm32_gpio.h"
 #include "default/gpio_config.h"
 #include "stm32g0xx_ll_gpio.h"
+#include "advanced/gpio_adv_config.h"
 
 static inline void set_pin(gpio_port_t port, gpio_pin_t pin);
 
@@ -110,16 +111,31 @@ init_usart(LL_GPIO_InitTypeDef * p)
 #endif // STM32_ENABLE_USART1
 
 #if STM32_ENABLE_USART2
+
+#if STM32_ENABLE_USART2_ONEWIRE
+    p->Pin        = STM32_USART2_TX_PIN;
+    p->Mode       = LL_GPIO_MODE_ALTERNATE;
+    p->Speed      = LL_GPIO_SPEED_FREQ_LOW;
+    p->OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    p->Pull       = LL_GPIO_PULL_UP;
+    p->Alternate  = LL_GPIO_AF_1;
+    LL_GPIO_Init(STM32_USART2_RX_PORT, p);
+
+#else
     p->Pin        = STM32_USART2_RX_PIN;
     p->Mode       = LL_GPIO_MODE_ALTERNATE;
     p->Speed      = LL_GPIO_SPEED_FREQ_LOW;
     p->OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    p->Pull       = LL_GPIO_PULL_NO;
-    p->Alternate  = LL_GPIO_AF_0;
+    p->Pull       = LL_GPIO_PULL_UP;
+    p->Alternate  = LL_GPIO_AF_1;
     LL_GPIO_Init(STM32_USART2_RX_PORT, p);
 
+
+    p->Pull       = LL_GPIO_PULL_NO;
     p->Pin = STM32_USART2_TX_PIN;
     LL_GPIO_Init(STM32_USART2_TX_PORT, p);
+#endif
+
 
 #if STM32_USART2_RS485
     p->Pin       = STM32_USART2_DE_PIN;

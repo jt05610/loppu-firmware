@@ -1,0 +1,53 @@
+meta:
+  device_name: TMC2209Eval
+  author: Jonathan Taylor
+  date: 14 Feb 2023
+
+discrete_inputs:
+- name: en_state
+- name: ms1_state
+- name: ms2_state
+- name: diag_state
+- name: pdn_uart_state
+- name: step_state
+- name: spread_en_state
+- name: dir_state
+- name: diag_msg_cnt
+
+
+coils:
+- name: I_scale_analog
+- name: internal_Rsense
+- name: en_SpreadCycle
+- name: shaft
+- name: index_otpw
+- name: index_step
+- name: pdn_disable
+- name: mstep_reg_select
+- name: multistep_filt
+- name: test_mode
+- name: reset_flag
+- name: drv_err_flag
+- name: uv_cp_flag
+
+input_registers:
+- name: t_step
+- name: stallguard_result
+- name: microstep_count
+- name: microstep_currentA
+- name: microstep_currentB
+
+holding_registers:
+- name: send_delay
+- name: f_clk_trim
+- name: ot_trim
+- name: current_standstill
+- name: current_motor_run
+- name: current_hold_delay
+- name: t_powerdown
+- name: t_pwm_thresh
+- name: v_actual
+- name: t_cool_thrs
+- name: stallguard_threshold
+- name: coolstep_conf
+

@@ -86,6 +86,8 @@ typedef struct timer_interface_t
     /** @brief delay in micros function */
     void (* delay_micros)(uint32_t micros);
 
+    void (* reg_periodic_job)(void * tim_inst, void (*cb)(void), uint32_t freq);
+
     void (* reg_update_callback)(void * tim_inst, void (*cb)(void));
 
     void (* reg_pwm_callback)(void * tim_inst, void (*cb)(void));

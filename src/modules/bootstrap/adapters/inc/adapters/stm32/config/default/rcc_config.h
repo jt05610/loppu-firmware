@@ -34,15 +34,6 @@ extern "C" {
 /** @brief STM32G0xx system clock tick. */
 #define STM32_SYS_TICK                  16000000
 
-/** @brief AHB prescaler */
-#define STM32_AHB_PRESCALER             LL_RCC_SYSCLK_DIV_1
-
-/** @brief Sys clock source */
-#define STM32_SYS_CLK_SOURCE            LL_RCC_SYS_CLKSOURCE_HSI
-
-/** @brief APB1 prescaler */
-#define STM32_APB1_PRESCALER            LL_RCC_APB1_DIV_1
-
 /** @} */
 
 #ifdef __cplusplus

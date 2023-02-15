@@ -52,9 +52,6 @@ dma_config()
 #if STM32_ENABLE_USART2_RX_DMA
             .usart2_rx=(uint32_t) stm32_get_usart2_rx_buffer(),
 #endif
-#if STM32_ENABLE_USART2_TX_DMA
-            .usart2_tx=(uint32_t) stm32_get_usart2_tx_buffer(),
-#endif
     };
     stm32_dma_create(&addr);
 #endif

@@ -82,3 +82,13 @@ serial_register_rx_callback(Serial base, void * instance, void (* cb)(void))
         base->vtable->reg_rx_cb(instance, cb);
     }
 }
+
+void
+serial_read_write(
+        Serial base, void * instance, uint8_t * data, uint16_t n_w,
+        uint16_t n_r)
+{
+    if (base && base->vtable && base->vtable->read_write) {
+        base->vtable->read_write(instance, data, n_w, n_r);
+    }
+}

@@ -83,6 +83,15 @@ void serial_write(Serial base, void * instance, uint8_t * data, uint16_t size);
  */
 uint8_t serial_putchar(Serial base, void * instance, char a);
 
+/**
+ * @brief Writes single byte to serial port
+ * @param base Serial instance
+ * @param data Bytes to write. Stores read result.
+ * @param n_w Number of bytes to write.
+ * @param n_r Number of bytes to read.
+ */
+void serial_read_write(Serial base, void * instance, uint8_t * data, uint16_t n_w, uint16_t n_r);
+
 uint16_t serial_available(Serial base, void * instance);
 
 void serial_clear(Serial base, void * instance);

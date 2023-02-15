@@ -5,7 +5,7 @@
 #ifndef DRIVERS_A4988_STEPPER_H
 #define DRIVERS_A4988_STEPPER_H
 
-#include "stepper_driver.h"
+#include "stepper.h"
 #include "../../../lib/drivers/gpio/inc/gpio.h"
 
 #ifdef A4988

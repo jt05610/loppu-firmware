@@ -71,6 +71,7 @@ uint8_t * stm32_get_usart2_tx_buffer();
  */
 bool stm32_serial_new_data();
 
+
 /** @) */
 
 

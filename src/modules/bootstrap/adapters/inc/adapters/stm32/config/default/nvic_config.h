@@ -19,32 +19,6 @@
 extern "C" {
 #endif
 
-/**
- * @defgroup STM32G0xx_NVICConfig NVIC config
- * @ingroup STM32G0xx_DefaultConfig
- * @brief NVIC peripheral configuration
- * @{
- */
-/** @brief Enable Window Watchdog interrupt handler */
-#define STM32_ENABLE_WWDG_IRQn                          0
-/** @brief Window Watchdog interrupt priority */
-#define STM32_WWDG_IRQn_PRIORITY                        0
-
-/** @brief Enable PVD through EXTI Line detect */
-#define STM32_ENABLE_PVD_IRQn                           0
-/** @brief PVD through EXTI Line detect */
-#define STM32_PVD_IRQn_PRIORITY                         0
-
-/** @brief Enable RTC through the EXTI line interrupt handler */
-#define STM32_ENABLE_RTC_TAMP_IRQn                      0
-/** @brief RTC through the EXTI line interrupt priority */
-#define STM32_RTC_TAMP_IRQn_PRIORITY                    0
-
-/** @brief Enable FLASH interrupt handler */
-#define STM32_ENABLE_FLASH_IRQn                         0
-/** @brief FLASH interrupt priority */
-#define STM32_FLASH_IRQn_PRIORITY                       0
-
 /** @brief Enable EXTI Line 0 and 1 interrupt handler */
 #define STM32_ENABLE_EXTI0_1_IRQn                       0
 /** @brief EXTI Line 0 and 1 interrupt priority */
@@ -188,7 +162,7 @@ extern "C" {
 #define STM32_USART1_IRQn_PRIORITY                      0
 
 /** @brief Enable USART2 interrupt handler */
-#define STM32_ENABLE_USART2_IRQn                        0
+#define STM32_ENABLE_USART2_IRQn                        1
 /** @brief USART2 interrupt priority */
 #define STM32_USART2_IRQn_PRIORITY                      0
 
