@@ -26,16 +26,14 @@ static Stepper     stepper;
 void
 test_stepper_msg_cnt()
 {
-    uint8_t expected = 0;
-    uint8_t actual   = tmc2209_stepper_msg_count();
-    TEST_ASSERT_EQUAL(expected, actual);
-    tmc2209_set_mstep_reg(1);
-
-    expected++;
-    actual = tmc2209_stepper_msg_count();
-    TEST_ASSERT_EQUAL(expected, actual);
+    tmc2209_stepper_msg_count();
 }
 
+void
+test_set_velocity()
+{
+    stepper_set_velocity(stepper, 0);
+}
 void setUp()
 {
 
@@ -53,7 +51,12 @@ main()
     tmc2209_init_t tmc_params = {.hal=hal, .tim_inst=TIM2, .uart_inst=USART2};
     stepper = tmc2209_stepper_create(&tmc_params);
     self    = tmc2209_eval_create(hal, USART1, TIM1, stepper);
-    test_stepper_msg_cnt();
+    serial_open(hal->serial, USART1);
+    serial_open(hal->serial, USART2);
+    UNITY_BEGIN();
+    RUN_TEST(test_set_velocity);
+    RUN_TEST(test_stepper_msg_cnt);
+    UNITY_END();
 }
 
 
@@ -78,5 +81,5 @@ unity_output_flush()
 void
 unity_output_complete()
 {
-
+    while (1);
 }

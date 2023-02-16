@@ -98,7 +98,7 @@ tmc2209_stepper_create(tmc2209_init_t * params)
 uint8_t
 tmc2209_stepper_msg_count()
 {
-    return tmc2209_readInt(&self.ic, TMC2209_IOIN);
+    return tmc2209_readInt(&self.ic, TMC2209_IFCNT);
 }
 
 void
@@ -106,9 +106,9 @@ tmc2209_set_mstep_reg(uint8_t reg)
 {
     int16_t v = tmc2209_readInt(&self.ic, TMC2209_GCONF);
     if (reg) {
-        v |= 1UL << TMC2209_MSTEP_REG_SELECT_SHIFT;
+        v |= 0x01 << TMC2209_MSTEP_REG_SELECT_SHIFT;
     } else {
-        v &= ~(1UL << TMC2209_MSTEP_REG_SELECT_SHIFT);
+        v &= ~(0x01 << TMC2209_MSTEP_REG_SELECT_SHIFT);
     }
     tmc2209_writeInt(&self.ic, TMC2209_GCONF, v);
 }
@@ -140,8 +140,8 @@ set_velocity(int32_t value)
 static inline microstep_t
 get_microstep()
 {
-    return (tmc2209_readInt(&self.ic, TMC2209_CHOPCONF) & TMC2209_MRES_MASK)
-            >> TMC2209_MRES_SHIFT;
+    uint32_t cc = tmc2209_readInt(&self.ic, TMC2209_CHOPCONF);
+    return ( cc & TMC2209_MRES_MASK) >> TMC2209_MRES_SHIFT;
 }
 
 static inline void

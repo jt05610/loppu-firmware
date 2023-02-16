@@ -341,8 +341,10 @@ read_write(void * instance, uint8_t * bytes, uint16_t n_w, uint16_t n_r)
 {
     stm32_dma_transfer(STM32_USART2_RX_DMA_CHANNEL, (uint32_t)self.uart2_rx_buffer, n_w + n_r);
     write(instance, bytes, n_w);
-    while(stm32_dma_channel_remaining(STM32_USART2_RX_DMA_CHANNEL));
-    memcpy(bytes, self.uart2_rx_buffer + n_w, n_r);
+    if (n_r) {
+        while(stm32_dma_channel_remaining(STM32_USART2_RX_DMA_CHANNEL));
+        memcpy(bytes, self.uart2_rx_buffer + n_w, n_r);
+    }
 }
 
 static uint8_t
