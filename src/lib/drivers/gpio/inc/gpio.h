@@ -6,6 +6,9 @@
 #define DRIVERS_GPIO_H
 
 #include <stdint.h>
+#include <stdbool.h>
+
+#define MAX_GPIO_INTERRUPT_CALLBACKS 4
 
 typedef struct gpio_t           * GPIO;
 typedef struct gpio_interface_t * GPIOInterface;
@@ -20,7 +23,13 @@ typedef enum gpio_port_t
 
 typedef uint32_t gpio_pin_t;
 
+#define GPIO_PIN_MODE_NORMAL 0x00
+#define GPIO_PIN_MODE_PWM 0x01
+#define GPIO_PIN_MODE_INTERRUPT 0x02
+
 void gpio_set_pin(GPIO base, gpio_port_t port, gpio_pin_t pin);
+
+void gpio_init_pin(GPIO base, gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode, void (*cb)());
 
 void gpio_reset_pin(GPIO base, gpio_port_t port, gpio_pin_t pin);
 

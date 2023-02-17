@@ -43,7 +43,11 @@ typedef struct stepper_interface_t
 typedef struct stepper_t
 {
     stepper_interface_t * vtable;
-    GPIO gpio;
+    GPIO        gpio;
+    gpio_pin_t  step_pin;
+    gpio_pin_t  dir_pin;
+    gpio_pin_t  limit_pin;
+    gpio_port_t port;
 } stepper_t;
 
 #endif //DRIVERS_STEPPER_PRIVATE_H

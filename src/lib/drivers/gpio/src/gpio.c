@@ -51,3 +51,9 @@ gpio_toggle(GPIO base, gpio_port_t port, gpio_pin_t pin)
     if (base && base->vtable && base->vtable->toggle)
         base->vtable->toggle(port, pin);
 }
+
+void gpio_init_pin(GPIO base, gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode, void (*cb)())
+{
+    if (base && base->vtable && base->vtable->init_pin)
+        base->vtable->init_pin(port, pin, pin_mode, cb);
+}

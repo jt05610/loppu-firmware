@@ -14,6 +14,7 @@
   */
 
 #include "ic/tmc2209_stepper.h"
+#include "stepdir.h"
 #include "TMC2209.h"
 
 #define IC_CHANNEL 0x00
@@ -30,6 +31,11 @@ struct
     ConfigurationTypeDef cfg;
 
 } self = {0};
+
+static inline int16_t _read_reg(uint8_t addr, uint8_t shift, uint8_t mask);
+
+static inline void
+_write_reg(uint8_t addr, uint8_t shift, uint8_t mask, int16_t val);
 
 static inline uint8_t get_dir();
 
@@ -82,35 +88,33 @@ tmc2209_stepper_create(tmc2209_init_t * params)
     self.timer       = params->hal->timer;
     self.ser_inst    = params->uart_inst;
     self.tim_inst    = params->tim_inst;
-    timer_reg_periodic_job(
-            params->hal->timer,
-            params->tim_inst,
-            periodic_job,
-            TMC2209_UPDATE_FREQ
-    );
     tmc2209_setup();
     tmc_fillCRC8Table(0x07, true, 1);
     tmc2209_reset(&self.ic);
-    timer_start(params->hal->timer, params->tim_inst, 115200);
     return &self.base;
 }
+
+#define _READ(addr, mask, shift) \
+((tmc2209_readInt(&self.ic, (addr)) & (mask)) >> (shift))
+
+#define READ(reg) \
+_READ(TMC2209_##reg, TMC2209_##reg##_MASK, TMC2209_##reg##_SHIFT)
 
 uint8_t
 tmc2209_stepper_msg_count()
 {
-    return tmc2209_readInt(&self.ic, TMC2209_IFCNT);
+    return READ(IFCNT);
 }
 
 void
 tmc2209_set_mstep_reg(uint8_t reg)
 {
-    int16_t v = tmc2209_readInt(&self.ic, TMC2209_GCONF);
-    if (reg) {
-        v |= 0x01 << TMC2209_MSTEP_REG_SELECT_SHIFT;
-    } else {
-        v &= ~(0x01 << TMC2209_MSTEP_REG_SELECT_SHIFT);
-    }
-    tmc2209_writeInt(&self.ic, TMC2209_GCONF, v);
+    _write_reg(
+            TMC2209_GCONF,
+            TMC2209_MSTEP_REG_SELECT_SHIFT,
+            TMC2209_MSTEP_REG_SELECT_MASK,
+            reg
+    );
 }
 
 static inline uint8_t
@@ -122,7 +126,9 @@ get_dir()
 static inline void
 set_dir(uint8_t dir)
 {
+    if ((dir > 0) && (READ(VACTUAL) < 0)) {
 
+    }
 }
 
 static inline int32_t
@@ -141,7 +147,7 @@ static inline microstep_t
 get_microstep()
 {
     uint32_t cc = tmc2209_readInt(&self.ic, TMC2209_CHOPCONF);
-    return ( cc & TMC2209_MRES_MASK) >> TMC2209_MRES_SHIFT;
+    return (cc & TMC2209_MRES_MASK) >> TMC2209_MRES_SHIFT;
 }
 
 static inline void
@@ -173,11 +179,30 @@ void
 tmc2209_readWriteArray(
         uint8_t channel, uint8_t * data, size_t writeLength, size_t readLength)
 {
-    serial_read_write(self.serial, self.ser_inst, data, writeLength, readLength);
+    serial_read_write(
+            self.serial, self.ser_inst, data, writeLength, readLength);
+    (void) channel;
 }
 
 uint8_t
 tmc2209_CRC8(uint8_t * data, size_t length)
 {
     return tmc_CRC8(data, length, 1);
+}
+
+static inline int16_t
+_read_reg(uint8_t addr, uint8_t shift, uint8_t mask)
+{
+
+    uint32_t cc = tmc2209_readInt(&self.ic, addr);
+    return (cc & mask) >> shift;
+}
+
+static inline void
+_write_reg(uint8_t addr, uint8_t shift, uint8_t mask, int16_t val)
+{
+    int16_t cur = tmc2209_readInt(&self.ic, addr);
+    cur &= ~mask;
+    cur |= (val << shift) & mask;
+    tmc2209_writeInt(&self.ic, addr, cur);
 }
