@@ -10,17 +10,10 @@
 
 #define MAX_GPIO_INTERRUPT_CALLBACKS 4
 
-typedef struct gpio_t           * GPIO;
+typedef struct gpio_t * GPIO;
 typedef struct gpio_interface_t * GPIOInterface;
 
-typedef enum gpio_port_t
-{
-    GPIO_PORT_A,
-    GPIO_PORT_B,
-    GPIO_PORT_C
-
-} gpio_port_t;
-
+typedef void * gpio_port_t;
 typedef uint32_t gpio_pin_t;
 
 #define GPIO_PIN_MODE_NORMAL 0x00
@@ -29,7 +22,6 @@ typedef uint32_t gpio_pin_t;
 
 void gpio_set_pin(GPIO base, gpio_port_t port, gpio_pin_t pin);
 
-void gpio_init_pin(GPIO base, gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode, void (*cb)());
 
 void gpio_reset_pin(GPIO base, gpio_port_t port, gpio_pin_t pin);
 
@@ -40,6 +32,14 @@ uint8_t gpio_read_pin(GPIO base, gpio_port_t port, gpio_pin_t pin);
 void gpio_write_port(GPIO base, gpio_port_t port, uint32_t value);
 
 void gpio_toggle(GPIO base, gpio_port_t port, gpio_pin_t pin);
+
+void
+gpio_init_pin(GPIO base, gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode);
+
+void
+gpio_attach_cb(
+        GPIO base, gpio_port_t port, gpio_pin_t pin, void (* cb)(),
+        bool active_high);
 
 #include "gpio_private.h"
 

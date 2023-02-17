@@ -15,7 +15,9 @@ typedef struct gpio_interface_t
 
     uint32_t (* read_port)(gpio_port_t port);
 
-    void (*init_pin)(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode, void (*cb)());
+    void (*init_pin)(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode);
+
+    void(*attach_cb)(gpio_port_t port, gpio_pin_t pin, void (*cb)(), bool active_high);
 
     uint8_t (* read_pin)(gpio_port_t port, gpio_pin_t pin);
 

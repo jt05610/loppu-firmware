@@ -16,21 +16,22 @@
 #include "ic/tmc2209_stepper.h"
 #include "stepdir.h"
 #include "TMC2209.h"
+#include "gpio.h"
 
 #define IC_CHANNEL 0x00
 #define SERVER_ADDR 0x00
-
 struct
 {
     Serial serial;
     Timer  timer;
     void * ser_inst;
-    void * tim_inst;
     stepper_t            base;
     TMC2209TypeDef       ic;
     ConfigurationTypeDef cfg;
 
 } self = {0};
+
+#define _GPIO self.base.hal->gpio
 
 static inline int16_t _read_reg(uint8_t addr, uint8_t shift, uint8_t mask);
 
@@ -82,15 +83,31 @@ tmc2209_setup()
 Stepper
 tmc2209_stepper_create(tmc2209_init_t * params)
 {
-    self.base.vtable = &interface;
-    self.base.gpio   = params->hal->gpio;
-    self.serial      = params->hal->serial;
-    self.timer       = params->hal->timer;
-    self.ser_inst    = params->uart_inst;
-    self.tim_inst    = params->tim_inst;
+    self.base.vtable    = &interface;
+    self.base.hal       = params->hal;
+    self.ser_inst       = params->uart_inst;
+    self.base.tim_inst  = params->tim_inst;
+    self.base.step_pin  = params->step_pin;
+    self.base.dir_pin   = params->dir_pin;
+    self.base.limit_pin = params->limit_pin;
     tmc2209_setup();
     tmc_fillCRC8Table(0x07, true, 1);
     tmc2209_reset(&self.ic);
+    gpio_init_pin(
+            _GPIO, params->gpio_inst, params->en_pin,
+            GPIO_PIN_MODE_NORMAL);
+    gpio_init_pin(
+            _GPIO, params->gpio_inst, params->dir_pin,
+            GPIO_PIN_MODE_NORMAL);
+
+    gpio_init_pin(
+            _GPIO, params->gpio_inst, params->step_pin,
+            GPIO_PIN_MODE_PWM);
+    gpio_init_pin(
+            _GPIO, params->gpio_inst, params->limit_pin,
+            GPIO_PIN_MODE_INTERRUPT);
+
+    tmc2209_set_mstep_reg(1);
     return &self.base;
 }
 
@@ -120,15 +137,15 @@ tmc2209_set_mstep_reg(uint8_t reg)
 static inline uint8_t
 get_dir()
 {
-
+    return gpio_read_pin(_GPIO, self.base.gpio_inst, self.base.dir_pin);
 }
 
 static inline void
 set_dir(uint8_t dir)
 {
-    if ((dir > 0) && (READ(VACTUAL) < 0)) {
-
-    }
+    void (* func)(GPIO base, gpio_port_t inst, gpio_pin_t pin);
+    func = (dir > 0) ? gpio_set_pin : gpio_reset_pin;
+    func(_GPIO, self.base.gpio_inst, self.base.dir_pin);
 }
 
 static inline int32_t
@@ -159,13 +176,17 @@ set_microstep(microstep_t microstep)
 static inline void
 set_enabled(bool enabled)
 {
-
+    if (enabled) {
+        gpio_reset_pin(_GPIO, self.base.gpio_inst, self.base.en_pin);
+    } else {
+        gpio_set_pin(_GPIO, self.base.gpio_inst, self.base.en_pin);
+    }
 }
 
 static inline bool
 get_enabled()
 {
-    return 0x01 == (tmc2209_readInt(&self.ic, TMC2209_IOIN) & TMC2209_ENN_MASK);
+    return gpio_read_pin(_GPIO, self.base.gpio_inst, self.base.en_pin);
 }
 
 static inline void

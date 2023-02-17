@@ -19,13 +19,18 @@
 #include "stepper.h"
 #include "peripherals.h"
 
-#define TMC2209_UPDATE_FREQ 8e6
 
 typedef struct tmc2209_init_t
 {
     Peripherals hal;
     void * tim_inst;
     void * uart_inst;
+    void * gpio_inst;
+    uint8_t en_pin;
+    uint8_t step_pin;
+    uint8_t dir_pin;
+    bool inverse_dir;
+    uint8_t limit_pin;
 } tmc2209_init_t;
 
 Stepper tmc2209_stepper_create(tmc2209_init_t * params);

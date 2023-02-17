@@ -32,8 +32,6 @@ static inline void toggle(gpio_port_t port, gpio_pin_t pin);
 
 static inline void init_usart(LL_GPIO_InitTypeDef * p);
 
-static inline void init_timers(LL_GPIO_InitTypeDef * p);
-
 static inline void init_adc(LL_GPIO_InitTypeDef * p);
 
 static inline void init_gpio(LL_GPIO_InitTypeDef * p);
@@ -60,7 +58,6 @@ stm32_gpio_create()
     init_gpio(&init);
     init_adc(&init);
     init_usart(&init);
-    init_timers(&init);
     return &self.base;
 }
 
@@ -152,48 +149,39 @@ init_usart(LL_GPIO_InitTypeDef * p)
 }
 
 static inline void
-init_timers(LL_GPIO_InitTypeDef * p)
-{
-
-}
-
-#define STM_PORT(port) \
-((port) == GPIO_PORT_A) ? GPIOA : (((port) == GPIO_PORT_B) ? GPIOB : GPIOC)
-
-static inline void
 set_pin(gpio_port_t port, gpio_pin_t pin)
 {
-    LL_GPIO_SetOutputPin(STM_PORT(port), pin);
+    LL_GPIO_SetOutputPin(port, pin);
 }
 
 static inline void
 reset_pin(gpio_port_t port, gpio_pin_t pin)
 {
-    LL_GPIO_ResetOutputPin(STM_PORT(port), pin);
+    LL_GPIO_ResetOutputPin(port, pin);
 }
 
 static inline uint32_t
 read_port(gpio_port_t port)
 {
-    return LL_GPIO_ReadInputPort(STM_PORT(port));
+    return LL_GPIO_ReadInputPort(port);
 }
 
 static inline uint8_t
 read_pin(gpio_port_t port, gpio_pin_t pin)
 {
-    return LL_GPIO_IsOutputPinSet(STM_PORT(port), pin);
+    return LL_GPIO_IsOutputPinSet(port, pin);
 }
 
 static inline void
 write_port(gpio_port_t port, uint32_t value)
 {
-    LL_GPIO_WriteOutputPort(STM_PORT(port), value);
+    LL_GPIO_WriteOutputPort(port, value);
 }
 
 static inline void
 toggle(gpio_port_t port, gpio_pin_t pin)
 {
-    LL_GPIO_TogglePin(STM_PORT(port), pin);
+    LL_GPIO_TogglePin(port, pin);
 }
 
 
