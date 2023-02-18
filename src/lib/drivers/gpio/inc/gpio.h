@@ -19,6 +19,7 @@ typedef uint32_t gpio_pin_t;
 #define GPIO_PIN_MODE_NORMAL 0x00
 #define GPIO_PIN_MODE_PWM 0x01
 #define GPIO_PIN_MODE_INTERRUPT 0x02
+#define GPIO_PIN_MODE_ANALOG 0x03
 
 void gpio_set_pin(GPIO base, gpio_port_t port, gpio_pin_t pin);
 

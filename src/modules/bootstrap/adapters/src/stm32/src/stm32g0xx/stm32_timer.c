@@ -157,7 +157,7 @@ start(void * timer_instance, uint32_t freq)
         );
     }
 
-    LL_TIM_EnableIT_UPDATE(TIM1);
+    LL_TIM_EnableIT_UPDATE((TIM_TypeDef *) timer_instance);
     LL_TIM_EnableCounter((TIM_TypeDef *) timer_instance);
     while (!LL_TIM_IsEnabledCounter((TIM_TypeDef *) timer_instance));
 }
@@ -293,6 +293,15 @@ reg_update_cb(void * tim_inst, void (* cb)(void))
 __INTERRUPT
 TIM1_BRK_UP_TRG_COM_IRQHandler()
 {
-    self.update_cb();
+    if (self.update_cb)
+        self.update_cb();
     LL_TIM_ClearFlag_UPDATE(TIM1);
+}
+
+/** @brief TIM2 interrupt handler */
+__INTERRUPT TIM2_IRQHandler()
+{
+    if (self.update_cb)
+        self.update_cb();
+    LL_TIM_ClearFlag_UPDATE(TIM2);
 }

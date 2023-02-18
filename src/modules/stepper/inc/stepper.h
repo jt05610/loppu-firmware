@@ -18,7 +18,6 @@
 
 #include "gpio.h"
 #include <stdbool.h>
-
 /**
  * @defgroup Stepper
  * @brief Abstraction layer for stepper motor drivers
@@ -60,7 +59,7 @@ void stepper_set_dir(Stepper base, uint8_t dir);
 
 /**
  * @brief Gets velocity of stepper motor
- * @param base Stepper instance
+int32_t  * @param base Stepper instance
  * @return Stepper velocity in µsteps / s.
  */
 int32_t stepper_get_velocity(Stepper base);

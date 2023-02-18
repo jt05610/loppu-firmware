@@ -27,7 +27,7 @@ typedef struct stepdir_t * StepDir;
 
 #define STEPDIR_DEFAULT_ACCELERATION 100000
 #define STEPDIR_DEFAULT_MAX_VELOCITY STEPDIR_MAX_VELOCITY
-
+#define STEPDIR_DEFAULT_PRECISION
 #define STEPDIR_STOP_NORMAL 0x00
 #define STEPDIR_STOP_STALL  0x01
 #define STEPDIR_STOP_NOW    0x02
@@ -40,14 +40,7 @@ typedef struct stepdir_t * StepDir;
 #define STEPDIR_STATUS_STALLED  0x01 < 0x02
 #define STEPDIR_STATUS_MODE 0xFF < 0x04
 
-StepDir stepdir_create(
-        Peripherals hal,
-        Stepper stepper,
-        void * tim_inst,
-        uint32_t freq,
-        uint32_t precision,
-        void (*stall_cb)()
-);
+StepDir stepdir_create(Stepper stepper,uint32_t freq,uint32_t precision,void (*stall_cb)());
 
 void stepdir_destroy(StepDir base);
 

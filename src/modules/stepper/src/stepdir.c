@@ -20,7 +20,6 @@
 
 typedef struct stepdir_t
 {
-    Peripherals       hal;
     Stepper           stepper;
     uint8_t           state;
     volatile int32_t  old_vel;
@@ -30,9 +29,6 @@ typedef struct stepdir_t
     volatile bool     stalled;
     uint32_t          freq;
     TMC_LinearRamp    ramp;
-    void * tim_inst;
-
-    void (* stall_cb)();
 } stepdir_t;
 
 static stepdir_t self = {0};
@@ -79,9 +75,11 @@ stepdir_get_state(StepDir base)
 void
 stepdir_periodic_job()
 {
+    gpio_reset_pin(self.stepper->hal->gpio, self.stepper->port, self.stepper->step_pin);
     int32_t dx = tmc_ramp_linear_compute(&self.ramp);
     if (dx) {
         stepper_set_dir(self.stepper, dx <= 0);
+        gpio_set_pin(self.stepper->hal->gpio, self.stepper->port, self.stepper->step_pin);
     }
     if (self.new_accel == tmc_ramp_linear_get_acceleration(&self.ramp)) {
         tmc_ramp_linear_set_acceleration(&self.ramp, self.new_accel);
@@ -248,7 +246,6 @@ stop(StepDir base, uint8_t stop_type)
             tmc_ramp_linear_set_mode(&base->ramp, TMC_RAMP_LINEAR_MODE_VELOCITY);
             break;
         case STEPDIR_STOP_NOW:
-            break;
         case STEPDIR_STOP_STALL:
         default:
             tmc_ramp_linear_set_rampVelocity(&base->ramp, 0);
@@ -261,24 +258,19 @@ stop(StepDir base, uint8_t stop_type)
 
 StepDir
 stepdir_create(
-        Peripherals hal,
         Stepper stepper,
-        void * tim_inst,
         uint32_t freq,
         uint32_t precision,
         void (* stall_cb)()
 )
 {
-    self.hal                 = hal;
     self.stepper             = stepper;
-    self.tim_inst            = tim_inst;
     self.freq                = freq;
     self.stalled             = false;
     self.old_vel             = 0;
     self.new_accel           = 0;
     self.step_difference     = 0;
     self.accel_steps_updated = false;
-    self.stall_cb            = stall_cb;
     /* Ramp */
     tmc_ramp_linear_init(&self.ramp);
     tmc_ramp_linear_set_precision(&self.ramp, precision);
@@ -288,8 +280,11 @@ stepdir_create(
     );
 
     /* Limit pin init */
-
+    gpio_attach_cb(self.stepper->hal->gpio, self.stepper->port, self.stepper->limit_pin, stall_cb, true);
     /* timer init */
+    timer_register_update_callback(self.stepper->hal->timer, self.stepper->tim_inst, stepdir_periodic_job);
+    timer_set_timeout(self.stepper->hal->timer, self.stepper->tim_inst, 1);
+    timer_start(self.stepper->hal->timer, self.stepper->tim_inst, self.freq);
 
     return &self;
 }
@@ -297,5 +292,4 @@ stepdir_create(
 void
 stepdir_destroy(StepDir base)
 {
-    free(base);
 }

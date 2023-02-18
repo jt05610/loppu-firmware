@@ -358,10 +358,9 @@ _putchar(void * instance, char a)
                                        STM32_USART1_RE_PIN)) {}
 
 #endif // STM32_USART1_RS485
-        while(stm32_dma_channel_remaining(STM32_USART1_TX_DMA_CHANNEL));
+        LL_USART_TransmitData8((USART_TypeDef *) instance, a);
         while (!LL_USART_IsActiveFlag_TXE_TXFNF(
                 (USART_TypeDef *) instance)) {}
-        LL_USART_TransmitData8((USART_TypeDef *) instance, a);
     } else if ((USART_TypeDef *) instance == USART2) {
 #if STM32_USART2_RS485
         LL_GPIO_SetOutputPin(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN);
@@ -369,10 +368,10 @@ _putchar(void * instance, char a)
                                        STM32_USART2_RE_PIN)) {}
 #endif // STM32_USART2_RS485
 
-        while (!LL_USART_IsActiveFlag_TXE_TXFNF(
-                (USART_TypeDef *) instance)) {}
+        LL_USART_TransmitData8(instance, (uint8_t) a);
 
-        LL_USART_TransmitData8(USART2, (uint8_t) a);
+        while (!LL_USART_IsActiveFlag_TXE_TXFNF((USART_TypeDef *) instance)) {}
+
         return (uint8_t) a;
     }
 

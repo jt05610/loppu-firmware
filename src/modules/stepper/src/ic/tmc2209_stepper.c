@@ -14,16 +14,14 @@
   */
 
 #include "ic/tmc2209_stepper.h"
-#include "stepdir.h"
 #include "TMC2209.h"
 #include "gpio.h"
 
 #define IC_CHANNEL 0x00
 #define SERVER_ADDR 0x00
-struct
+
+static struct
 {
-    Serial serial;
-    Timer  timer;
     void * ser_inst;
     stepper_t            base;
     TMC2209TypeDef       ic;
@@ -32,8 +30,7 @@ struct
 } self = {0};
 
 #define _GPIO self.base.hal->gpio
-
-static inline int16_t _read_reg(uint8_t addr, uint8_t shift, uint8_t mask);
+#define _GPIO_PORT self.base.port
 
 static inline void
 _write_reg(uint8_t addr, uint8_t shift, uint8_t mask, int16_t val);
@@ -85,11 +82,14 @@ tmc2209_stepper_create(tmc2209_init_t * params)
 {
     self.base.vtable    = &interface;
     self.base.hal       = params->hal;
+    self.base.port      = params->gpio_inst;
     self.ser_inst       = params->uart_inst;
+    self.base.en_pin    = params->en_pin;
     self.base.tim_inst  = params->tim_inst;
     self.base.step_pin  = params->step_pin;
     self.base.dir_pin   = params->dir_pin;
     self.base.limit_pin = params->limit_pin;
+    serial_open(self.base.hal->serial, self.ser_inst);
     tmc2209_setup();
     tmc_fillCRC8Table(0x07, true, 1);
     tmc2209_reset(&self.ic);
@@ -102,10 +102,11 @@ tmc2209_stepper_create(tmc2209_init_t * params)
 
     gpio_init_pin(
             _GPIO, params->gpio_inst, params->step_pin,
-            GPIO_PIN_MODE_PWM);
+            GPIO_PIN_MODE_NORMAL);
     gpio_init_pin(
             _GPIO, params->gpio_inst, params->limit_pin,
             GPIO_PIN_MODE_INTERRUPT);
+
 
     tmc2209_set_mstep_reg(1);
     return &self.base;
@@ -137,7 +138,7 @@ tmc2209_set_mstep_reg(uint8_t reg)
 static inline uint8_t
 get_dir()
 {
-    return gpio_read_pin(_GPIO, self.base.gpio_inst, self.base.dir_pin);
+    return gpio_read_pin(_GPIO, _GPIO_PORT, self.base.dir_pin);
 }
 
 static inline void
@@ -145,7 +146,7 @@ set_dir(uint8_t dir)
 {
     void (* func)(GPIO base, gpio_port_t inst, gpio_pin_t pin);
     func = (dir > 0) ? gpio_set_pin : gpio_reset_pin;
-    func(_GPIO, self.base.gpio_inst, self.base.dir_pin);
+    func(_GPIO, _GPIO_PORT, self.base.dir_pin);
 }
 
 static inline int32_t
@@ -177,16 +178,16 @@ static inline void
 set_enabled(bool enabled)
 {
     if (enabled) {
-        gpio_reset_pin(_GPIO, self.base.gpio_inst, self.base.en_pin);
+        gpio_reset_pin(_GPIO, _GPIO_PORT, self.base.en_pin);
     } else {
-        gpio_set_pin(_GPIO, self.base.gpio_inst, self.base.en_pin);
+        gpio_set_pin(_GPIO, _GPIO_PORT, self.base.en_pin);
     }
 }
 
 static inline bool
 get_enabled()
 {
-    return gpio_read_pin(_GPIO, self.base.gpio_inst, self.base.en_pin);
+    return gpio_read_pin(_GPIO, _GPIO_PORT, self.base.en_pin);
 }
 
 static inline void
@@ -201,7 +202,7 @@ tmc2209_readWriteArray(
         uint8_t channel, uint8_t * data, size_t writeLength, size_t readLength)
 {
     serial_read_write(
-            self.serial, self.ser_inst, data, writeLength, readLength);
+            self.base.hal->serial, self.ser_inst, data, writeLength, readLength);
     (void) channel;
 }
 
