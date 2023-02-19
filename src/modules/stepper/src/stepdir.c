@@ -217,6 +217,8 @@ void
 stepdir_set_freq(StepDir base, uint32_t freq)
 {
     base->freq = freq;
+    timer_stop(self.stepper->hal->timer, self.stepper->tim_inst);
+    timer_start(self.stepper->hal->timer, self.stepper->tim_inst, freq);
 }
 
 void

@@ -354,8 +354,6 @@ _putchar(void * instance, char a)
     if ((USART_TypeDef *) instance == USART1) {
 #if STM32_USART1_RS485
         LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
-        while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT,
-                                       STM32_USART1_RE_PIN)) {}
 
 #endif // STM32_USART1_RS485
         LL_USART_TransmitData8((USART_TypeDef *) instance, a);
