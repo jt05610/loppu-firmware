@@ -257,92 +257,54 @@ read(void * instance, uint8_t * bytes)
     return size;
 }
 
+
+#define _RE_HANDLER(port)  \
+LL_GPIO_SetOutputPin(STM32_##port##_RE_PORT, STM32_##port##_RE_PIN);       \
+while (!LL_GPIO_IsOutputPinSet(STM32_##port##_RE_PORT,STM32_##port##_RE_PIN))
+
+
+static inline void
+_handle_re(USART_TypeDef * inst)
+{
+    if (inst == USART1) {
+#if STM32_USART1_RS485
+        _RE_HANDLER(USART1);
+#endif
+    } else if (inst == USART2) {
+#if STM32_USART2_RS485
+        _RE_HANDLER(USART2);
+#endif
+    }
+}
+
+#define _TX_DMA_CHAN(port) \
+STM32_##port##_TX_DMA_CHANNEL \
+
+#define _GET_TX_DMA(port) \
+port == USART1 ? _TX_DMA_CHAN(USART1) : _TX_DMA_CHAN(USART2)
+
+
 static void
 write(void * instance, uint8_t * bytes, uint16_t size)
 {
-
-#if STM32_ENABLE_USART1 & STM32_ENABLE_USART2
-
-    if ((USART_TypeDef *) instance == USART1) {
-#if STM32_USART1_RS485
-        LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
-        while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT,
-                                       STM32_USART1_RE_PIN)) {}
-#endif // STM32_USART1_RS485
-#if STM32_ENABLE_USART1_TX_DMA
-        while(stm32_dma_channel_remaining(STM32_USART1_TX_DMA_CHANNEL));
-        stm32_dma_transfer(STM32_USART1_TX_DMA_CHANNEL, (uint32_t) bytes, size);
-#else
-        for (uint16_t i = 0; i < size; i++) {
-            LL_USART_TransmitData8((USART_TypeDef *) instance, bytes[i]);
-            while (!LL_USART_IsActiveFlag_TXE_TXFNF(
-                    (USART_TypeDef *) instance)) {}
-        }
+#if STM32_USART1_RS485 || STM32_USART2_RS485
+    _handle_re(instance);
 #endif
-    } else if ((USART_TypeDef *) instance == USART2) {
-
-#if STM32_USART2_RS485
-        LL_GPIO_SetOutputPin(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN);
-        while (!LL_GPIO_IsOutputPinSet(STM32_USART2_RE_PORT,
-                                       STM32_USART2_RE_PIN)) {}
-#endif // STM32_USART2_RS485
-
-#if STM32_ENABLE_USART2_TX_DMA
-        stm32_dma_transfer(STM32_USART2_TX_DMA_CHANNEL, (uint32_t) bytes, size);
-#else
-
-        uint16_t i = 0;
-        while (i < size) {
-            if (LL_USART_IsActiveFlag_TXE_TXFNF(USART2)) {
-                LL_USART_TransmitData8(USART2, bytes[i++]);
-            }
-        }
-#endif
-    }
-#elif STM32_ENABLE_USART1
-    (void) instance;
-#if STM32_USART1_RS485
-    LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
-    while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN));
-#endif // STM32_USART1_RS485
-#if STM32_ENABLE_USART1_TX_DMA
-    LL_DMA_SetDataLength(DMA1, STM32_USART1_TX_DMA_CHANNEL, size);
-    LL_DMA_SetMemoryAddress(DMA1, STM32_USART1_TX_DMA_CHANNEL,
-                            (uint32_t) bytes);
-    stm32_dma_start_channel(STM32_USART1_TX_DMA_CHANNEL);
-#else
-    for (uint16_t i = 0; i < size; i++) {
-        LL_USART_TransmitData8((USART_TypeDef *) instance, bytes[i]);
-        while (!LL_USART_IsActiveFlag_TXE_TXFNF((USART_TypeDef *) instance));
-    }
-#endif
-#elif STM32_ENABLE_USART2
-    (void) instance;
-#if STM32_USART2_RS485
-    LL_GPIO_SetOutputPin(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN);
-    while (!LL_GPIO_IsOutputPinSet(STM32_USART2_RE_PORT, STM32_USART2_RE_PIN));
-#endif // STM32_USART2_RS485
-#if STM32_ENABLE_USART2_TX_DMA
-    uint8_t *ptr = bytes;
-    while (size --)
-        circ_buf_push(&usart2_tx_circ, *ptr++);
-#else
-    for (uint16_t i = 0; i < size; i++) {
-        LL_USART_TransmitData8(USART2, bytes[i]);
-        while (!LL_USART_IsActiveFlag_TXE_TXFNF(USART2);
-    }
-#endif
-#endif
-
+    uint8_t channel = _GET_TX_DMA(instance);
+    stm32_dma_transfer(channel, (uint32_t) bytes, size);
+    while(stm32_dma_channel_remaining(channel));
 }
 
 static inline void
 read_write(void * instance, uint8_t * bytes, uint16_t n_w, uint16_t n_r)
 {
-    stm32_dma_transfer(STM32_USART2_RX_DMA_CHANNEL, (uint32_t)self.uart2_rx_buffer, n_w + n_r);
+    while (stm32_dma_channel_remaining(STM32_USART2_RX_DMA_CHANNEL));
+    stm32_dma_transfer(
+            STM32_USART2_RX_DMA_CHANNEL, (uint32_t) self.uart2_rx_buffer,
+            n_w + n_r);
     write(instance, bytes, n_w);
     if (n_r) {
-        while(stm32_dma_channel_remaining(STM32_USART2_RX_DMA_CHANNEL));
+        while (stm32_dma_channel_remaining(STM32_USART2_RX_DMA_CHANNEL));
         memcpy(bytes, self.uart2_rx_buffer + n_w, n_r);
     }
 }

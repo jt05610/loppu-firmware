@@ -33,7 +33,7 @@ static struct
 #define _GPIO_PORT self.base.port
 
 static inline void
-_write_reg(uint8_t addr, uint8_t shift, uint8_t mask, int16_t val);
+_write_reg(uint8_t addr, uint16_t shift, int32_t mask, int32_t val);
 
 static inline uint8_t get_dir();
 
@@ -135,6 +135,48 @@ tmc2209_set_mstep_reg(uint8_t reg)
     );
 }
 
+int32_t tmc2209_sg_result()
+{
+    return tmc2209_readInt(&self.ic, TMC2209_SG_RESULT);
+}
+
+int32_t tmc2209_tstep_result()
+{
+    return _READ(TMC2209_TSTEP, TMC2209_TSTEP_MASK, TMC2209_TSTEP_SHIFT);
+}
+
+void tmc2209_set_t_pwm_thresh(int32_t val)
+{
+    _write_reg(TMC2209_TPWMTHRS, TMC2209_TPWMTHRS_SHIFT, TMC2209_TPWMTHRS_MASK, val);
+}
+
+void tmc2209_set_cs_thresh_vel(int32_t vel)
+{
+    tmc2209_writeInt(&self.ic, TMC2209_TCOOLTHRS, vel);
+}
+
+void tmc2209_set_sg_thresh(int32_t val)
+{
+    tmc2209_writeInt(&self.ic, TMC2209_SGTHRS, val);
+}
+
+void tmc2209_set_spreadcycle(bool value)
+{
+    _write_reg(TMC2209_GCONF, TMC2209_EN_SPREADCYCLE_SHIFT, TMC2209_EN_SPREADCYCLE_MASK, value);
+}
+
+void tmc2209_set_internal_r_sense(bool value)
+{
+
+    _write_reg(TMC2209_GCONF, TMC2209_INTERNAL_RSENSE_SHIFT, TMC2209_INTERNAL_RSENSE_MASK, value);
+}
+
+void tmc2209_set_pdn_disable(bool value)
+{
+
+    _write_reg(TMC2209_GCONF, TMC2209_PDN_DISABLE_SHIFT, TMC2209_PDN_DISABLE_MASK, value);
+}
+
 static inline uint8_t
 get_dir()
 {
@@ -171,7 +213,8 @@ get_microstep()
 static inline void
 set_microstep(microstep_t microstep)
 {
-
+    int16_t val = 0x08 - microstep;
+    _write_reg(TMC2209_CHOPCONF, TMC2209_MRES_SHIFT, TMC2209_MRES_MASK, val);
 }
 
 static inline void
@@ -202,7 +245,8 @@ tmc2209_readWriteArray(
         uint8_t channel, uint8_t * data, size_t writeLength, size_t readLength)
 {
     serial_read_write(
-            self.base.hal->serial, self.ser_inst, data, writeLength, readLength);
+            self.base.hal->serial, self.ser_inst, data, writeLength,
+            readLength);
     (void) channel;
 }
 
@@ -221,7 +265,7 @@ _read_reg(uint8_t addr, uint8_t shift, uint8_t mask)
 }
 
 static inline void
-_write_reg(uint8_t addr, uint8_t shift, uint8_t mask, int16_t val)
+_write_reg(uint8_t addr, uint16_t shift, int32_t mask, int32_t val)
 {
     int16_t cur = tmc2209_readInt(&self.ic, addr);
     cur &= ~mask;

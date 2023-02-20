@@ -134,12 +134,12 @@ init_usart(LL_GPIO_InitTypeDef * p)
     p->Mode       = LL_GPIO_MODE_ALTERNATE;
     p->Speed      = LL_GPIO_SPEED_FREQ_LOW;
     p->OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    p->Pull       = LL_GPIO_PULL_UP;
+    p->Pull       = LL_GPIO_PULL_NO;
     p->Alternate  = LL_GPIO_AF_1;
     LL_GPIO_Init(STM32_USART2_RX_PORT, p);
 
 
-    p->Pull       = LL_GPIO_PULL_NO;
+    p->Pull       = LL_GPIO_PULL_UP;
     p->Pin = STM32_USART2_TX_PIN;
     LL_GPIO_Init(STM32_USART2_TX_PORT, p);
 #endif

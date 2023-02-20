@@ -149,9 +149,10 @@ GETTER_TEST(test_set_get_target_pos, target_pos, 1234)
     stepdir_move_to(stepdir, 1234);
 }
 
-
 GETTER_TEST(test_get_status, target_pos, 0x00)
-{}
+{
+
+}
 
 SET_GET_TEST(test_set_get_pos, pos, 0x00)
 

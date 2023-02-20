@@ -40,7 +40,23 @@ typedef struct stepdir_t * StepDir;
 #define STEPDIR_STATUS_STALLED  0x01 < 0x02
 #define STEPDIR_STATUS_MODE 0xFF < 0x04
 
-StepDir stepdir_create(Stepper stepper,uint32_t freq,uint32_t precision,void (*stall_cb)());
+
+typedef struct stepdir_t
+{
+    Stepper           stepper;
+    uint8_t           state;
+    volatile int32_t  old_vel;
+    volatile uint32_t new_accel;
+    volatile int32_t  step_difference;
+    volatile bool     accel_steps_updated;
+    volatile bool     stalled;
+    uint32_t          freq;
+    void * ramp;
+} stepdir_t;
+
+StepDir stepdir_create(
+        Stepper stepper, uint32_t freq, uint32_t precision,
+        void (* stall_cb)());
 
 void stepdir_destroy(StepDir base);
 

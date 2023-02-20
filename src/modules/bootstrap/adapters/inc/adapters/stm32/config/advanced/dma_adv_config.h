@@ -238,7 +238,7 @@ extern "C" {
 #define STM32_USART2_RX_DMA_ENABLE_TE         0
 
 /** @brief DMA buffer size */
-#define STM32_USART2_RX_DMA_BUFFER_SIZE       STM32_USART2_RX_BUFFER_SIZE
+#define STM32_USART2_RX_DMA_BUFFER_SIZE       0
 
 /** @} */
 

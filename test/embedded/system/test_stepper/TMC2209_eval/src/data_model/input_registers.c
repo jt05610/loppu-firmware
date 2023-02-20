@@ -79,7 +79,7 @@ read_t_step(sized_array_t * dest)
 
 
 /**
- * @brief reads stallguard_result
+ * @brief reads tmc2209_sg_result
  * @param dest Array to store results into.
  **/
 static inline void

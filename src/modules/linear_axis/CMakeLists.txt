@@ -6,6 +6,6 @@ file(
     src/*.*
 )
 
-target_sources(linear_axis PRIVATE ${LINEAR_AXIS_SOURCES})
-target_include_directories(linear_axis PUBLIC inc PRIVATE src)
-target_link_libraries(linear_axis stepper)
+target_sources(linear_axis PUBLIC ${LINEAR_AXIS_SOURCES})
+target_include_directories(linear_axis PUBLIC inc src)
+target_link_libraries(linear_axis PUBLIC stepper)

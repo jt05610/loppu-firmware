@@ -27,16 +27,32 @@ typedef struct tmc2209_init_t
     void * uart_inst;
     void * gpio_inst;
     gpio_pin_t en_pin;
-    gpio_pin_t  step_pin;
-    gpio_pin_t  dir_pin;
+    gpio_pin_t step_pin;
+    gpio_pin_t dir_pin;
     bool inverse_dir;
-    gpio_pin_t  limit_pin;
+    gpio_pin_t limit_pin;
 } tmc2209_init_t;
 
 Stepper tmc2209_stepper_create(tmc2209_init_t * params);
 
+int32_t tmc2209_sg_result();
+
 uint8_t tmc2209_stepper_msg_count();
 
 void tmc2209_set_mstep_reg(uint8_t reg);
+
+void tmc2209_set_cs_thresh_vel(int32_t vel);
+
+void tmc2209_set_sg_thresh(int32_t val);
+
+int32_t tmc2209_tstep_result();
+
+void tmc2209_set_t_pwm_thresh(int32_t val);
+
+void tmc2209_set_spreadcycle(bool value);
+
+void tmc2209_set_internal_r_sense(bool value);
+
+void tmc2209_set_pdn_disable(bool value);
 
 #endif //INJECTOR_TMC2209_STEPPER_H

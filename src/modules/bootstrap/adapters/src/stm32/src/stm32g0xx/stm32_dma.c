@@ -159,9 +159,11 @@ stm32_dma_transfer(uint8_t channel, uint32_t mem_addr, uint16_t len)
     uint8_t started = 0;
     if (len)  {
         LL_DMA_DisableChannel(DMA1, channel);
+        while(LL_DMA_IsEnabledChannel(DMA1, channel));
         LL_DMA_SetDataLength(DMA1, channel, len);
         LL_DMA_SetMemoryAddress(DMA1, channel, mem_addr);
         LL_DMA_EnableChannel(DMA1, channel);
+        while(!LL_DMA_IsEnabledChannel(DMA1, channel));
         started = 1;
     }
     return started;

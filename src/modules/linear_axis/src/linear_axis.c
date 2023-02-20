@@ -34,7 +34,6 @@ static axis_t self = {0};
 
 static inline void on_stalled();
 
-
 Axis
 axis_create(StepDir stepdir)
 {
