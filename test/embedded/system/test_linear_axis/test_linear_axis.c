@@ -30,8 +30,13 @@ static Stepper     stepper;
 static StepDir     stepdir;
 static Axis        axis;
 
+char buff[20];
+
 void setUp()
 {
+    for (uint8_t i = 0; i < 20; i++) {
+        buff[i] = 0;
+    }
     stepper_set_enabled(stepper, true);
 }
 
@@ -44,18 +49,40 @@ void tearDown()
 void
 test_home()
 {
-    uint16_t r;
+    int32_t pos;
     axis_home(axis);
     while (!axis_homed(axis)) {
-        char buff[4];
-        for (uint8_t i = 0; i < 4 ; i ++ ) {
-            buff[i] = 0;
-        }
-        r = tmc2209_sg_result();
-        itoa(r, buff, 10);
+        pos = tmc2209_tstep_result();
+        itoa(pos, buff, 10);
         buff[strlen(buff)] = '\n';
         serial_write(hal->serial, USART1, (uint8_t *) buff, strlen(buff));
     }
+    TEST_PASS();
+}
+
+void
+test_stops_at_max()
+{
+    int32_t pos;
+    stepdir_rotate(stepdir, STEPDIR_MAX_VELOCITY);
+    while (axis_state(axis) != AXIS_STALLED) {
+        pos = tmc2209_tstep_result();
+        itoa(pos, buff, 10);
+        buff[strlen(buff)] = '\n';
+        serial_write(hal->serial, USART1, (uint8_t *) buff, strlen(buff));
+    }
+    pos = stepdir_get_pos(stepdir);
+    itoa(
+            pos, buff,
+            10);
+    buff[
+            strlen(buff)
+    ] = '\n';
+    serial_write(
+            hal
+                    ->serial, USART1, (uint8_t *) buff,
+            strlen(buff)
+    );
     TEST_PASS();
 }
 
@@ -72,7 +99,7 @@ main()
             .en_pin=LL_GPIO_PIN_1,
             .step_pin=LL_GPIO_PIN_4,
             .dir_pin=LL_GPIO_PIN_5,
-            .inverse_dir=false,
+            .inverse_dir=true,
             .limit_pin=LL_GPIO_PIN_0
     };
     timer_start_microsecond_timer(hal->timer, TIM1);
@@ -83,6 +110,7 @@ main()
     axis    = axis_create(stepdir);
     serial_open(hal->serial, USART1);
     UNITY_BEGIN();
+    RUN_TEST(test_stops_at_max);
     RUN_TEST(test_home);
     UNITY_END();
 }

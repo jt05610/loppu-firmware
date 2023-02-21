@@ -274,7 +274,7 @@ stepdir_create(
     tmc_ramp_linear_set_acceleration(
             self.ramp, STEPDIR_DEFAULT_ACCELERATION
     );
-    stepper_set_microstep(stepper, MS_2);
+    stepper_set_microstep(stepper, MS_FULL);
     /* Limit pin init */
     gpio_attach_cb(
             self.stepper->hal->gpio, self.stepper->port,

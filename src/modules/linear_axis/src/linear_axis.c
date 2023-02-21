@@ -18,17 +18,14 @@
 
 #define N_BOUNCES 1
 #define REBOUND_FULL_STEPS 200
-#define AXIS_IDLE 0x00
-#define AXIS_HOMING 0x01
-#define AXIS_HOMED 0x02
-#define AXIS_STALLED 0x03
+
 
 typedef struct axis_t
 {
     StepDir  stepdir;
     uint8_t  state;
     uint8_t  home_bounce_count;
-    uint32_t max_pos;
+    int32_t max_pos;
 } axis_t;
 
 #define _SD (self.stepdir)
@@ -42,8 +39,14 @@ static inline void on_stalled();
 void on_stalled()
 {
     stepdir_stop(_SD, STEPDIR_STOP_NOW);
-    stepdir_set_pos(_SD, 0);
-    self.state = AXIS_HOMED;
+    if (self.state == AXIS_HOMING) {
+        stepdir_set_pos(_SD, 0);
+        self.state = AXIS_HOMED;
+        stepper_set_microstep(_STEP, MS_16);
+    } else {
+        self.max_pos = stepdir_get_pos(_SD);
+        self.state = AXIS_STALLED;
+    }
 }
 
 Axis
@@ -104,4 +107,9 @@ axis_stall_handler()
 bool axis_homed(Axis axis)
 {
     return axis->state == AXIS_HOMED;
+}
+
+uint8_t axis_state(Axis axis)
+{
+    return axis->state;
 }

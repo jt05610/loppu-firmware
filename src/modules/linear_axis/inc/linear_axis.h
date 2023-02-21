@@ -19,6 +19,11 @@
 #include <stdint.h>
 #include "stepdir.h"
 
+#define AXIS_IDLE 0x00
+#define AXIS_HOMING 0x01
+#define AXIS_HOMED 0x02
+#define AXIS_STALLED 0x03
+
 #define STEPS_PER_MM 400
 
 #define MICROSTEP 256
@@ -32,6 +37,8 @@ Axis axis_create(StepDir stepdir);
 void axis_home(Axis axis);
 
 bool axis_homed(Axis axis);
+
+uint8_t axis_state(Axis axis);
 
 void axis_goto(Axis axis, int32_t position, int32_t vel);
 

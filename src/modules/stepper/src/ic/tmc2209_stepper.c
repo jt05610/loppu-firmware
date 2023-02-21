@@ -127,10 +127,9 @@ tmc2209_stepper_create(tmc2209_init_t * params)
              0x01 << TMC2209_MULTISTEP_FILT_SHIFT |
              0x00 << TMC2209_TEST_MODE_SHIFT)
     );
-    current_setup(400);
+    current_setup(600);
     tmc2209_set_cs_thresh_vel(1 << 19);
-    tmc2209_set_sg_thresh(20);
-
+    tmc2209_set_sg_thresh(0);
 
     return &self.base;
 }
