@@ -274,14 +274,7 @@ stepdir_create(
     tmc_ramp_linear_set_acceleration(
             self.ramp, STEPDIR_DEFAULT_ACCELERATION
     );
-    stepper_set_enabled(stepper, false);
     stepper_set_microstep(stepper, MS_2);
-    tmc2209_set_cs_thresh_vel(1<<20);
-    tmc2209_set_sg_thresh(20);
-    tmc2209_set_t_pwm_thresh(500);
-    tmc2209_set_spreadcycle(false);
-    tmc2209_set_internal_r_sense(false);
-    tmc2209_set_pdn_disable(true);
     /* Limit pin init */
     gpio_attach_cb(
             self.stepper->hal->gpio, self.stepper->port,

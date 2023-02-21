@@ -19,6 +19,9 @@
 
 #define IC_CHANNEL 0x00
 #define SERVER_ADDR 0x00
+#define R_SENSE 0.11f
+#define HOLD_MULTIPLIER 0.5f
+
 
 static struct
 {
@@ -52,6 +55,8 @@ static inline void set_enabled(bool enabled);
 static inline bool get_enabled();
 
 static inline void periodic_job();
+
+static inline void current_setup(uint16_t mA);
 
 static stepper_interface_t interface = {
         .get_dir=get_dir,
@@ -89,10 +94,6 @@ tmc2209_stepper_create(tmc2209_init_t * params)
     self.base.step_pin  = params->step_pin;
     self.base.dir_pin   = params->dir_pin;
     self.base.limit_pin = params->limit_pin;
-    serial_open(self.base.hal->serial, self.ser_inst);
-    tmc2209_setup();
-    tmc_fillCRC8Table(0x07, true, 1);
-    tmc2209_reset(&self.ic);
     gpio_init_pin(
             _GPIO, params->gpio_inst, params->en_pin,
             GPIO_PIN_MODE_NORMAL);
@@ -107,8 +108,30 @@ tmc2209_stepper_create(tmc2209_init_t * params)
             _GPIO, params->gpio_inst, params->limit_pin,
             GPIO_PIN_MODE_INTERRUPT);
 
+    serial_open(self.base.hal->serial, self.ser_inst);
+    tmc2209_setup();
+    tmc_fillCRC8Table(0x07, true, 1);
+    tmc2209_reset(&self.ic);
+    tmc2209_writeInt(
 
-    tmc2209_set_mstep_reg(1);
+            &self.ic,
+            TMC2209_GCONF,
+            (0x00 << TMC2209_I_SCALE_ANALOG_SHIFT |
+             0x00 << TMC2209_INTERNAL_RSENSE_SHIFT |
+             0x00 << TMC2209_EN_SPREADCYCLE_SHIFT |
+             params->inverse_dir << TMC2209_SHAFT_SHIFT |
+             0x00 << TMC2209_INDEX_OTPW_SHIFT |
+             0x00 << TMC2209_INDEX_STEP_SHIFT |
+             0x01 << TMC2209_PDN_DISABLE_SHIFT |
+             0x01 << TMC2209_MSTEP_REG_SELECT_SHIFT |
+             0x01 << TMC2209_MULTISTEP_FILT_SHIFT |
+             0x00 << TMC2209_TEST_MODE_SHIFT)
+    );
+    current_setup(400);
+    tmc2209_set_cs_thresh_vel(1 << 19);
+    tmc2209_set_sg_thresh(20);
+
+
     return &self.base;
 }
 
@@ -147,7 +170,9 @@ int32_t tmc2209_tstep_result()
 
 void tmc2209_set_t_pwm_thresh(int32_t val)
 {
-    _write_reg(TMC2209_TPWMTHRS, TMC2209_TPWMTHRS_SHIFT, TMC2209_TPWMTHRS_MASK, val);
+    _write_reg(
+            TMC2209_TPWMTHRS, TMC2209_TPWMTHRS_SHIFT, TMC2209_TPWMTHRS_MASK,
+            val);
 }
 
 void tmc2209_set_cs_thresh_vel(int32_t vel)
@@ -162,19 +187,25 @@ void tmc2209_set_sg_thresh(int32_t val)
 
 void tmc2209_set_spreadcycle(bool value)
 {
-    _write_reg(TMC2209_GCONF, TMC2209_EN_SPREADCYCLE_SHIFT, TMC2209_EN_SPREADCYCLE_MASK, value);
+    _write_reg(
+            TMC2209_GCONF, TMC2209_EN_SPREADCYCLE_SHIFT,
+            TMC2209_EN_SPREADCYCLE_MASK, value);
 }
 
 void tmc2209_set_internal_r_sense(bool value)
 {
 
-    _write_reg(TMC2209_GCONF, TMC2209_INTERNAL_RSENSE_SHIFT, TMC2209_INTERNAL_RSENSE_MASK, value);
+    _write_reg(
+            TMC2209_GCONF, TMC2209_INTERNAL_RSENSE_SHIFT,
+            TMC2209_INTERNAL_RSENSE_MASK, value);
 }
 
 void tmc2209_set_pdn_disable(bool value)
 {
 
-    _write_reg(TMC2209_GCONF, TMC2209_PDN_DISABLE_SHIFT, TMC2209_PDN_DISABLE_MASK, value);
+    _write_reg(
+            TMC2209_GCONF, TMC2209_PDN_DISABLE_SHIFT, TMC2209_PDN_DISABLE_MASK,
+            value);
 }
 
 static inline uint8_t
@@ -271,4 +302,30 @@ _write_reg(uint8_t addr, uint16_t shift, int32_t mask, int32_t val)
     cur &= ~mask;
     cur |= (val << shift) & mask;
     tmc2209_writeInt(&self.ic, addr, cur);
+}
+
+
+static inline void
+current_setup(uint16_t mA)
+{
+    uint8_t CS = 32.0 * 1.41421 * mA / 1000.0 * (R_SENSE + 0.02) / 0.325 - 1;
+    // If Current Scale is too low, turn on high sensitivity R_sense and calculate again
+    if (CS < 16) {
+        _write_reg(
+                TMC2209_CHOPCONF, TMC2209_VSENSE_SHIFT, TMC2209_VSENSE_MASK, 1);
+        CS = 32.0 * 1.41421 * mA / 1000.0 * (R_SENSE + 0.02) / 0.180 - 1;
+    } else { // If CS >= 16, turn off high_sense_r
+        _write_reg(
+                TMC2209_CHOPCONF, TMC2209_VSENSE_SHIFT, TMC2209_VSENSE_MASK, 0);
+    }
+
+    if (CS > 31) {
+        CS = 31;
+    }
+
+    _write_reg(
+            TMC2209_IHOLD_IRUN, TMC2209_IRUN_SHIFT, TMC2209_IRUN_MASK, CS);
+    _write_reg(
+            TMC2209_IHOLD_IRUN, TMC2209_IHOLD_SHIFT, TMC2209_IHOLD_MASK,
+            CS * HOLD_MULTIPLIER);
 }

@@ -14,7 +14,10 @@
   */
 
 #include "linear_axis.h"
+#include "ic/tmc2209_stepper.h"
 
+#define N_BOUNCES 1
+#define REBOUND_FULL_STEPS 200
 #define AXIS_IDLE 0x00
 #define AXIS_HOMING 0x01
 #define AXIS_HOMED 0x02
@@ -22,22 +25,34 @@
 
 typedef struct axis_t
 {
-    StepDir stepdir;
-    uint8_t state;
-    uint8_t home_bounce_count;
+    StepDir  stepdir;
+    uint8_t  state;
+    uint8_t  home_bounce_count;
     uint32_t max_pos;
 } axis_t;
 
 #define _SD (self.stepdir)
 
+#define _STEP (_SD)->stepper
+
 static axis_t self = {0};
 
 static inline void on_stalled();
+
+void on_stalled()
+{
+    stepdir_stop(_SD, STEPDIR_STOP_NOW);
+    stepdir_set_pos(_SD, 0);
+    self.state = AXIS_HOMED;
+}
 
 Axis
 axis_create(StepDir stepdir)
 {
     self.stepdir = stepdir;
+    gpio_attach_cb(
+            _STEP->hal->gpio, _STEP->port, _STEP->limit_pin,
+            on_stalled, true);
     self.state = AXIS_IDLE;
     return &self;
 }
@@ -46,6 +61,8 @@ void
 axis_home(Axis axis)
 {
     stepdir_rotate(_SD, -STEPDIR_MAX_VELOCITY);
+    axis->state = AXIS_HOMING;
+
 }
 
 void axis_goto(Axis axis, int32_t position, int32_t vel)

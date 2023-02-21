@@ -20,11 +20,14 @@
 #include "advanced/gpio_adv_config.h"
 #include "stm32_interrupts.h"
 
+static inline uint8_t pin_from_mask(uint32_t mask);
+
 static inline void set_pin(gpio_port_t port, gpio_pin_t pin);
 
 static inline void init_pin(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode);
 
-static inline void attach_cb(gpio_port_t port, gpio_pin_t pin, void (*cb)(), bool active_high);
+static inline void
+attach_cb(gpio_port_t port, gpio_pin_t pin, void (* cb)(), bool active_high);
 
 static inline void reset_pin(gpio_port_t port, gpio_pin_t pin);
 
@@ -38,8 +41,16 @@ static inline void toggle(gpio_port_t port, gpio_pin_t pin);
 
 static inline void init_usart(LL_GPIO_InitTypeDef * p);
 
-typedef struct exti_handler_t {
+typedef struct exti_handler_t
+{
+    gpio_port_t port;
+    gpio_pin_t  pin;
 
+    void (* cb)();
+
+    uint32_t (* check)(uint32_t line);
+
+    void (* clear)(uint32_t line);
 } exti_handler_t;
 
 static gpio_interface_t interface = {
@@ -57,17 +68,18 @@ static gpio_interface_t interface = {
 
 static struct
 {
-    gpio_t base;
+    gpio_t              base;
     LL_GPIO_InitTypeDef init;
-    exti_handler_t handlers[1];
-
-} self = {0};
+    exti_handler_t      handlers[MAX_EXTI_HANDLERS];
+    uint8_t             n_handlers;
+}                       self      = {0};
 
 
 GPIO
 stm32_gpio_create()
 {
     self.base.vtable = &interface;
+    self.n_handlers  = 0;
     init_usart(&self.init);
     return &self.base;
 }
@@ -78,17 +90,21 @@ stm32_gpio_create()
     self.init.Pull = LL_GPIO_PULL_NO;       \
     LL_GPIO_Init((port), &self.init)
 
-#define INIT_EXTI_PIN(port, pin)            \
-    self.init.Pin  = (pin);                 \
-    self.init.Mode = LL_GPIO_MODE_INPUT;    \
-    self.init.Pull = LL_GPIO_PULL_NO;       \
-    LL_GPIO_Init((port), &self.init)
+#define INIT_EXTI_PIN(port, pin)                                        \
+    LL_EXTI_SetEXTISource(LL_EXTI_CONFIG_PORTA, pin_from_mask(pin));    \
+    LL_EXTI_DisableEvent_0_31(pin);                                     \
+    LL_EXTI_EnableIT_0_31(pin);                                         \
+    LL_EXTI_DisableFallingTrig_0_31(pin);                               \
+    LL_EXTI_EnableRisingTrig_0_31(pin);                                 \
+    LL_GPIO_SetPinPull(port, pin, LL_GPIO_PULL_NO);                     \
+    LL_GPIO_SetPinMode(port, pin, LL_GPIO_MODE_INPUT)
 
-#define INIT_ADC_PIN(port, pin) \
+#define INIT_ADC_PIN(port, pin)             \
     self.init.Pin  = (pin);                 \
     self.init.Mode = LL_GPIO_MODE_ANALOG;   \
     self.init.Pull = LL_GPIO_PULL_NO;       \
     LL_GPIO_Init((port), &self.init)
+
 
 static inline void
 init_usart(LL_GPIO_InitTypeDef * p)
@@ -139,8 +155,8 @@ init_usart(LL_GPIO_InitTypeDef * p)
     LL_GPIO_Init(STM32_USART2_RX_PORT, p);
 
 
-    p->Pull       = LL_GPIO_PULL_UP;
-    p->Pin = STM32_USART2_TX_PIN;
+    p->Pull = LL_GPIO_PULL_UP;
+    p->Pin  = STM32_USART2_TX_PIN;
     LL_GPIO_Init(STM32_USART2_TX_PORT, p);
 #endif
 
@@ -200,23 +216,52 @@ init_pin(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode)
 {
     switch (pin_mode) {
         case GPIO_PIN_MODE_NORMAL:
-            INIT_NORMAL_PIN(port, pin);
+        INIT_NORMAL_PIN(port, pin);
             break;
         case GPIO_PIN_MODE_INTERRUPT:
-            INIT_EXTI_PIN(port, pin);
+        INIT_EXTI_PIN(port, pin);
             break;
         case GPIO_PIN_MODE_ANALOG:
-            INIT_ADC_PIN(port, pin);
+        INIT_ADC_PIN(port, pin);
             break;
         default:
             break;
     }
 }
 
+#define _H (self.handlers[self.n_handlers])
+
+
 static inline void
 attach_cb(gpio_port_t port, gpio_pin_t pin, void (* cb)(), bool active_high)
 {
+    _H.pin  = pin;
+    _H.port = port;
+    _H.cb   = cb;
+    if (active_high) {
+        _H.check = LL_EXTI_IsActiveRisingFlag_0_31;
+        _H.clear = LL_EXTI_ClearRisingFlag_0_31;
+    } else {
+        _H.check = LL_EXTI_IsActiveFallingFlag_0_31;
+        _H.clear = LL_EXTI_ClearFallingFlag_0_31;
+    }
+    _H.pin  = pin;
 
+    self.n_handlers++;
+
+}
+
+uint8_t pin_from_mask(uint32_t mask)
+{
+    uint8_t result = 32;
+    mask &= -(int32_t) mask;
+    if (mask) result--;
+    if (mask & 0x0000FFFF) result -= 16;
+    if (mask & 0x00FF00FF) result -= 8;
+    if (mask & 0x0F0F0F0F) result -= 4;
+    if (mask & 0x33333333) result -= 2;
+    if (mask & 0x55555555) result -= 1;
+    return result;
 }
 
 
@@ -224,8 +269,13 @@ attach_cb(gpio_port_t port, gpio_pin_t pin, void (* cb)(), bool active_high)
 __INTERRUPT
 EXTI0_1_IRQHandler()
 {
-    if (LL_EXTI_IsActiveRisingFlag_0_31(LL_EXTI_LINE_0)) {
-
+    if (self.n_handlers) {
+        for (uint8_t i = 0; i < self.n_handlers; i++) {
+            if (self.handlers[i].check(self.handlers[i].pin)) {
+                self.handlers[i].cb();
+                self.handlers[i].clear(self.handlers[i].pin);
+            }
+        }
     }
 }
 

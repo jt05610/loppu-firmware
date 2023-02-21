@@ -14,6 +14,7 @@
   */
 
 #include <stdlib.h>
+#include <string.h>
 #include "test_linear_axis.h"
 #include "ic/tmc2209_stepper.h"
 #include "linear_axis.h"
@@ -43,14 +44,19 @@ void tearDown()
 void
 test_home()
 {
+    uint16_t r;
     axis_home(axis);
     while (!axis_homed(axis)) {
-        const uint8_t buff_size = 8;
-        uint8_t       buffer[]  = {0, 0, 0, 0, 0, 0, 0, 0};
-        buffer[buff_size - 1] = '\n';
-        itoa(tmc2209_sg_result(), (char *) buffer, 10);
-        serial_write(hal->serial, USART1, (uint8_t *) buffer, buff_size);
+        char buff[4];
+        for (uint8_t i = 0; i < 4 ; i ++ ) {
+            buff[i] = 0;
+        }
+        r = tmc2209_sg_result();
+        itoa(r, buff, 10);
+        buff[strlen(buff)] = '\n';
+        serial_write(hal->serial, USART1, (uint8_t *) buff, strlen(buff));
     }
+    TEST_PASS();
 }
 
 int

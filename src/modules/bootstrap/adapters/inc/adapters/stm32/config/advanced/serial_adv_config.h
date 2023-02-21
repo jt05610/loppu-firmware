@@ -123,7 +123,7 @@ extern "C"
 #define STM32_USART2_PRESCALER_VALUE    LL_USART_PRESCALER_DIV1
 
 /** @brief USART2 Baud rate */
-#define STM32_USART2_BAUD_RATE          19200
+#define STM32_USART2_BAUD_RATE          115200
 
 /** @brief USART2 data width in bits */
 #define STM32_USART2_DATA_WIDTH         LL_USART_DATAWIDTH_8B
