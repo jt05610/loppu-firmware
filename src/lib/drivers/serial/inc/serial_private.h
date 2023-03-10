@@ -20,6 +20,8 @@
  * @{
  */
 
+#include "buffer/circular_buffer.h"
+
 /**
  * @brief Serial interface function data structure.
  */
@@ -72,7 +74,8 @@ typedef struct serial_interface_t
      * @param n_w Number of bytes to write.
      * @param n_r Number of bytes to read.
      */
-    void (* read_write)(void * instance, uint8_t * data, uint16_t n_w, uint16_t n_r);
+    void
+    (* read_write)(void * instance, uint8_t * data, uint16_t n_w, uint16_t n_r);
 
     /**
      * @brief Write single byte to serial port.
@@ -92,7 +95,7 @@ typedef struct serial_interface_t
 typedef struct serial_base_t
 {
     SerialInterface vtable;         /**< @brief Pointer to interface. */
-    uint8_t * serial_buffer;        /**< @brief Buffer to store data. */
+    circ_buf_t * serial_buffer;        /**< @brief Buffer to store data. */
     uint16_t size;                  /**< @brief size of buffer. */
 } serial_base_t;
 

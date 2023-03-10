@@ -73,10 +73,7 @@ coils_create(PrimaryTable base, Device device)
 static inline void
 read_on_off(sized_array_t * dest)
 {
-    /* start read_on_off code */
-    dest->size = 1;
-    dest->bytes[0] = gpio_read_pin(self.base->hal->gpio, GPIO_PORT_A, 0);
-    /* end read_on_off code */
+
 }
 
 /**
@@ -86,12 +83,7 @@ read_on_off(sized_array_t * dest)
 static inline void
 write_on_off(uint16_t value)
 {
-    /* start write_on_off code */
-    if (value)
-        gpio_set_pin(self.base->hal->gpio, GPIO_PORT_A, 0x01 << 0x01);
-    else
-        gpio_reset_pin(self.base->hal->gpio, GPIO_PORT_A, 0x01 << 0x01);
-    /* end write_on_off code */
+
 }
 
 /**

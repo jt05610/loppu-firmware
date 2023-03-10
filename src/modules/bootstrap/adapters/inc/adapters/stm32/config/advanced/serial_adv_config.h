@@ -46,13 +46,13 @@ extern "C"
 #define STM32_USART1_PRESCALER_VALUE    LL_USART_PRESCALER_DIV1
 
 /** @brief USART1 Baud rate */
-#define STM32_USART1_BAUD_RATE          115200
+#define STM32_USART1_BAUD_RATE          19200
 
 /** @brief USART1 data width in bits */
 #define STM32_USART1_DATA_WIDTH         LL_USART_DATAWIDTH_8B
 
 /** @brief USART1 number of stop bits */
-#define STM32_USART1_STOP_BITS          LL_USART_STOPBITS_1
+#define STM32_USART1_STOP_BITS          LL_USART_STOPBITS_2
 
 /** @brief USART1 parity */
 #define STM32_USART1_PARITY             LL_USART_PARITY_NONE
@@ -85,7 +85,7 @@ extern "C"
 #define STM32_USART1_ASYNC              1
 
 /** @brief Enable STM32 RTO interrupt */
-#define STM32_USART1_RTO_ENABLE         1
+#define STM32_USART1_RTO_ENABLE         0
 
 /** @brief Enable STM32 IDLE interrupt */
 #define STM32_USART1_IDLE_ENABLE        0
@@ -101,9 +101,6 @@ extern "C"
 
 /** @brief Enable STM32 ERROR interrupt */
 #define STM32_USART1_ERROR_ENABLE       0
-
-/** @brief bits time to trigger rx timeout interrupt */
-#define STM32_USART1_RX_TIMEOUT         10
 
 /** @) */
 #endif // STM32_ENABLE_USART1
@@ -123,7 +120,7 @@ extern "C"
 #define STM32_USART2_PRESCALER_VALUE    LL_USART_PRESCALER_DIV1
 
 /** @brief USART2 Baud rate */
-#define STM32_USART2_BAUD_RATE          115200
+#define STM32_USART2_BAUD_RATE          19200
 
 /** @brief USART2 data width in bits */
 #define STM32_USART2_DATA_WIDTH         LL_USART_DATAWIDTH_8B

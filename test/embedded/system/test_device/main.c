@@ -15,7 +15,6 @@
 
 #include "fake_device.h"
 #include "adapters/stm32/g031xx_adapter.h"
-#include "unity.h"
 #include "stm32g031xx.h"
 
 static Device self;
@@ -30,12 +29,17 @@ void tearDown()
 
 }
 
+void test_write()
+{
+
+}
+
 static Peripherals hal;
 
 int main()
 {
     hal = bootstrap(stm32_dependency_injection, 0);
-    self = fake_device_create(hal, USART1, TIM1);
+    self = fake_device_create(hal, USART1, TIM2);
     fake_device_run(self);
 }
 

@@ -126,13 +126,13 @@ extern "C" {
 #define STM32_USART1_RX_DMA_TRANS_DIR         LL_DMA_DIRECTION_PERIPH_TO_MEMORY
 
 /** @brief DMA circular mode */
-#define STM32_USART1_RX_DMA_CIRC_MODE         LL_DMA_MODE_NORMAL
+#define STM32_USART1_RX_DMA_CIRC_MODE         LL_DMA_MODE_CIRCULAR
 
 /** @brief DMA request */
 #define STM32_USART1_RX_DMA_REQUEST           LL_DMAMUX_REQ_USART1_RX
 
 /** @brief Enable DMA half transfer complete interrupt generation */
-#define STM32_USART1_RX_DMA_ENABLE_HT         0
+#define STM32_USART1_RX_DMA_ENABLE_HT         1
 
 /** @brief Enable DMA transfer complete interrupt generation */
 #define STM32_USART1_RX_DMA_ENABLE_TC         1
@@ -141,7 +141,7 @@ extern "C" {
 #define STM32_USART1_RX_DMA_ENABLE_TE         0
 
 /** @brief DMA buffer size */
-#define STM32_USART1_RX_DMA_BUFFER_SIZE       STM32_USART1_RX_BUFFER_SIZE
+#define STM32_USART1_RX_DMA_BUFFER_SIZE       16
 
 /** @} */
 

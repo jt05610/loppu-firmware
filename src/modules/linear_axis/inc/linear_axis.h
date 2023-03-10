@@ -24,11 +24,10 @@
 #define AXIS_HOMED 0x02
 #define AXIS_STALLED 0x03
 
-#define STEPS_PER_MM 400
+#define STEPS_PER_REV 200
+#define REV_PER_MM 1
 
-#define MICROSTEP 256
-
-#define MICROSTEPS_PER_MM STEPS_PER_MM * MICROSTEP
+#define STEPS_PER_MM (STEPS_PER_REV * REV_PER_MM)
 
 typedef struct axis_t * Axis;
 
@@ -46,10 +45,8 @@ void axis_plan(Axis axis, int32_t position, int32_t vel);
 
 void axis_start(Axis axis);
 
-void axis_pause(Axis axis, uint32_t ms);
+void axis_nudge(Axis axis, int32_t amount);
 
 void axis_stop(Axis axis);
-
-void axis_stall_handler();
 
 #endif //INJECTOR_LINEAR_AXIS_H

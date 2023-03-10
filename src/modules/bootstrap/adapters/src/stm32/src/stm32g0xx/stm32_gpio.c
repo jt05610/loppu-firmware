@@ -26,8 +26,7 @@ static inline void set_pin(gpio_port_t port, gpio_pin_t pin);
 
 static inline void init_pin(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode);
 
-static inline void
-attach_cb(gpio_port_t port, gpio_pin_t pin, void (* cb)(), bool active_high);
+static inline void attach_cb(gpio_port_t port, gpio_pin_t pin, void (* cb)());
 
 static inline void reset_pin(gpio_port_t port, gpio_pin_t pin);
 
@@ -105,7 +104,6 @@ stm32_gpio_create()
     self.init.Pull = LL_GPIO_PULL_NO;       \
     LL_GPIO_Init((port), &self.init)
 
-
 static inline void
 init_usart(LL_GPIO_InitTypeDef * p)
 {
@@ -121,16 +119,19 @@ init_usart(LL_GPIO_InitTypeDef * p)
     p->Pin = STM32_USART1_TX_PIN;
     LL_GPIO_Init(STM32_USART1_TX_PORT, p);
 
-#if STM32_USART1_RS485
     p->Pin       = STM32_USART1_DE_PIN;
     p->Alternate = LL_GPIO_AF_1;
     LL_GPIO_Init(STM32_USART1_DE_PORT, p);
+
+    p->Pin = STM32_USART1_RX_CAP_PIN;
+    LL_GPIO_Init(STM32_USART1_RX_CAP_PORT, p);
+
 
     p->Pin       = STM32_USART1_RE_PIN;
     p->Mode      = LL_GPIO_MODE_OUTPUT;
     p->Alternate = 0;
     LL_GPIO_Init(STM32_USART1_DE_PORT, p);
-#endif // STM32_USART1_RS485
+
 
 #endif // STM32_ENABLE_USART1
 
@@ -223,6 +224,8 @@ init_pin(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode)
             break;
         case GPIO_PIN_MODE_ANALOG:
         INIT_ADC_PIN(port, pin);
+        case GPIO_PIN_MODE_INPUT_CAP:
+
             break;
         default:
             break;
@@ -231,14 +234,13 @@ init_pin(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode)
 
 #define _H (self.handlers[self.n_handlers])
 
-
 static inline void
-attach_cb(gpio_port_t port, gpio_pin_t pin, void (* cb)(), bool active_high)
+attach_cb(gpio_port_t port, gpio_pin_t pin, void (* cb)())
 {
     _H.pin  = pin;
     _H.port = port;
     _H.cb   = cb;
-    if (active_high) {
+    if (LL_EXTI_IsEnabledRisingTrig_0_31(pin)) {
         _H.check = LL_EXTI_IsActiveRisingFlag_0_31;
         _H.clear = LL_EXTI_ClearRisingFlag_0_31;
     } else {
@@ -248,10 +250,10 @@ attach_cb(gpio_port_t port, gpio_pin_t pin, void (* cb)(), bool active_high)
     _H.pin  = pin;
 
     self.n_handlers++;
-
 }
 
-uint8_t pin_from_mask(uint32_t mask)
+uint8_t
+pin_from_mask(uint32_t mask)
 {
     uint8_t result = 32;
     mask &= -(int32_t) mask;

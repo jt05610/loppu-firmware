@@ -27,6 +27,9 @@ static struct
     TIM_TypeDef * update_cb_inst;
 
     void (* update_cb)(void);
+
+    void (* input_cap_cb)(void);
+
 } self = {0};
 
 static inline void start(void * timer_instance, uint32_t freq);
@@ -46,6 +49,9 @@ static inline void delay_micros(uint32_t micros);
 static inline uint32_t micros();
 
 static inline uint32_t millis();
+
+void input_cap_irq(
+        void * tim_inst, uint32_t freq, uint16_t timeout_ticks, void (* cb)());
 
 static inline void set_pwm_freq(void * timer_instance, uint32_t freq_Hz);
 
@@ -117,6 +123,7 @@ gen_tim_init()
 
 #if STM32_ENABLE_TIM3
     INIT_GEN_TIM(3, init);
+
 #endif
 
 #if STM32_ENABLE_TIM14
@@ -129,6 +136,7 @@ gen_tim_init()
 
 #if STM32_ENABLE_TIM17
     INIT_GEN_TIM(17, init);
+
 #endif
 
 }
@@ -145,6 +153,18 @@ static inline void
 set_timeout(void * timer_instance, uint32_t timeout)
 {
     LL_TIM_SetAutoReload(timer_instance, timeout);
+}
+
+void
+set_freq(void * t, uint32_t freq)
+{
+    if (freq > 0) {
+        LL_TIM_SetPrescaler(
+                t,
+                __LL_TIM_CALC_PSC(STM32_SYS_TICK, freq)
+        );
+    }
+
 }
 
 static inline void
@@ -290,18 +310,79 @@ reg_update_cb(void * tim_inst, void (* cb)(void))
     self.update_cb      = cb;
 }
 
+void input_cap_irq(
+        void * tim_inst, uint32_t freq, uint16_t timeout_ticks, void (* cb)())
+{
+    if (freq > 0) {
+        LL_TIM_SetPrescaler(
+                (TIM_TypeDef *) tim_inst,
+                __LL_TIM_CALC_PSC(STM32_SYS_TICK, freq)
+        );
+    }
+
+    LL_TIM_OC_InitTypeDef tim_oc = {
+            .OCMode=LL_TIM_OCMODE_RETRIG_OPM1,
+            .OCState=LL_TIM_OCSTATE_DISABLE,
+            .OCNState=LL_TIM_OCSTATE_DISABLE,
+            .CompareValue=timeout_ticks,
+            .OCPolarity=LL_TIM_OCPOLARITY_HIGH,
+    };
+    LL_TIM_OC_Init(TIM3, LL_TIM_CHANNEL_CH2, &tim_oc);
+    LL_TIM_OC_DisableFast(TIM3, LL_TIM_CHANNEL_CH2);
+    LL_TIM_SetOnePulseMode(TIM3, LL_TIM_ONEPULSEMODE_SINGLE);
+    LL_TIM_SetTriggerInput(TIM3, LL_TIM_TS_TI1F_ED);
+    LL_TIM_SetSlaveMode(TIM3, LL_TIM_SLAVEMODE_COMBINED_RESETTRIGGER);
+    LL_TIM_CC_DisableChannel(TIM3, LL_TIM_CHANNEL_CH1);
+    LL_TIM_IC_SetFilter(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
+    LL_TIM_SetAutoReload(TIM3, timeout_ticks + 10);
+    LL_TIM_DisableIT_TRIG(TIM3);
+    LL_TIM_DisableDMAReq_TRIG(TIM3);
+    LL_TIM_EnableIT_CC2(TIM3);
+    LL_TIM_DisableIT_UPDATE(TIM3);
+    LL_TIM_SetTriggerOutput(TIM3, LL_TIM_TRGO_RESET);
+    LL_TIM_DisableMasterSlaveMode(TIM3);
+    LL_TIM_IC_SetActiveInput(TIM3, LL_TIM_CHANNEL_CH1,LL_TIM_ACTIVEINPUT_TRC);
+    LL_TIM_IC_SetPrescaler(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_ICPSC_DIV1);
+    LL_TIM_IC_SetPolarity(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_RISING);
+    self.input_cap_cb = cb;
+}
+
 __INTERRUPT
 TIM1_BRK_UP_TRG_COM_IRQHandler()
 {
-    if (self.update_cb)
+    if (self.update_cb) {
         self.update_cb();
+    }
     LL_TIM_ClearFlag_UPDATE(TIM1);
 }
 
 /** @brief TIM2 interrupt handler */
-__INTERRUPT TIM2_IRQHandler()
+__INTERRUPT
+TIM2_IRQHandler()
 {
-    if (self.update_cb)
+    if (self.update_cb) {
         self.update_cb();
+    }
     LL_TIM_ClearFlag_UPDATE(TIM2);
+}
+
+/** @brief TIM3 interrupt handler */
+__INTERRUPT
+TIM3_IRQHandler()
+{
+    if (LL_TIM_IsActiveFlag_CC2(TIM3)) {
+        LL_TIM_ClearFlag_CC2(TIM3);
+        if (self.input_cap_cb) {
+            self.input_cap_cb();
+        }
+    }
+}
+
+__INTERRUPT
+TIM17_IRQHandler()
+{
+    if (self.input_cap_cb) {
+        self.input_cap_cb();
+    }
+    LL_TIM_ClearFlag_UPDATE(TIM17);
 }

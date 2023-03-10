@@ -51,17 +51,19 @@ void
 datamodel_handle(DataModel base, ModbusPDU pdu)
 {
     dm_action_t * action;
-    if (pdu->func_code < 0x07)
-    {
+    if (pdu->func_code < 0x07) {
         action = &handlers[pdu->func_code - 1];
         action->handler(base, action->table, pdu);
+    }
+    if (pdu->func_code == 0x08) {
+        return;
     }
 }
 
 static void
 read(DataModel dm, uint8_t table, ModbusPDU pdu)
 {
-    pdu->data.size = UINT8_TO_UINT16(pdu->data.bytes, 2) * (1 + ~(table>>1));
+    pdu->data.size = UINT8_TO_UINT16(pdu->data.bytes, 2) * (1 + ~(table >> 1));
     primary_table_read(
             &dm->tables[table],
             UINT8_TO_UINT16(pdu->data.bytes, 0),

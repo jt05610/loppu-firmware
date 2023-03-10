@@ -464,6 +464,8 @@ extern "C"
 /** @brief TIM17 enables or disables preload */
 #define STM32_TIM17_ENABLE_PRELOAD      1
 
+#define STM32_TIM17_ONE_PULSE           1
+
 /** @} */
 
 #ifdef __cplusplus

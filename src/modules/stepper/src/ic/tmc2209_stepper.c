@@ -127,8 +127,12 @@ tmc2209_stepper_create(tmc2209_init_t * params)
              0x01 << TMC2209_MULTISTEP_FILT_SHIFT |
              0x00 << TMC2209_TEST_MODE_SHIFT)
     );
-    current_setup(600);
-    tmc2209_set_cs_thresh_vel(1 << 19);
+    _write_reg(TMC2209_CHOPCONF, TMC2209_VSENSE_SHIFT, TMC2209_VSENSE_MASK, 0x01);
+    _write_reg(TMC2209_COOLCONF, TMC2209_SEUP_SHIFT, TMC2209_SEUP_MASK, 0b11);
+    _write_reg(TMC2209_COOLCONF, TMC2209_SEMIN_SHIFT, TMC2209_SEMIN_MASK, 0b0001);
+    _write_reg(TMC2209_COOLCONF, TMC2209_SEMAX_SHIFT, TMC2209_SEMAX_MASK, 0b0111);
+
+    tmc2209_set_cs_thresh_vel(2000);
     tmc2209_set_sg_thresh(0);
 
     return &self.base;
@@ -237,7 +241,7 @@ static inline microstep_t
 get_microstep()
 {
     uint32_t cc = tmc2209_readInt(&self.ic, TMC2209_CHOPCONF);
-    return (cc & TMC2209_MRES_MASK) >> TMC2209_MRES_SHIFT;
+    return 8 - ((cc & TMC2209_MRES_MASK) >> TMC2209_MRES_SHIFT);
 }
 
 static inline void

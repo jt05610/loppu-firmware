@@ -14,23 +14,18 @@
   */
 
 #include "linear_axis.h"
-#include "ic/tmc2209_stepper.h"
-
-#define N_BOUNCES 1
-#define REBOUND_FULL_STEPS 200
 
 
 typedef struct axis_t
 {
-    StepDir  stepdir;
-    uint8_t  state;
-    uint8_t  home_bounce_count;
-    int32_t max_pos;
+    StepDir     stepdir;
+    uint8_t     state;
+    microstep_t last_ms;
+    int32_t     next_pos;
+    int32_t     next_vel;
 } axis_t;
 
-#define _SD (self.stepdir)
-
-#define _STEP (_SD)->stepper
+#define _SD (axis->stepdir)
 
 static axis_t self = {0};
 
@@ -38,13 +33,12 @@ static inline void on_stalled();
 
 void on_stalled()
 {
-    stepdir_stop(_SD, STEPDIR_STOP_NOW);
+    stepdir_stop(self.stepdir, STEPDIR_STOP_NOW);
     if (self.state == AXIS_HOMING) {
-        stepdir_set_pos(_SD, 0);
+        stepdir_set_pos(self.stepdir, 0);
         self.state = AXIS_HOMED;
-        stepper_set_microstep(_STEP, MS_16);
+        stepdir_set_ms(self.stepdir, self.last_ms);
     } else {
-        self.max_pos = stepdir_get_pos(_SD);
         self.state = AXIS_STALLED;
     }
 }
@@ -53,9 +47,8 @@ Axis
 axis_create(StepDir stepdir)
 {
     self.stepdir = stepdir;
-    gpio_attach_cb(
-            _STEP->hal->gpio, _STEP->port, _STEP->limit_pin,
-            on_stalled, true);
+    stepdir_set_ms(self.stepdir, MS_16);
+    stepdir_attach_limit_cb(self.stepdir, on_stalled);
     self.state = AXIS_IDLE;
     return &self;
 }
@@ -63,45 +56,37 @@ axis_create(StepDir stepdir)
 void
 axis_home(Axis axis)
 {
+    stepdir_set_ms(_SD, MS_FULL);
     stepdir_rotate(_SD, -STEPDIR_MAX_VELOCITY);
     axis->state = AXIS_HOMING;
 
 }
 
-void axis_goto(Axis axis, int32_t position, int32_t vel)
+void
+axis_goto(Axis axis, int32_t position, int32_t vel)
 {
-
+    axis_plan(axis, position, vel);
+    axis_start(axis);
 }
-
 
 void
 axis_plan(Axis axis, int32_t position, int32_t vel)
 {
-
+    axis->next_pos = position * STEPS_PER_MM * (1 << _SD->ms) / 1000;
+    axis->next_vel = (vel * STEPS_PER_MM * (1 << _SD->ms)) / 1000;
 }
 
 void
 axis_start(Axis axis)
 {
-
-}
-
-void
-axis_pause(Axis axis, uint32_t ms)
-{
-
+    stepdir_set_vel_max(_SD, axis->next_vel);
+    stepdir_move_to(_SD, axis->next_pos);
 }
 
 void
 axis_stop(Axis axis)
 {
-
-}
-
-void
-axis_stall_handler()
-{
-
+    stepdir_stop(_SD, STEPDIR_STOP_NOW);
 }
 
 bool axis_homed(Axis axis)
@@ -112,4 +97,9 @@ bool axis_homed(Axis axis)
 uint8_t axis_state(Axis axis)
 {
     return axis->state;
+}
+
+void axis_nudge(Axis axis, int32_t amount)
+{
+    stepdir_move_rel(_SD, amount * STEPS_PER_MM * (1 << _SD->ms) / 1000);
 }

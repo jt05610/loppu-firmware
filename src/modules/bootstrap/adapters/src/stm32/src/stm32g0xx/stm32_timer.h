@@ -32,6 +32,10 @@
  */
 Timer stm32_timer_create();
 
+void set_freq(void *t, uint32_t freq);
+
+void input_cap_irq(void * tim_inst, uint32_t freq, uint16_t timeout_ticks, void (* cb)());
+
 /** @} */
 
 

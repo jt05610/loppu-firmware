@@ -16,7 +16,8 @@
 #include "gpio.h"
 #include "timer.h"
 #include "tmc/ramp/LinearRamp1.h"
-#include "ic/tmc2209_stepper.h"
+
+#define _STEP base->stepper
 
 static TMC_LinearRamp ramp;
 
@@ -203,7 +204,12 @@ stepdir_set_accel(StepDir base, uint32_t accel)
 void
 stepdir_set_vel_max(StepDir base, int32_t vel_max)
 {
-    tmc_ramp_linear_set_maxVelocity(base->ramp, vel_max);
+    if (vel_max <= STEPDIR_MAX_VELOCITY) {
+        tmc_ramp_linear_set_maxVelocity(base->ramp, vel_max);
+    } else {
+
+        tmc_ramp_linear_set_maxVelocity(base->ramp, STEPDIR_MAX_VELOCITY);
+    }
 }
 
 void
@@ -251,17 +257,12 @@ stop(StepDir base, uint8_t stop_type)
     }
 }
 
-StepDir
-stepdir_create(
-        Stepper stepper,
-        uint32_t freq,
-        uint32_t precision,
-        void (* stall_cb)()
-)
+StepDir stepdir_create(Stepper stepper,uint32_t freq,uint32_t precision)
 {
     self.stepper             = stepper;
     self.freq                = freq;
     self.stalled             = false;
+    self.ms                  = MS_256;
     self.old_vel             = 0;
     self.new_accel           = 0;
     self.step_difference     = 0;
@@ -274,11 +275,7 @@ stepdir_create(
     tmc_ramp_linear_set_acceleration(
             self.ramp, STEPDIR_DEFAULT_ACCELERATION
     );
-    stepper_set_microstep(stepper, MS_FULL);
-    /* Limit pin init */
-    gpio_attach_cb(
-            self.stepper->hal->gpio, self.stepper->port,
-            self.stepper->limit_pin, stall_cb, true);
+
     /* timer init */
     timer_register_update_callback(
             self.stepper->hal->timer, self.stepper->tim_inst,
@@ -292,4 +289,22 @@ stepdir_create(
 void
 stepdir_destroy(StepDir base)
 {
+
+}
+
+void
+stepdir_attach_limit_cb(StepDir base, void (* cb)())
+{
+    gpio_attach_cb(_STEP->hal->gpio, _STEP->port, _STEP->limit_pin, cb);
+}
+
+void stepdir_set_ms(StepDir base, microstep_t ms)
+{
+    base->ms = ms;
+    stepper_set_microstep(_STEP, base->ms);
+}
+
+microstep_t stepdir_get_ms(StepDir base)
+{
+    return stepper_get_microstep(base->stepper);
 }

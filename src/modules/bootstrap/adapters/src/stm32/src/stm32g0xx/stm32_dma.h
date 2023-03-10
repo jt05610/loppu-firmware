@@ -40,8 +40,8 @@ typedef struct stm32_dma_mem_addr_t
     uint32_t adc;                      /**< @brief ADC buffer address */
 #endif
 #if STM32_ENABLE_USART1_RX_DMA
-    uint8_t * usart1_rx;                /**< @brief USART1 RX buffer address */
-    uint8_t * usart1_rx_buffer;     /**< @brief USART1 RX circ buffer */
+    uint8_t * usart1_rx_dma;            /**< @brief USART1 RX buffer address */
+    circ_buf_t * usart1_rx_buffer;         /**< @brief USART1 RX circ buffer */
 #endif
 #if STM32_ENABLE_USART1_TX_DMA
     uint32_t usart1_tx;                /**< @brief USART1 TX buffer address */
@@ -89,6 +89,12 @@ void stm32_dma_stop_channel(uint8_t channel);
 void stm32_dma_reset_channel(uint8_t channel);
 
 uint16_t stm32_dma_channel_remaining(uint8_t channel);
+
+
+
+void stm32_start_circ_buf_channel(uint8_t channel);
+
+circ_buf_t * stm32_dma_circ_buf();
 /** @} */
 
 #ifdef __cplusplus

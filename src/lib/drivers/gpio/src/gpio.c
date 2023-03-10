@@ -59,19 +59,17 @@ gpio_toggle(GPIO base, gpio_port_t port, gpio_pin_t pin)
 }
 
 void
-gpio_init_pin(GPIO base, gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode)
+gpio_init_pin(GPIO base, gpio_port_t port, gpio_pin_t pin, uint8_t mode)
 {
     if (base && base->vtable && base->vtable->init_pin) {
-        base->vtable->init_pin(port, pin, pin_mode);
+        base->vtable->init_pin(port, pin, mode);
     }
 }
 
 void
-gpio_attach_cb(
-        GPIO base, gpio_port_t port, gpio_pin_t pin, void (* cb)(),
-        bool active_high)
+gpio_attach_cb(GPIO base, gpio_port_t port, gpio_pin_t pin, void (* cb)())
 {
     if (base && base->vtable && base->vtable->attach_cb) {
-        base->vtable->attach_cb(port, pin, cb, active_high);
+        base->vtable->attach_cb(port, pin, cb);
     }
 }

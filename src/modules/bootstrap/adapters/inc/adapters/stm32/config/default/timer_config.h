@@ -84,7 +84,7 @@ extern "C"
  */
 
 /** @brief Enable Timer 14 */
-#define STM32_ENABLE_TIM14              1
+#define STM32_ENABLE_TIM14              0
 
 /** @} */
 
@@ -96,7 +96,7 @@ extern "C"
  */
 
 /** @brief Enable Timer 16 */
-#define STM32_ENABLE_TIM16              1
+#define STM32_ENABLE_TIM16              0
 
 /** @} */
 

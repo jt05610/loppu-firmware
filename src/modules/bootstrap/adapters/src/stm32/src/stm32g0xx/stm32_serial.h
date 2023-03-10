@@ -28,6 +28,7 @@
 
 #include "serial.h"
 #include "stm32g0xx_ll_usart.h"
+#include "buffer/circular_buffer.h"
 
 /**
  * @brief Creates STM32 serial instance.
@@ -45,7 +46,7 @@ uint8_t * stm32_get_usart1_rx_buffer();
  * @brief Gets USART1 RX circular buffer
  * @return USART1 RX circular buffer
  */
-uint8_t * stm32_get_usart1_rx_circ_buffer();
+circ_buf_t * stm32_get_usart1_rx_circ_buffer();
 
 /**
  * @brief Gets USART1 TX buffer

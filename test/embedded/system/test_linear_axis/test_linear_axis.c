@@ -30,59 +30,63 @@ static Stepper     stepper;
 static StepDir     stepdir;
 static Axis        axis;
 
-char buff[20];
+int16_t pos;
+char    buff[20];
 
 void setUp()
 {
-    for (uint8_t i = 0; i < 20; i++) {
-        buff[i] = 0;
-    }
     stepper_set_enabled(stepper, true);
 }
 
 void tearDown()
 {
-
     stepper_set_enabled(stepper, false);
 }
+
 
 void
 test_home()
 {
-    int32_t pos;
     axis_home(axis);
-    while (!axis_homed(axis)) {
-        pos = tmc2209_tstep_result();
-        itoa(pos, buff, 10);
-        buff[strlen(buff)] = '\n';
-        serial_write(hal->serial, USART1, (uint8_t *) buff, strlen(buff));
-    }
+    while (!axis_homed(axis)) {}
     TEST_PASS();
+}
+
+void
+test_goto()
+{
+#define TARGET 1000
+
+    int32_t actual;
+    int32_t start_pos;
+    start_pos = stepdir_get_pos(stepdir);
+    actual    = start_pos;
+    pos       = stepdir_get_pos(stepdir);
+    axis_goto(axis, TARGET, 1000);
+    while ((STEPS_PER_MM * 16) > pos) {}
+
+}
+
+void
+test_nudge()
+{
+    int32_t start_pos;
+    pos = stepdir_get_pos(stepdir);
+    for (uint8_t i = 0; i < 3; i++) {
+        start_pos = pos;
+        axis_nudge(axis, 1000);
+        while ((STEPS_PER_MM * 16) + start_pos > (pos + 2)) {
+        }
+    }
+
 }
 
 void
 test_stops_at_max()
 {
-    int32_t pos;
     stepdir_rotate(stepdir, STEPDIR_MAX_VELOCITY);
     while (axis_state(axis) != AXIS_STALLED) {
-        pos = tmc2209_tstep_result();
-        itoa(pos, buff, 10);
-        buff[strlen(buff)] = '\n';
-        serial_write(hal->serial, USART1, (uint8_t *) buff, strlen(buff));
     }
-    pos = stepdir_get_pos(stepdir);
-    itoa(
-            pos, buff,
-            10);
-    buff[
-            strlen(buff)
-    ] = '\n';
-    serial_write(
-            hal
-                    ->serial, USART1, (uint8_t *) buff,
-            strlen(buff)
-    );
     TEST_PASS();
 }
 
@@ -105,13 +109,14 @@ main()
     timer_start_microsecond_timer(hal->timer, TIM1);
     stepper = tmc2209_stepper_create(&p);
 
-    stepdir = stepdir_create(
-            stepper, STEPDIR_FREQ, STEPDIR_FREQ, axis_stall_handler);
+    stepdir = stepdir_create(stepper, STEPDIR_FREQ, STEPDIR_FREQ);
     axis    = axis_create(stepdir);
     serial_open(hal->serial, USART1);
     UNITY_BEGIN();
     RUN_TEST(test_stops_at_max);
     RUN_TEST(test_home);
+    //RUN_TEST(test_goto);
+    RUN_TEST(test_nudge);
     UNITY_END();
 }
 

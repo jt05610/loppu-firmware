@@ -26,7 +26,7 @@ add_subdirectory(test_device/fake_device)
 add_library(stm32_device_test INTERFACE)
 target_sources(stm32_device_test INTERFACE test_device/test_device.c)
 target_include_directories(stm32_device_test INTERFACE test_device)
-target_link_libraries(stm32_device_test INTERFACE stm32_bootstrap unity_lib FakeDevice)
+target_link_libraries(stm32_device_test INTERFACE stm32_bootstrap unity_lib FakeDevice )
 stm32_executable(stm32_device_test test_device/main.c)
 
 # Stepper test

@@ -124,6 +124,8 @@ extern "C"
 /** @brief GPIO port for DE */
 #define STM32_USART1_DE_PORT            GPIOA
 
+#define STM32_USART1_RX_CAP_PIN         LL_GPIO_PIN_6
+#define STM32_USART1_RX_CAP_PORT        GPIOA
 
 /** @} */
 #endif // STM32_ENABLE_USART1

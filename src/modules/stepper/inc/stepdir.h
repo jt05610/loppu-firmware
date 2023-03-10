@@ -25,7 +25,7 @@ typedef struct stepdir_t * StepDir;
 #define STEPDIR_MAX_VELOCITY STEPDIR_FREQ
 #define STEPDIR_MAX_ACCELERATION 0xFFFE0000
 
-#define STEPDIR_DEFAULT_ACCELERATION (STEPDIR_MAX_ACCELERATION)
+#define STEPDIR_DEFAULT_ACCELERATION STEPDIR_MAX_ACCELERATION - 1
 #define STEPDIR_DEFAULT_MAX_VELOCITY STEPDIR_MAX_VELOCITY
 #define STEPDIR_STOP_NORMAL 0x00
 #define STEPDIR_STOP_STALL  0x01
@@ -43,6 +43,7 @@ typedef struct stepdir_t * StepDir;
 typedef struct stepdir_t
 {
     Stepper           stepper;
+    microstep_t       ms;
     uint8_t           state;
     volatile int32_t  old_vel;
     volatile uint32_t new_accel;
@@ -53,9 +54,7 @@ typedef struct stepdir_t
     void * ramp;
 } stepdir_t;
 
-StepDir stepdir_create(
-        Stepper stepper, uint32_t freq, uint32_t precision,
-        void (* stall_cb)());
+StepDir stepdir_create(Stepper stepper, uint32_t freq, uint32_t precision);
 
 void stepdir_destroy(StepDir base);
 
@@ -71,7 +70,7 @@ uint8_t stepdir_get_state(StepDir base);
 
 void stepdir_periodic_job();
 
-void stepdir_limit_pressed();
+void stepdir_attach_limit_cb(StepDir base, void (* cb)());
 
 /* Getters */
 
@@ -95,6 +94,8 @@ uint32_t stepdir_get_freq(StepDir base);
 
 uint32_t stepdir_get_precision(StepDir base);
 
+microstep_t stepdir_get_ms(StepDir base);
+
 /* Setters */
 
 void stepdir_set_pos(StepDir base, int32_t pos);
@@ -103,9 +104,12 @@ void stepdir_set_accel(StepDir base, uint32_t accel);
 
 void stepdir_set_vel_max(StepDir base, int32_t vel_max);
 
+void stepdir_set_target_vel(StepDir base, int32_t vel);
+
 void stepdir_set_freq(StepDir base, uint32_t freq);
 
 void stepdir_set_precision(StepDir base, uint32_t precision);
 
+void stepdir_set_ms(StepDir base, microstep_t ms);
 
 #endif //INJECTOR_STEPDIR_H

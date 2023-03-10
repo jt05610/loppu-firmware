@@ -66,50 +66,25 @@ __ENABLE(periph, TE)
 
 #define __HNDLR(flag, channel)  dma_##flag##channel##_hndl
 
-typedef struct dma_isr_handler_t
+static struct
 {
-    uint8_t * circ_buf;
-    uint8_t * src_buf;
+    circ_buf_t * dest_buf;
+} self = {};
 
-    void (* handle)();
-} dma_isr_handler_t;
+STATIC_CIRC_BUF(uart1_dma, STM32_USART1_RX_DMA_BUFFER_SIZE);
 
-#define DMA_ISR_HANDLER(flag, channel)                              \
-    CREATE_ISR_HANDLER(DMA, flag##channel, dma_isr_handler_t *);    \
-    static dma_isr_handler_t __HNDLR(flag, channel) = {             \
-        .handle = handle_DMA_##flag##channel,                       \
-    };                                                              \
-    CREATE_ISR_HANDLER(DMA, flag##channel, dma_isr_handler_t *)
-
-#define DMA_ISR_ATTACH(flag, channel, target, src)                 \
-__HNDLR(flag, channel).circ_buf = target;                          \
-__HNDLR(flag, channel).src_buf = src
-
-#define DMA_HANDLE(flag, channel)                                  \
-    if(LL_DMA_IsActiveFlag_##flag##channel) {                      \
-        LL_DMA_ClearFlag_##flag##channel(DMA1);                    \
-        __HNDLR(flag, channel).handle(&__HNDLR(flag, channel));    \
-    }                                                              \
-    while(LL_DMA_IsActiveFlag_##flag##channel)
-
-DMA_ISR_HANDLER(TC, 1)
+void
+stm32_start_circ_buf_channel(uint8_t channel)
 {
-    LL_DMA_ClearFlag_TC1(DMA1);
-    __RESET_CHANNEL(_USART1_RX);
+    LL_DMA_DisableChannel(DMA1, channel);
+    LL_DMA_SetDataLength(DMA1, channel, STM32_USART1_RX_DMA_BUFFER_SIZE);
+    LL_DMA_SetMemoryAddress(DMA1, channel, (uint32_t) uart1_dma_buffer);
+    LL_DMA_EnableChannel(DMA1, channel);
 }
 
-DMA_ISR_HANDLER(TC, 2)
+circ_buf_t * stm32_dma_circ_buf()
 {
-    LL_DMA_DisableChannel(DMA1, STM32_USART1_TX_DMA_CHANNEL);
-    LL_DMA_SetDataLength(
-            DMA1, STM32_USART1_TX_DMA_CHANNEL, STM32_USART1_TX_DMA_BUFFER_SIZE
-    );
-}
-
-DMA_ISR_HANDLER(TC, 3)
-{
-    LL_DMA_ClearFlag_TC3(DMA1);
-    __RESET_CHANNEL(_USART2_RX);
+    return &uart1_dma;
 }
 
 void
@@ -119,8 +94,9 @@ stm32_dma_create(stm32_dma_mem_addr_t * params)
     __INIT_PERIPH(_ADC, params->adc);
 #endif
 #if STM32_ENABLE_USART1_RX_DMA
-    DMA_ISR_ATTACH(TC, 1, params->usart1_rx_buffer, params->usart1_rx);
-    __INIT_PERIPH(_USART1_RX, params->usart1_rx);
+    self.dest_buf = params->usart1_rx_buffer;
+    __INIT_PERIPH(_USART1_RX, uart1_dma_buffer);
+    stm32_start_circ_buf_channel(STM32_USART1_RX_DMA_CHANNEL);
 #endif
 #if STM32_ENABLE_USART1_TX_DMA
     __INIT_PERIPH(_USART1_TX, params->usart1_tx);
@@ -157,13 +133,13 @@ uint8_t
 stm32_dma_transfer(uint8_t channel, uint32_t mem_addr, uint16_t len)
 {
     uint8_t started = 0;
-    if (len)  {
+    if (len) {
         LL_DMA_DisableChannel(DMA1, channel);
-        while(LL_DMA_IsEnabledChannel(DMA1, channel));
+        while (LL_DMA_IsEnabledChannel(DMA1, channel));
         LL_DMA_SetDataLength(DMA1, channel, len);
         LL_DMA_SetMemoryAddress(DMA1, channel, mem_addr);
         LL_DMA_EnableChannel(DMA1, channel);
-        while(!LL_DMA_IsEnabledChannel(DMA1, channel));
+        while (!LL_DMA_IsEnabledChannel(DMA1, channel));
         started = 1;
     }
     return started;
@@ -174,7 +150,16 @@ stm32_dma_transfer(uint8_t channel, uint32_t mem_addr, uint16_t len)
 __INTERRUPT
 DMA1_Channel1_IRQHandler()
 {
-    __HNDLR(TC, 1).handle(&__HNDLR(TC, 1));
+    if (LL_DMA_IsActiveFlag_TC1(DMA1)) {
+        uart1_dma.head = STM32_USART1_RX_DMA_BUFFER_SIZE;
+        circ_buf_transfer(self.dest_buf, &uart1_dma);
+        uart1_dma.empty = true;
+        LL_DMA_ClearFlag_TC1(DMA1);
+    } if (LL_DMA_IsActiveFlag_HT1(DMA1)) {
+        uart1_dma.head = STM32_USART1_RX_DMA_BUFFER_SIZE / 2;
+        LL_DMA_ClearFlag_HT1(DMA1);
+        uart1_dma.empty = false;
+    }
 }
 
 #endif
@@ -184,6 +169,20 @@ DMA1_Channel1_IRQHandler()
 __INTERRUPT
 DMA1_Channel2_3_IRQHandler()
 {
+
+__INTERRUPT DMA_ISR_HANDLER(TC, 2)
+{
+    LL_DMA_DisableChannel(DMA1, STM32_USART1_TX_DMA_CHANNEL);
+    LL_DMA_SetDataLength(
+            DMA1, STM32_USART1_TX_DMA_CHANNEL, STM32_USART1_TX_DMA_BUFFER_SIZE
+    );
+}
+
+DMA_ISR_HANDLER(TC, 3)
+{
+    LL_DMA_ClearFlag_TC3(DMA1);
+    __RESET_CHANNEL(_USART2_RX);
+}
 
 }
 

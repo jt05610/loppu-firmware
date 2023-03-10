@@ -43,7 +43,6 @@ dma_config()
             .adc=(uint32_t) stm32_adc_get_buffer(),
 #endif
 #if STM32_ENABLE_USART1_RX_DMA
-            .usart1_rx=stm32_get_usart1_rx_circ_buffer(),
              .usart1_rx_buffer=stm32_get_usart1_rx_circ_buffer(),
 #endif
 #if STM32_ENABLE_USART1_TX_DMA

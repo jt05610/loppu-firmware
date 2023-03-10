@@ -24,8 +24,7 @@
 #include "advanced/gpio_adv_config.h"
 #include "advanced/dma_adv_config.h"
 #include "default/dma_config.h"
-
-static uint8_t rx_buffer[STM32_USART1_RX_BUFFER_SIZE];
+#include "stm32_timer.h"
 
 
 static struct
@@ -36,7 +35,9 @@ static struct
     void (* rto_cb)(void);
 
     uint8_t uart2_rx_buffer[STM32_USART2_RX_BUFFER_SIZE];
-}              self = {0};
+} self = {0};
+
+STATIC_CIRC_BUF(uart1_rx, STM32_USART1_RX_BUFFER_SIZE);
 
 static inline void uart_init();
 
@@ -75,7 +76,7 @@ Serial
 stm32_serial_create()
 {
     self.base.vtable        = &interface;
-    self.base.serial_buffer = rx_buffer;
+    self.base.serial_buffer = &uart1_rx;
     self.new_data           = false;
 
 #ifndef SIMULATED
@@ -90,13 +91,14 @@ bool stm32_serial_new_data()
     return self.new_data;
 }
 
-uint8_t *
+circ_buf_t *
 stm32_get_usart1_rx_circ_buffer()
 {
-    return rx_buffer;
+    return &uart1_rx;
 }
 
-uint8_t * stm32_get_usart2_rx_buffer()
+uint8_t *
+stm32_get_usart2_rx_buffer()
 {
     return self.uart2_rx_buffer;
 }
@@ -107,8 +109,8 @@ open(void * instance)
 #if (STM32_ENABLE_USART1 & STM32_ENABLE_USART2)
 #if STM32_ENABLE_USART1
     if ((USART_TypeDef *) instance == USART1) {
+        stm32_start_circ_buf_channel(STM32_USART1_RX_DMA_CHANNEL);
 #if STM32_ENABLE_USART1_RX_DMA
-        LL_DMA_EnableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
 #endif // STM32_USART_RX_DMA
 
 #if STM32_ENABLE_USART1_TX_DMA
@@ -212,9 +214,10 @@ read(void * instance, uint8_t * bytes)
 #if (STM32_ENABLE_USART1 & STM32_ENABLE_USART2)
     if ((USART_TypeDef *) instance == USART1) {
 #if STM32_ENABLE_USART1_RX_DMA
-
-        size = STM32_USART1_RX_DMA_BUFFER_SIZE - DMA1_Channel1->CNDTR;
-        copy(bytes, rx_buffer, size);
+        size = circ_buf_waiting(&uart1_rx);
+        for (uint16_t i = 0; i < size; i++) {
+            bytes[i] = circ_buf_pop(&uart1_rx);
+        }
 
 #else
         *bytes++ = LL_USART_ReceiveData8(USART1);
@@ -224,7 +227,7 @@ read(void * instance, uint8_t * bytes)
     } else if ((USART_TypeDef *) instance == USART2) {
 #if STM32_ENABLE_USART2_RX_DMA
         size = STM32_USART2_RX_DMA_BUFFER_SIZE - DMA1_Channel3->CNDTR;
-        copy(bytes, rx_buffer, size);
+        copy(bytes, self.uart2_rx_buffer, size);
 
 #else
         bytes[0] = LL_USART_ReceiveData8(USART2);
@@ -254,7 +257,8 @@ read(void * instance, uint8_t * bytes)
 #else
         size = 0;
 #endif
-    return size;
+    return
+            size;
 }
 
 
@@ -292,7 +296,7 @@ write(void * instance, uint8_t * bytes, uint16_t size)
 #endif
     uint8_t channel = _GET_TX_DMA(instance);
     stm32_dma_transfer(channel, (uint32_t) bytes, size);
-    while(stm32_dma_channel_remaining(channel));
+    while (stm32_dma_channel_remaining(channel));
 }
 
 static inline void
@@ -428,15 +432,17 @@ uart1_init(LL_USART_InitTypeDef * uart_params)
     //LL_USART_DisableOverrunDetect(USART1);
 #if STM32_USART1_RTO_ENABLE
     LL_USART_SetRxTimeout(USART1, STM32_USART1_RX_TIMEOUT);
+    WRITE_REG(USART1->CR2, USART_CR2_RTOEN);
     LL_USART_EnableRxTimeout(USART1);
+    WRITE_REG(USART1->ICR, USART_ICR_RTOCF);
+
 #endif
     LL_USART_Enable(USART1);
     while ((!(LL_USART_IsActiveFlag_TEACK(USART1))) ||
            (!(LL_USART_IsActiveFlag_REACK(USART1)))) {
     }
 
-    LL_USART_ConfigNodeAddress(USART1, LL_USART_ADDRESS_DETECT_7B, 0x0A);
-    __SET_IT(USART1, RTO);
+    LL_USART_EnableIT_RXNE_RXFNE(USART1);
     __SET_IT(USART1, TC);
     __SET_IT(USART1, PE);
     __SET_IT(USART1, CM);
@@ -504,6 +510,19 @@ uart2_init(LL_USART_InitTypeDef * uart_params)
 
 #endif
 
+static inline void
+byte_rx_cb()
+{
+    self.new_data = true;
+    if (self.rto_cb) {
+        stm32_dma_circ_buf()->head = STM32_USART1_RX_DMA_BUFFER_SIZE -
+                                     stm32_dma_channel_remaining(
+                                             STM32_USART1_RX_DMA_CHANNEL);
+        circ_buf_transfer(&uart1_rx, stm32_dma_circ_buf());
+        self.rto_cb();
+    }
+}
+
 static void
 uart_init()
 {
@@ -511,11 +530,14 @@ uart_init()
 
 #if STM32_ENABLE_USART1
     uart1_init(&uart_params);
+
     LL_USART_Enable(USART1);
+    input_cap_irq(TIM3, STM32_USART1_BAUD_RATE*8, 150, byte_rx_cb);
 #endif // STM32_ENABLE_USART1
 
 #if STM32_ENABLE_USART2
     uart2_init(&uart_params);
+    LL_USART_Enable(USART2);
 #endif // STM32_ENABLE_USART2
 
 }
@@ -527,25 +549,16 @@ available(void * instance)
         return LL_USART_IsActiveFlag_RXNE_RXFNE(USART2);
     } else {
         if (!LL_USART_IsActiveFlag_RXNE_RXFNE(USART1)) {
-            return self.new_data ? STM32_USART1_RX_BUFFER_SIZE -
-                                   DMA1_Channel1->CNDTR
-                                 : 0;
+            return self.new_data ? circ_buf_waiting(&uart1_rx) : 0;
         }
         return 0;
     }
-
-
 }
 
 static inline void
 clear(void * instance)
 {
-    LL_DMA_DisableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
-    LL_DMA_SetDataLength(DMA1, STM32_USART1_RX_DMA_CHANNEL,
-                         STM32_USART1_RX_DMA_BUFFER_SIZE);
-    LL_DMA_EnableChannel(DMA1, STM32_USART1_RX_DMA_CHANNEL);
     self.new_data  = false;
-    self.base.size = 0;
 }
 
 static inline void
@@ -562,13 +575,8 @@ USART1_IRQHandler()
         LL_GPIO_ResetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
 #endif
         LL_USART_ClearFlag_TC(USART1);
-    } else if (LL_USART_IsActiveFlag_RTO(USART1)) {
-        self.new_data = true;
-        LL_USART_ClearFlag_RTO(USART1);
-        if (self.rto_cb) {
-            self.rto_cb();
-        }
     }
+
 }
 
 __INTERRUPT
