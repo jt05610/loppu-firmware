@@ -1,0 +1,20 @@
+meta:
+  device_name: needle_mover
+  author: jtaylor
+  date: 21 Mar 2023
+
+discrete_inputs:
+  - name: is_moving
+
+coils:
+  - name: start
+  - name: stop
+
+input_registers:
+  - name: pos
+  - name: vel
+
+holding_registers:
+  - name: target_pos
+  - name: target_vel
+  - name: move_to
