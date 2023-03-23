@@ -43,6 +43,7 @@
 #include "adapters/stm32/config/default/rcc_config.h"
 #include "adapters/stm32/config/default/timer_config.h"
 #include "adapters/stm32/config/default/serial_config.h"
+#include "adapters/stm32/config/default/spi_config.h"
 
 /** @} */
 

@@ -105,7 +105,6 @@ extern "C"
 /** @) */
 #endif // STM32_ENABLE_USART1
 
-#if STM32_ENABLE_USART2
 /**
   ******************************************************************************
  * @defgroup STM32G0xx_USART2Config USART2 config
@@ -174,7 +173,6 @@ extern "C"
 #define STM32_USART2_ERROR_ENABLE       0
 
 /** @) */
-#endif // STM32_ENABLE_USART2
 
 /** @) */
 

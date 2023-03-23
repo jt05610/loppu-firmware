@@ -16,7 +16,8 @@
 #define NEEDLE_MOVER_COILS_H
 
 #include "modbus.h"
+#include "linear_axis.h"
 
-void coils_create(PrimaryTable base, Device device);
+void coils_create(PrimaryTable base, Device device, Axis axis);
 
 #endif //NEEDLE_MOVER_COILS_H

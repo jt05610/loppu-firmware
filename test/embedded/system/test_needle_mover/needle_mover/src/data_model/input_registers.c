@@ -30,7 +30,8 @@
 
 static struct {
    Device base;
-
+   Axis axis;
+   StepDir stepdir;
 } self = {0};
 
 /* end struct code */
@@ -49,13 +50,14 @@ static primary_table_interface_t interface = {
 };
 
 void
-input_registers_create(PrimaryTable base, Device device)
+input_registers_create(PrimaryTable base, Device device, StepDir stepdir, Axis axis)
 {
     base->vtable = &interface;
     self.base = device;
-e
-    /* start create code */
 
+    /* start create code */
+    self.stepdir = stepdir;
+    self.axis = axis;
     /* end create code */
 }
 
@@ -67,7 +69,8 @@ static inline void
 read_pos(sized_array_t * dest)
 {
     /* start read_pos code */
-    
+    uint16_t pos = stepdir_get_pos(self.stepdir);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 0, pos);
     /* end read_pos code */
 }
 
@@ -80,7 +83,8 @@ static inline void
 read_vel(sized_array_t * dest)
 {
     /* start read_vel code */
-    
+    uint16_t vel = stepdir_get_vel(self.stepdir);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 0, vel);
     /* end read_vel code */
 }
 

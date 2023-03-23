@@ -15,8 +15,9 @@
 
 #include "config.h"
 #include "needle_mover.h"
+#include "linear_axis.h"
+#include "stepper.h"
 
-#include "data_model/discrete_inputs.h"
 #include "data_model/coils.h"
 #include "data_model/input_registers.h"
 #include "data_model/holding_registers.h"
@@ -28,21 +29,21 @@
  */
 static struct needle_mover_t
 {
-    device_t base;
+    device_t        base;
     primary_table_t tables[4];
     /* Feel free to add below here: */
 
 } self = {0};
 
 Device
-needle_mover_create(Peripherals hal, void * uart_inst, void * tim_inst)
+needle_mover_create(
+        Peripherals hal, void * uart_inst, void * tim_inst,  StepDir stepdir, Axis axis)
 {
     self.base.hal = hal;
-    discrete_inputs_create(&self.tables[DI_TABLE], &self.base);
-    coils_create(&self.tables[COIL_TABLE], &self.base);
-    input_registers_create(&self.tables[IR_TABLE], &self.base);
-    holding_registers_create(&self.tables[HR_TABLE], &self.base);
-    self.base.model = datamodel_create(self.tables);
+    coils_create(&self.tables[COIL_TABLE], &self.base, axis);
+    input_registers_create(&self.tables[IR_TABLE], &self.base, stepdir, axis);
+    holding_registers_create(&self.tables[HR_TABLE], &self.base, stepdir, axis);
+    self.base.model       = datamodel_create(self.tables);
     app_init_t app_params = {
             .address = MODBUS_ADDRESS,
             .serial = hal->serial,
@@ -58,7 +59,7 @@ needle_mover_create(Peripherals hal, void * uart_inst, void * tim_inst)
 void
 needle_mover_run(Device device)
 {
-    while(1) {
+    while (1) {
         server_update(device->server);
     }
 }

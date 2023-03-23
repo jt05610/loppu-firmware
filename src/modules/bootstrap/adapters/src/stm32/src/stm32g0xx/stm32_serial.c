@@ -239,11 +239,14 @@ read(void * instance, uint8_t * bytes)
 #elif STM32_ENABLE_USART1
     (void) instance;
 #if STM32_ENABLE_USART1_RX_DMA
-    size = STM32_USART1_RX_DMA_BUFFER_SIZE - DMA1_Channel1->CNDTR;
-    copy(bytes, rx_buffer, size);
+    size = circ_buf_waiting(&uart1_rx);
+    for (uint16_t i = 0; i < size; i++) {
+        bytes[i] = circ_buf_pop(&uart1_rx);
+    }
+
 #else
     *bytes++ = LL_USART_ReceiveData8(USART1);
-    size =  1;
+        size =  1;
 
 #endif
 #elif STM32_ENABLE_USART2
@@ -344,13 +347,12 @@ _putchar(void * instance, char a)
 #if STM32_USART1_RS485
     LL_GPIO_SetOutputPin(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN);
     while (!LL_GPIO_IsOutputPinSet(STM32_USART1_RE_PORT, STM32_USART1_RE_PIN));
+
 #endif // STM32_USART1_RS485
-#if STM32_ENABLE_USART1_TX_DMA
-    (void) instance;
-#else
-    LL_USART_TransmitData8(USART1, (uint8_t) a);
-    return a;
-#endif
+    LL_USART_TransmitData8((USART_TypeDef *) instance, a);
+    while (!LL_USART_IsActiveFlag_TXE_TXFNF(
+            (USART_TypeDef *) instance)) {}
+
 #elif STM32_ENABLE_USART2
     (void) instance;
 #if STM32_USART2_RS485

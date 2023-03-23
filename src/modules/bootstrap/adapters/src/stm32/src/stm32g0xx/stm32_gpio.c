@@ -15,6 +15,7 @@
 
 #include "stm32_gpio.h"
 #include "default/gpio_config.h"
+#include "default/spi_config.h"
 #include "stm32g0xx_ll_gpio.h"
 #include "stm32g0xx_ll_exti.h"
 #include "advanced/gpio_adv_config.h"
@@ -39,6 +40,8 @@ static inline void write_port(gpio_port_t port, uint32_t value);
 static inline void toggle(gpio_port_t port, gpio_pin_t pin);
 
 static inline void init_usart(LL_GPIO_InitTypeDef * p);
+
+static inline void init_spi(LL_GPIO_InitTypeDef * p);
 
 typedef struct exti_handler_t
 {
@@ -80,12 +83,21 @@ stm32_gpio_create()
     self.base.vtable = &interface;
     self.n_handlers  = 0;
     init_usart(&self.init);
+#if STM32_ENABLE_SPI
+    init_spi(&self.init);
+#endif
     return &self.base;
 }
 
 #define INIT_NORMAL_PIN(port, pin)          \
     self.init.Pin  = (pin);                 \
     self.init.Mode = LL_GPIO_MODE_OUTPUT;   \
+    self.init.Pull = LL_GPIO_PULL_NO;       \
+    LL_GPIO_Init((port), &self.init)
+
+#define INIT_INPUT_PIN(port, pin)           \
+    self.init.Pin  = (pin);                 \
+    self.init.Mode = LL_GPIO_MODE_INPUT;    \
     self.init.Pull = LL_GPIO_PULL_NO;       \
     LL_GPIO_Init((port), &self.init)
 
@@ -177,6 +189,47 @@ init_usart(LL_GPIO_InitTypeDef * p)
 }
 
 static inline void
+init_spi(LL_GPIO_InitTypeDef * p)
+{
+
+#if STM32_ENABLE_SPI1
+    p->Pin        = STM32_SPI1_SCK_PIN;
+    p->Mode       = LL_GPIO_MODE_ALTERNATE;
+    p->Speed      = LL_GPIO_SPEED_FREQ_LOW;
+    p->OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    p->Pull       = LL_GPIO_PULL_NO;
+    p->Alternate  = LL_GPIO_AF_0;
+    LL_GPIO_Init(STM32_SPI1_SCK_PORT, p);
+
+    p->Pin        = STM32_SPI1_MISO_PIN;
+    p->Mode       = LL_GPIO_MODE_ALTERNATE;
+    p->Speed      = LL_GPIO_SPEED_FREQ_LOW;
+    p->OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    p->Pull       = LL_GPIO_PULL_NO;
+    p->Alternate  = LL_GPIO_AF_0;
+    LL_GPIO_Init(STM32_SPI1_MISO_PORT, p);
+#endif
+
+#if STM32_ENABLE_SPI2
+    p->Pin        = STM32_SPI2_SCK_PIN;
+    p->Mode       = LL_GPIO_MODE_ALTERNATE;
+    p->Speed      = LL_GPIO_SPEED_FREQ_LOW;
+    p->OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    p->Pull       = LL_GPIO_PULL_NO;
+    p->Alternate  = LL_GPIO_AF_0;
+    LL_GPIO_Init(STM32_SPI2_SCK_PORT, p);
+
+    p->Pin        = STM32_SPI2_MISO_PIN;
+    p->Mode       = LL_GPIO_MODE_ALTERNATE;
+    p->Speed      = LL_GPIO_SPEED_FREQ_LOW;
+    p->OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    p->Pull       = LL_GPIO_PULL_NO;
+    p->Alternate  = LL_GPIO_AF_1;
+    LL_GPIO_Init(STM32_SPI2_MISO_PORT, p);
+#endif
+}
+
+static inline void
 set_pin(gpio_port_t port, gpio_pin_t pin)
 {
     LL_GPIO_SetOutputPin(port, pin);
@@ -197,7 +250,7 @@ read_port(gpio_port_t port)
 static inline uint8_t
 read_pin(gpio_port_t port, gpio_pin_t pin)
 {
-    return LL_GPIO_IsOutputPinSet(port, pin);
+    return LL_GPIO_IsInputPinSet(port, pin);
 }
 
 static inline void
@@ -227,6 +280,8 @@ init_pin(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode)
         case GPIO_PIN_MODE_INPUT_CAP:
 
             break;
+        case GPIO_PIN_MODE_INPUT:
+        INIT_INPUT_PIN(port, pin);
         default:
             break;
     }

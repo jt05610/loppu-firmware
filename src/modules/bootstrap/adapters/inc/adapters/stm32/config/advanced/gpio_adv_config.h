@@ -162,7 +162,46 @@ extern "C"
 /** @} */
 #endif // STM32_ENABLE_USART2
 
+/**
+  ******************************************************************************
+ * @defgroup STM32G0xx_SPI1_GPIOConfig SPI1 SPI GPIO
+ * @brief GPIO config for SPI1 peripheral
+ * @ingroup STM32G0xx_USART1Config
+ * @{
+ */
+
+/** @brief GPIO pin to use for SCK */
+#define STM32_SPI1_SCK_PIN             LL_GPIO_PIN_1
+/** @brief GPIO port to use for SCK */
+#define STM32_SPI1_SCK_PORT            GPIOA
+
+/** @brief GPIO pin to use for MISO */
+#define STM32_SPI1_MISO_PIN             LL_GPIO_PIN_6
+/** @brief GPIO port to use for MISO */
+#define STM32_SPI1_MISO_PORT            GPIOA
 /** @} */
+
+/**
+  ******************************************************************************
+ * @defgroup STM32G0xx_SPI2_GPIOConfig SPI2 SPI GPIO
+ * @brief GPIO config for SPI2 peripheral
+ * @ingroup STM32G0xx_USART1Config
+ * @{
+ */
+
+/** @brief GPIO pin to use for SCK */
+#define STM32_SPI2_SCK_PIN             LL_GPIO_PIN_0
+/** @brief GPIO port to use for SCK */
+#define STM32_SPI2_SCK_PORT            GPIOA
+
+/** @brief GPIO pin to use for MISO */
+#define STM32_SPI2_MISO_PIN             LL_GPIO_PIN_2
+/** @brief GPIO port to use for MISO */
+#define STM32_SPI2_MISO_PORT            GPIOB
+/** @} */
+
+/** @} */
+
 
 #ifdef __cplusplus
 }

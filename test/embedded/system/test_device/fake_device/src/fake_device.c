@@ -16,7 +16,6 @@
 #include "config.h"
 #include "fake_device.h"
 
-#include "data_model/discrete_inputs.h"
 #include "data_model/coils.h"
 #include "data_model/input_registers.h"
 #include "data_model/holding_registers.h"
@@ -38,7 +37,6 @@ Device
 fake_device_create(Peripherals hal, void * uart_inst, void * tim_inst)
 {
     self.base.hal = hal;
-    discrete_inputs_create(&self.tables[DI_TABLE], &self.base);
     coils_create(&self.tables[COIL_TABLE], &self.base);
     input_registers_create(&self.tables[IR_TABLE], &self.base);
     holding_registers_create(&self.tables[HR_TABLE], &self.base);

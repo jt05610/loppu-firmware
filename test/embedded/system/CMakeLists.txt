@@ -47,3 +47,26 @@ add_library(stm32_stepdir_test INTERFACE)
 target_include_directories(stm32_stepdir_test INTERFACE test_stepdir)
 target_link_libraries(stm32_stepdir_test INTERFACE stm32_bootstrap unity_lib stepper)
 stm32_executable(stm32_stepdir_test test_stepdir/main.c)
+
+
+add_library(stm32_hx711_test INTERFACE)
+target_include_directories(stm32_hx711_test INTERFACE test_hx711)
+target_link_libraries(stm32_hx711_test INTERFACE stm32_bootstrap unity_lib hx711)
+stm32_executable(stm32_hx711_test test_hx711/main.c)
+
+# force pump
+
+add_subdirectory(test_force_pump/force_pump)
+add_library(stm32_force_pump_test INTERFACE)
+target_sources(stm32_force_pump_test INTERFACE)
+target_link_libraries(stm32_force_pump_test INTERFACE stm32_bootstrap force_pump linear_axis)
+stm32_executable(stm32_force_pump_test test_force_pump/main.c)
+
+# needle mover
+
+add_subdirectory(test_needle_mover/needle_mover)
+add_library(stm32_needle_mover_test INTERFACE)
+target_sources(stm32_needle_mover_test INTERFACE)
+target_link_libraries(stm32_needle_mover_test INTERFACE stm32_bootstrap needle_mover linear_axis)
+stm32_executable(stm32_needle_mover_test test_needle_mover/main.c)
+

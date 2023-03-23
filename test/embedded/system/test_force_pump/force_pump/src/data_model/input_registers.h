@@ -16,7 +16,9 @@
 #define FORCE_PUMP_INPUT_REGISTERS_H
 
 #include "modbus.h"
+#include "stepdir.h"
+#include "analog.h"
 
-void input_registers_create(PrimaryTable base, Device device);
+void input_registers_create(PrimaryTable base, Device device, StepDir stepdir, Analog analog);
 
 #endif //FORCE_PUMP_INPUT_REGISTERS_H

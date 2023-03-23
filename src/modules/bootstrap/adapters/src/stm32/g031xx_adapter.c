@@ -23,6 +23,7 @@
 #include "stm32g0xx/stm32_gpio.h"
 #include "stm32g0xx/stm32_dma.h"
 #include "stm32g0xx/stm32_nvic.h"
+#include "stm32g0xx/stm32_spi.h"
 
 static peripherals_t self = {0};
 
@@ -90,5 +91,8 @@ stm32_dependency_injection()
     dma_config();
     timer_config();
     stm32_nvic_config();
+#if STM32_ENABLE_SPI1
+    self.spi = stm32_spi_create();
+#endif
     return &self;
 }

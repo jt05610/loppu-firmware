@@ -112,9 +112,9 @@ extern "C" {
 #define STM32_TIM16_IRQn_PRIORITY                       0
 
 /** @brief Enable TIM17 interrupt handler */
-#define STM32_ENABLE_TIM17_IRQn                         0
+#define STM32_ENABLE_TIM17_IRQn                         1
 /** @brief TIM17 interrupt priority */
-#define STM32_TIM17_IRQn_PRIORITY                       0
+#define STM32_TIM17_IRQn_PRIORITY                       1
 
 /** @} */
 /**

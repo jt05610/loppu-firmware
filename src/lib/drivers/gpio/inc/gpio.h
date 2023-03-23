@@ -21,6 +21,7 @@ typedef uint32_t gpio_pin_t;
 #define GPIO_PIN_MODE_INTERRUPT 0x02
 #define GPIO_PIN_MODE_ANALOG 0x03
 #define GPIO_PIN_MODE_INPUT_CAP 0x04
+#define GPIO_PIN_MODE_INPUT 0x05
 
 void gpio_set_pin(GPIO base, gpio_port_t port, gpio_pin_t pin);
 

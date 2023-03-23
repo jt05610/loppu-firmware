@@ -16,7 +16,8 @@
 #define NEEDLE_MOVER_HOLDING_REGISTERS_H
 
 #include "modbus.h"
+#include "linear_axis.h"
 
-void holding_registers_create(PrimaryTable base, Device device);
+void holding_registers_create(PrimaryTable base, Device device, StepDir stepdir, Axis axis);
 
 #endif //NEEDLE_MOVER_HOLDING_REGISTERS_H

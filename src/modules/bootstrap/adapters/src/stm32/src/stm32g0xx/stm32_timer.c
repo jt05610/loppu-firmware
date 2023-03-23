@@ -381,8 +381,8 @@ TIM3_IRQHandler()
 __INTERRUPT
 TIM17_IRQHandler()
 {
-    if (self.input_cap_cb) {
-        self.input_cap_cb();
+    if (self.update_cb) {
+        self.update_cb();
     }
     LL_TIM_ClearFlag_UPDATE(TIM17);
 }

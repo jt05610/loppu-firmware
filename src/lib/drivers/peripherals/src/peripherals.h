@@ -20,6 +20,7 @@
 #include "gpio.h"
 #include "timer.h"
 #include "analog.h"
+#include "spi.h"
 
 /** @addtogroup Drivers
  *  @{
@@ -45,8 +46,9 @@ typedef struct peripherals_t
     Serial serial;        /**< @brief Implemented serial instance. */
     Timer  timer;         /**< @brief Implemented timer instance. */
     Analog analog;        /**< @brief Implemented analog instance. */
+    SPI    spi;        /**< @brief Implemented analog instance. */
 
-}                            peripherals_t;
+} peripherals_t;
 
 /** @} */
 

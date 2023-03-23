@@ -10,4 +10,4 @@ target_sources(force_pump PUBLIC ${FORCE_PUMP_SOURCES})
 
 target_include_directories(force_pump PUBLIC inc src/data_model)
 
-target_link_libraries(force_pump PUBLIC device)
+target_link_libraries(force_pump PUBLIC device linear_axis)

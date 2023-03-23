@@ -16,7 +16,9 @@
 #define FORCE_PUMP_HOLDING_REGISTERS_H
 
 #include "modbus.h"
+#include "linear_axis.h"
+#include "stepdir.h"
 
-void holding_registers_create(PrimaryTable base, Device device);
+void holding_registers_create(PrimaryTable base, Device device, Axis axis, StepDir stepdir);
 
 #endif //FORCE_PUMP_HOLDING_REGISTERS_H

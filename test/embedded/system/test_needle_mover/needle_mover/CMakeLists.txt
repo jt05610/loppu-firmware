@@ -1,4 +1,4 @@
-add_library(needle_mover)
+add_library(needle_mover INTERFACE)
 
 file(
     GLOB_RECURSE
@@ -6,8 +6,8 @@ file(
     src/*.*
 )
 
-target_sources(needle_mover PUBLIC ${NEEDLE_MOVER_SOURCES})
+target_sources(needle_mover INTERFACE ${NEEDLE_MOVER_SOURCES})
 
-target_include_directories(needle_mover PUBLIC inc src/data_model)
+target_include_directories(needle_mover INTERFACE inc src/data_model)
 
-target_link_libraries(needle_mover PUBLIC device)
+target_link_libraries(needle_mover INTERFACE device linear_axis stepper tmc)

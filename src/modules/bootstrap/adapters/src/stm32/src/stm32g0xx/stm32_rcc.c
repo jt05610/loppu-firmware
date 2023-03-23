@@ -31,6 +31,7 @@ static inline void timer_clock_init();
 
 static inline void adc_clock_init();
 
+static inline void spi_clock_init();
 
 void
 stm32_rcc_config()
@@ -55,6 +56,11 @@ stm32_rcc_config()
 
 #if STM32_ENABLE_SERIAL
     serial_clock_init();
+#endif
+
+
+#if STM32_ENABLE_SPI
+    spi_clock_init();
 #endif
 }
 
@@ -181,3 +187,11 @@ adc_clock_init()
     LL_RCC_SetADCClockSource(LL_RCC_ADC_CLKSOURCE_SYSCLK);
     LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC);
 }
+
+static inline void
+spi_clock_init()
+{
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_SPI2);
+}
+
