@@ -61,7 +61,6 @@ stm32_adc_create()
     self.base.vtable    = &interface;
     self.base.n_samples = STM32_ADC_BUFFER_SIZE;
     self.base.buffer    = self.adc_buffer;
-
     adc_init();
     adc_reg_init();
     adc_isr_init();

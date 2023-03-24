@@ -341,7 +341,7 @@ void input_cap_irq(
     LL_TIM_DisableIT_UPDATE(TIM3);
     LL_TIM_SetTriggerOutput(TIM3, LL_TIM_TRGO_RESET);
     LL_TIM_DisableMasterSlaveMode(TIM3);
-    LL_TIM_IC_SetActiveInput(TIM3, LL_TIM_CHANNEL_CH1,LL_TIM_ACTIVEINPUT_TRC);
+    LL_TIM_IC_SetActiveInput(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_ACTIVEINPUT_TRC);
     LL_TIM_IC_SetPrescaler(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_ICPSC_DIV1);
     LL_TIM_IC_SetPolarity(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_RISING);
     self.input_cap_cb = cb;
@@ -381,8 +381,10 @@ TIM3_IRQHandler()
 __INTERRUPT
 TIM17_IRQHandler()
 {
-    if (self.update_cb) {
-        self.update_cb();
+    if (LL_TIM_IsActiveFlag_UPDATE(TIM17)) {
+        if (self.update_cb) {
+            self.update_cb();
+        }
+        LL_TIM_ClearFlag_UPDATE(TIM17);
     }
-    LL_TIM_ClearFlag_UPDATE(TIM17);
 }

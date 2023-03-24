@@ -98,7 +98,8 @@ stm32_gpio_create()
 #define INIT_INPUT_PIN(port, pin)           \
     self.init.Pin  = (pin);                 \
     self.init.Mode = LL_GPIO_MODE_INPUT;    \
-    self.init.Pull = LL_GPIO_PULL_NO;       \
+    self.init.Pull = LL_GPIO_PULL_DOWN;     \
+    self.init.Alternate  = LL_GPIO_AF_0;    \
     LL_GPIO_Init((port), &self.init)
 
 #define INIT_EXTI_PIN(port, pin)                                        \

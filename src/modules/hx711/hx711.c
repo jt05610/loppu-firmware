@@ -38,28 +38,41 @@ void
 hx711_cb()
 {
     if (self.pulse_due) {
-        self.pulse_count++;
-        gpio_set_pin(
-                self.hal->gpio, self.port,
-                self.sck_pin);
-        v <<= 1;
+        if (self.pulse_count == 0) {
+            if (!gpio_read_pin(self.hal->gpio, self.port, self.data_pin)) {
+                gpio_set_pin(
+                        self.hal->gpio, self.port,
+                        self.sck_pin);
+                if (self.pulse_count < 24) {
+                    v <<= 1;
+                }
+                self.pulse_due = false;
+            }
+        } else {
+            gpio_set_pin(
+                    self.hal->gpio, self.port,
+                    self.sck_pin);
+            if (self.pulse_count < 24) {
+                v <<= 1;
+            }
+            self.pulse_due = false;
+        }
+
     } else {
         gpio_reset_pin(
                 self.hal->gpio, self.port,
                 self.sck_pin);
-        if (gpio_read_pin(self.hal->gpio, self.port, self.data_pin)) {
+        if ((self.pulse_count < 24) &&
+            gpio_read_pin(self.hal->gpio, self.port, self.data_pin)) {
             v++;
         }
+        self.pulse_count++;
+        self.pulse_due = true;
     }
-    if (self.pulse_count < self._count_to) {
-
-        self.pulse_due = !self.pulse_due;
-
-    } else {
+    if (self.pulse_count > self._count_to) {
 
         self.values[self.head] = v ^ 0x800000;
-        self.head = (self.head + 1) % 10;
-        while (gpio_read_pin(self.hal->gpio, self.port, self.data_pin));
+        self.head        = (self.head + 1) % 10;
         self.pulse_due   = true;
         self.pulse_count = 0;
         v = 0;
@@ -87,8 +100,17 @@ hx711_create(
     self.data_pin  = data_pin;
     self.port      = port;
     /* timer init */
-    timer_register_update_callback(
-            self.hal->timer, tim_inst, hx711_cb);
+
+    gpio_init_pin(hal->gpio, self.port, self.data_pin, GPIO_PIN_MODE_INPUT);
+    gpio_init_pin(hal->gpio, self.port, self.sck_pin, GPIO_PIN_MODE_NORMAL);
+    timer_set_timeout(self.hal->timer, tim_inst, 100);
+    gpio_set_pin(self.hal->gpio, self.port, self.sck_pin);
+    timer_start(self.hal->timer, tim_inst, 100000);
+    while (timer_get_tick(self.hal->timer, tim_inst) < 60);
+    gpio_reset_pin(self.hal->gpio, self.port, self.sck_pin);
+    timer_stop(self.hal->timer, tim_inst);
+    while (gpio_read_pin(self.hal->gpio, self.port, self.data_pin));
+    timer_register_update_callback(self.hal->timer, tim_inst, hx711_cb);
     timer_set_timeout(self.hal->timer, tim_inst, 1);
     timer_start(self.hal->timer, tim_inst, 100000);
     return &self;
