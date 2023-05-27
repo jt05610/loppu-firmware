@@ -16,7 +16,6 @@
 #include "config.h"
 #include "force_pump.h"
 
-#include "data_model/discrete_inputs.h"
 #include "data_model/coils.h"
 #include "data_model/input_registers.h"
 #include "data_model/holding_registers.h"
@@ -30,25 +29,26 @@ static struct force_pump_t
 {
     device_t base;
     primary_table_t tables[4];
+    HX711 sensor;
     /* Feel free to add below here: */
 
 } self = {0};
 
 Device
-force_pump_create(Peripherals hal, void * uart_inst, void * tim_inst)
+force_pump_create(force_pump_init_t * params)
 {
-    self.base.hal = hal;
-    discrete_inputs_create(&self.tables[DI_TABLE], &self.base);
-    coils_create(&self.tables[COIL_TABLE], &self.base);
-    input_registers_create(&self.tables[IR_TABLE], &self.base);
-    holding_registers_create(&self.tables[HR_TABLE], &self.base);
-    self.base.model = datamodel_create(self.tables);
+    self.base.hal = params->hal;
+    self.sensor = hx711_create(self.base.hal, params->spi_inst);
+    coils_create(&self.tables[COIL_TABLE], &self.base, params->axis);
+    input_registers_create(&self.tables[IR_TABLE], &self.base, params->axis, self.sensor);
+    holding_registers_create(&self.tables[HR_TABLE], &self.base, params->axis);
+    self.base.model       = datamodel_create(self.tables);
     app_init_t app_params = {
             .address = MODBUS_ADDRESS,
-            .serial = hal->serial,
-            .ser_inst = uart_inst,
-            .timer = hal->timer,
-            .tim_inst = tim_inst,
+            .serial = params->hal->serial,
+            .ser_inst = params->uart_inst,
+            .timer = params->hal->timer,
+            .tim_inst = params->tim_inst,
             .data_model = self.base.model
     };
     self.base.server = server_create(&app_params);
@@ -60,6 +60,7 @@ force_pump_run(Device device)
 {
     while(1) {
         server_update(device->server);
+        hx711_poll(self.sensor);
     }
 }
 

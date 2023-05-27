@@ -18,6 +18,6 @@
 #include "modbus.h"
 #include "linear_axis.h"
 
-void input_registers_create(PrimaryTable base, Device device, StepDir stepdir, Axis axis);
+void input_registers_create(PrimaryTable base, Device device, Axis axis);
 
 #endif //NEEDLE_MOVER_INPUT_REGISTERS_H

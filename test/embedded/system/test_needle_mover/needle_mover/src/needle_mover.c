@@ -37,12 +37,12 @@ static struct needle_mover_t
 
 Device
 needle_mover_create(
-        Peripherals hal, void * uart_inst, void * tim_inst,  StepDir stepdir, Axis axis)
+        Peripherals hal, void * uart_inst, void * tim_inst, Axis axis)
 {
     self.base.hal = hal;
     coils_create(&self.tables[COIL_TABLE], &self.base, axis);
-    input_registers_create(&self.tables[IR_TABLE], &self.base, stepdir, axis);
-    holding_registers_create(&self.tables[HR_TABLE], &self.base, stepdir, axis);
+    input_registers_create(&self.tables[IR_TABLE], &self.base, axis);
+    holding_registers_create(&self.tables[HR_TABLE], &self.base, axis);
     self.base.model       = datamodel_create(self.tables);
     app_init_t app_params = {
             .address = MODBUS_ADDRESS,

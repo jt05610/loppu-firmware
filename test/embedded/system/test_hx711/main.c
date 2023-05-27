@@ -39,21 +39,22 @@ tearDown()
 void
 testClockPulses()
 {
-    char     out[10] = {0, 0, 0, 0, 0, 0};
-    uint16_t t;
-    uint16_t go_to;
+    device       = hx711_create(hal, SPI1);
+    uint32_t sum;
+    uint8_t n = 0;
     while (true) {
-        t          = timer_get_tick(hal->timer, TIM17);
-        go_to      = t + 250;
-        while (t < go_to) {
-            t = timer_get_tick(hal->timer, TIM17);
-        uint16_t}
-        uint16_t v = adc_average(hal->analog);
-        itoa(v, out, 10);
-        out[strlen(out)] = '\n';
-        serial_write(hal->serial, USART1, (uint8_t *) out, strlen(out));
-        for (uint8_t i = 0; i < 10; i++) {
-            out[i] = 0;
+
+        hx711_poll(device);
+        n++;
+        if (n > 10) {
+            sum          = hx711_read(device);
+            char out[10] = {0};
+            if (sum > 0) {
+                itoa(sum, out, 10);
+                out[strlen(out)] = '\n';
+                serial_write(hal->serial, USART1, (uint8_t *) out, strlen(out));
+            }
+            n = 0;
         }
     }
 }
@@ -62,9 +63,8 @@ int
 main()
 {
     hal = bootstrap(stm32_dependency_injection, 0);
-    adc_start(hal->analog);
     serial_open(hal->serial, USART1);
-    timer_start(hal->timer, TIM17, 100000);
+    UNITY_BEGIN();
     RUN_TEST(testClockPulses);
     UNITY_END();
 }

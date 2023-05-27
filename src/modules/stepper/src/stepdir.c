@@ -23,10 +23,17 @@ static TMC_LinearRamp ramp;
 
 static stepdir_t self = {0};
 
-static inline void stop(StepDir base, uint8_t stop_type);
+static void stop(StepDir base, uint8_t stop_type);
 
-static inline int32_t
+static int32_t
 step_diff(int32_t vel, uint32_t old_accel, uint32_t new_accel);
+
+void
+stepdir_start(StepDir base)
+{
+    stepper_set_enabled(base->stepper, 1);
+    timer_start(base->stepper->hal->timer, base->stepper->tim_inst, base->freq);
+}
 
 void
 stepdir_stop(StepDir base, uint8_t stop_type)
@@ -136,7 +143,7 @@ stepdir_get_vel_max(StepDir base)
     return tmc_ramp_linear_get_maxVelocity(base->ramp);
 }
 
-uint32_t
+int32_t
 stepdir_get_accel(StepDir base)
 {
     return tmc_ramp_linear_get_acceleration(base->ramp);
@@ -174,7 +181,7 @@ stepdir_set_pos(StepDir base, int32_t pos)
 }
 
 void
-stepdir_set_accel(StepDir base, uint32_t accel)
+stepdir_set_accel(StepDir base, int32_t accel)
 {
     if (tmc_ramp_linear_get_mode(base->ramp) ==
         TMC_RAMP_LINEAR_MODE_VELOCITY) {
@@ -202,14 +209,12 @@ stepdir_set_accel(StepDir base, uint32_t accel)
 }
 
 void
-stepdir_set_vel_max(StepDir base, int32_t vel_max)
+stepdir_set_target_vel(StepDir base, int32_t vel)
 {
-    if (vel_max <= STEPDIR_MAX_VELOCITY) {
-        tmc_ramp_linear_set_maxVelocity(base->ramp, vel_max);
-    } else {
-
-        tmc_ramp_linear_set_maxVelocity(base->ramp, STEPDIR_MAX_VELOCITY);
-    }
+    tmc_ramp_linear_set_targetVelocity(
+            base->ramp, MIN(vel, STEPDIR_MAX_VELOCITY));
+    tmc_ramp_linear_set_maxVelocity(
+            base->ramp, MIN(vel, STEPDIR_MAX_VELOCITY));
 }
 
 void
@@ -226,7 +231,7 @@ stepdir_set_precision(StepDir base, uint32_t precision)
     tmc_ramp_linear_set_precision(base->ramp, precision);
 }
 
-static inline int32_t
+static int32_t
 step_diff(int32_t vel, uint32_t old_accel, uint32_t new_accel)
 {
     int64_t tmp = vel;
@@ -238,7 +243,7 @@ step_diff(int32_t vel, uint32_t old_accel, uint32_t new_accel)
     return new_steps - old_steps;
 }
 
-static inline void
+static void
 stop(StepDir base, uint8_t stop_type)
 {
     switch (stop_type) {
@@ -249,6 +254,7 @@ stop(StepDir base, uint8_t stop_type)
         case STEPDIR_STOP_NOW:
         case STEPDIR_STOP_STALL:
         default:
+            timer_stop(base->stepper->hal->timer, base->stepper->tim_inst);
             tmc_ramp_linear_set_rampVelocity(base->ramp, 0);
             ramp.accumulatorVelocity = 0;
             tmc_ramp_linear_set_targetVelocity(base->ramp, 0);
@@ -257,7 +263,7 @@ stop(StepDir base, uint8_t stop_type)
     }
 }
 
-StepDir stepdir_create(Stepper stepper,uint32_t freq,uint32_t precision)
+StepDir stepdir_create(Stepper stepper, uint32_t freq, uint32_t precision)
 {
     self.stepper             = stepper;
     self.freq                = freq;
@@ -275,13 +281,10 @@ StepDir stepdir_create(Stepper stepper,uint32_t freq,uint32_t precision)
     tmc_ramp_linear_set_acceleration(
             self.ramp, STEPDIR_DEFAULT_ACCELERATION
     );
-
     /* timer init */
     timer_register_update_callback(
             self.stepper->hal->timer, self.stepper->tim_inst,
             stepdir_periodic_job);
-    timer_set_timeout(self.stepper->hal->timer, self.stepper->tim_inst, 1);
-    timer_start(self.stepper->hal->timer, self.stepper->tim_inst, self.freq);
 
     return &self;
 }

@@ -55,7 +55,7 @@ typedef struct datalink_t * Datalink;
  * @return Pointer to instantiated datalink
  */
 Datalink
-dl_create(Serial serial, Timer timer, void * ser_inst, void * tim_inst);
+dl_create(Serial serial, Timer timer, void * ser_inst, uint8_t addr);
 
 /**
  * @brief Processes new data

@@ -62,7 +62,7 @@ test_goto()
     start_pos = stepdir_get_pos(stepdir);
     actual    = start_pos;
     pos       = stepdir_get_pos(stepdir);
-    axis_goto(axis, TARGET, 1000);
+    axis_goto(axis, TARGET);
     while ((STEPS_PER_MM * 16) > pos) {}
 
 }
@@ -103,18 +103,17 @@ main()
             .en_pin=LL_GPIO_PIN_1,
             .step_pin=LL_GPIO_PIN_4,
             .dir_pin=LL_GPIO_PIN_5,
-            .inverse_dir=true,
-            .limit_pin=LL_GPIO_PIN_0
+            .inverse_dir=false,
+            .limit_pin=LL_GPIO_PIN_7
     };
-    timer_start_microsecond_timer(hal->timer, TIM1);
     stepper = tmc2209_stepper_create(&p);
 
     stepdir = stepdir_create(stepper, STEPDIR_FREQ, STEPDIR_FREQ);
     axis    = axis_create(stepdir);
     serial_open(hal->serial, USART1);
     UNITY_BEGIN();
-    RUN_TEST(test_stops_at_max);
     RUN_TEST(test_home);
+    RUN_TEST(test_stops_at_max);
     //RUN_TEST(test_goto);
     RUN_TEST(test_nudge);
     UNITY_END();

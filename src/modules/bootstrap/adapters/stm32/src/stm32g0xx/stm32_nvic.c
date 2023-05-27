@@ -15,7 +15,7 @@
 
 #include "stm32g031xx.h"
 #include "stm32_nvic.h"
-#include "default/nvic_config.h"
+#include "nvic_config.h"
 
 #define NVIC_INIT(i, p) NVIC_SetPriority((i), (p)); NVIC_EnableIRQ((i))
 

@@ -56,6 +56,15 @@ typedef struct spi_interface_t
      */
     uint16_t (* write)(void * instance, uint8_t * src, uint16_t size);
 
+    /**
+     * @Brief performs read and write operations
+     * @param instance instantiated SPI instance
+     * @param r buffer to read to
+     * @param w buffer to write from
+     * @param size number of bytes to write/read
+     */
+    void (* transact)(void * instance, uint8_t * r, uint8_t * w, uint16_t size);
+
 } spi_interface_t;
 
 /**

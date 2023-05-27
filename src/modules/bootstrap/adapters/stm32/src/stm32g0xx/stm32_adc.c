@@ -17,12 +17,12 @@
 #include "stm32g0xx_ll_adc.h"
 
 #include "stm32_adc.h"
-#include "default/adc_config.h"
+#include "adc_config.h"
 #include "stm32_interrupts.h"
 #include "helper_macros.h"
 #include "stm32_dma.h"
-#include "default/dma_config.h"
-#include "advanced/adc_adv_config.h"
+#include "dma_config.h"
+#include "adc_adv_config.h"
 
 static struct
 {

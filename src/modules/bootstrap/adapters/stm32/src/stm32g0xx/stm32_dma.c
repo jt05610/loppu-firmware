@@ -17,10 +17,10 @@
 #include "stm32g0xx_ll_dma.h"
 #include "stm32_dma.h"
 #include "stm32_interrupts.h"
-#include "default/dma_config.h"
-#include "default/nvic_config.h"
-#include "advanced/serial_adv_config.h"
-#include "advanced/dma_adv_config.h"
+#include "dma_config.h"
+#include "nvic_config.h"
+#include "serial_adv_config.h"
+#include "dma_adv_config.h"
 #include "isr_handler.h"
 
 #define __DO(channel, func, flag) \

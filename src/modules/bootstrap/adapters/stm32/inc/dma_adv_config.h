@@ -20,8 +20,8 @@
 extern "C" {
 #endif
 
-#include "adapters/stm32/config/default/adc_config.h"
-#include "adapters/stm32/config/default/serial_config.h"
+#include "adc_config.h"
+#include "serial_config.h"
 
 /**
  * @defgroup STM32G0xx_DMAAdvConfig DMA advanced config

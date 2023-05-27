@@ -12,13 +12,12 @@
   *
   ******************************************************************************
   */
-#ifndef FORCE_PUMP_HOLDING_REGISTERS_H
-#define FORCE_PUMP_HOLDING_REGISTERS_H
+#ifndef NEEDLE_MOVER_HOLDING_REGISTERS_H
+#define NEEDLE_MOVER_HOLDING_REGISTERS_H
 
 #include "modbus.h"
 #include "linear_axis.h"
-#include "stepdir.h"
 
-void holding_registers_create(PrimaryTable base, Device device, Axis axis, StepDir stepdir);
+void holding_registers_create(PrimaryTable base, Device device, Axis axis);
 
-#endif //FORCE_PUMP_HOLDING_REGISTERS_H
+#endif //NEEDLE_MOVER_HOLDING_REGISTERS_H

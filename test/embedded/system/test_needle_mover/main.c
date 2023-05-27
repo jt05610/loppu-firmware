@@ -38,13 +38,14 @@ int main()
             .en_pin=LL_GPIO_PIN_1,
             .step_pin=LL_GPIO_PIN_4,
             .dir_pin=LL_GPIO_PIN_5,
-            .inverse_dir=true,
+            .inverse_dir=false,
             .limit_pin=LL_GPIO_PIN_0
     };
     stepper = tmc2209_stepper_create(&p);
 
     stepdir = stepdir_create(stepper, STEPDIR_FREQ, STEPDIR_FREQ);
     axis    = axis_create(stepdir);
-    self    = needle_mover_create(hal, USART1, TIM2, stepdir, axis);
+    self    = needle_mover_create(hal, USART1, TIM2,  axis);
+    //timer_start(hal->timer, TIM2, STEPDIR_FREQ);
     needle_mover_run(self);
 }

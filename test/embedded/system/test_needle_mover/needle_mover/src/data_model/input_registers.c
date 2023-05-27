@@ -16,47 +16,51 @@
 
 #include "needle_mover.h"
 #include "input_registers.h"
+#include "ic/tmc2209_stepper.h"
 
 /* end includes code */
 
 /* start macros code */
 
-#define N_INPUT_REGISTERS 2
+#define N_INPUT_REGISTERS 3
 
 /* end macros code */
 
 /* start struct code */
 
+static struct
+{
+    Device base;
+    Axis   axis;
 
-static struct {
-   Device base;
-   Axis axis;
-   StepDir stepdir;
 } self = {0};
 
 /* end struct code */
 
 static inline void read_pos(sized_array_t * dest);
+
 static inline void read_vel(sized_array_t * dest);
 
+static inline void read_tstep(sized_array_t * dest);
+
 static pt_read_t read_handlers[N_INPUT_REGISTERS] = {
-    read_pos,
-    read_vel,
+        read_pos,
+        read_vel,
+        read_tstep
 };
 
 static primary_table_interface_t interface = {
-    .read=read_handlers,
-    .write=0,
+        .read=read_handlers,
+        .write=0,
 };
 
 void
-input_registers_create(PrimaryTable base, Device device, StepDir stepdir, Axis axis)
+input_registers_create(PrimaryTable base, Device device, Axis axis)
 {
     base->vtable = &interface;
-    self.base = device;
+    self.base    = device;
 
     /* start create code */
-    self.stepdir = stepdir;
     self.axis = axis;
     /* end create code */
 }
@@ -69,8 +73,9 @@ static inline void
 read_pos(sized_array_t * dest)
 {
     /* start read_pos code */
-    uint16_t pos = stepdir_get_pos(self.stepdir);
-    UINT16_TO_UINT8_ARRAY(dest->bytes, 0, pos);
+    uint16_t pos = axis_current_pos(self.axis);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, pos);
+    dest->size = 4;
     /* end read_pos code */
 }
 
@@ -83,8 +88,23 @@ static inline void
 read_vel(sized_array_t * dest)
 {
     /* start read_vel code */
-    uint16_t vel = stepdir_get_vel(self.stepdir);
-    UINT16_TO_UINT8_ARRAY(dest->bytes, 0, vel);
+    uint16_t vel = axis_current_vel(self.axis);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, vel);
+    dest->size = 4;
+    /* end read_vel code */
+}
+
+/**
+ * @brief reads tstep
+ * @param dest Array to store results into.
+ **/
+static inline void
+read_tstep(sized_array_t * dest)
+{
+    /* start read_vel code */
+    uint16_t tstep = tmc2209_tstep_result();
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, tstep);
+    dest->size = 4;
     /* end read_vel code */
 }
 

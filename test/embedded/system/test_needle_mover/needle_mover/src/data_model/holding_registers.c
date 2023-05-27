@@ -15,14 +15,19 @@
 /* start includes code */
 
 #include "needle_mover.h"
-#include "stepdir.h"
+#include "linear_axis.h"
 #include "holding_registers.h"
+#include "ic/tmc2209_stepper.h"
+
+#define UINT16_TO_UINT8_ARRAY(array, start, value)             \
+    (array)[(start)]     = *((uint8_t *) &(value) + 1);       \
+    (array)[(start) + 1] = *((uint8_t *) &(value) + 0)
 
 /* end includes code */
 
 /* start macros code */
 
-#define N_HOLDING_REGISTERS 3
+#define N_HOLDING_REGISTERS 5
 
 /* end macros code */
 
@@ -32,9 +37,7 @@
 static struct
 {
     Device base;
-    Axis axis;
-    StepDir stepdir;
-
+    Axis   axis;
 } self = {0};
 
 /* end struct code */
@@ -51,16 +54,29 @@ static inline void read_move_to(sized_array_t * dest);
 
 static inline void write_move_to(uint16_t value);
 
+static inline void read_accel(sized_array_t * dest);
+
+static inline void write_accel(uint16_t value);
+
+static inline void read_stallguard(sized_array_t * dest);
+
+static inline void write_stallguard(uint16_t value);
+
 static pt_read_t read_handlers[N_HOLDING_REGISTERS] = {
         read_target_pos,
         read_target_vel,
         read_move_to,
+        read_accel,
+        read_stallguard,
+
 };
 
 static pt_write_t write_handlers[N_HOLDING_REGISTERS] = {
         write_target_pos,
         write_target_vel,
         write_move_to,
+        write_accel,
+        write_stallguard,
 };
 
 static primary_table_interface_t interface = {
@@ -70,13 +86,12 @@ static primary_table_interface_t interface = {
 
 void
 holding_registers_create(
-        PrimaryTable base, Device device, StepDir stepdir, Axis axis)
+        PrimaryTable base, Device device, Axis axis)
 {
     base->vtable = &interface;
     self.base    = device;
 
     /* start create code */
-    self.stepdir = stepdir;
     self.axis = axis;
     /* end create code */
 }
@@ -89,9 +104,9 @@ static inline void
 read_target_pos(sized_array_t * dest)
 {
     /* start read_target_pos code */
-
-    uint32_t v = stepdir_get_target_pos(self.stepdir);
-    UINT16_TO_UINT8_ARRAY(dest->bytes, 0, v);
+    uint32_t v = axis_get_target_pos(self.axis);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, v);
+    dest->size = 4;
     /* end read_target_pos code */
 }
 
@@ -103,7 +118,7 @@ static inline void
 write_target_pos(uint16_t value)
 {
     /* start write_target_pos code */
-    stepdir_move_to(self.stepdir, value);
+    axis_set_target_pos(self.axis, value);
     /* end write_target_pos code */
 }
 
@@ -117,9 +132,9 @@ read_target_vel(sized_array_t * dest)
 {
     /* start read_target_vel code */
 
-    uint32_t v = stepdir_get_target_vel(self.stepdir);
-    UINT16_TO_UINT8_ARRAY(dest->bytes, 0, v);
-    dest->size = 2;
+    uint16_t v = axis_get_target_vel(self.axis);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, v);
+    dest->size = 4;
 
     /* end read_target_vel code */
 }
@@ -132,7 +147,7 @@ static inline void
 write_target_vel(uint16_t value)
 {
     /* start write_target_vel code */
-    stepdir_set_vel_max(self.stepdir, value);
+    axis_set_target_vel(self.axis, value);
     /* end write_target_vel code */
 }
 
@@ -145,7 +160,9 @@ static inline void
 read_move_to(sized_array_t * dest)
 {
     /* start read_move_to code */
-
+    uint16_t v = axis_get_target_pos(self.axis) - axis_current_pos(self.axis);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, v);
+    dest->size = 4;
     /* end read_move_to code */
 }
 
@@ -157,7 +174,59 @@ static inline void
 write_move_to(uint16_t value)
 {
     /* start write_move_to code */
-    axis_goto(self.axis, value, STEPDIR_MAX_VELOCITY);
+    axis_goto(self.axis, value);
     /* end write_move_to code */
+}
+
+/**
+ * @brief reads accel
+ * @param dest Array to store results into.
+ **/
+static inline void
+read_accel(sized_array_t * dest)
+{
+    /* start read_accel code */
+    uint16_t v = axis_get_accel(self.axis);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, v);
+    dest->size = 4;
+    /* end read_accel code */
+}
+
+/**
+ * @brief writes accel
+ * @param value value to write to accel.
+ **/
+static inline void
+write_accel(uint16_t value)
+{
+    /* start write_accel code */
+    axis_set_accel(self.axis, value);
+    /* end write_accel code */
+}
+
+/**
+ * @brief reads move_to
+ * @param dest Array to store results into.
+ **/
+static inline void
+read_stallguard(sized_array_t * dest)
+{
+    /* start read_stallguard code */
+    uint16_t v = tmc2209_sg_result();
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, v);
+    dest->size = 4;
+    /* end read_stallguard code */
+}
+
+/**
+ * @brief writes stallguard
+ * @param value value to write to stallguard.
+ **/
+static inline void
+write_stallguard(uint16_t value)
+{
+    /* start write_stallguard code */
+    tmc2209_set_sg_thresh(value);
+    /* end write_stallguard code */
 }
 

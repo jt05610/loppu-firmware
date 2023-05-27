@@ -69,6 +69,8 @@ read(DataModel dm, uint8_t table, ModbusPDU pdu)
             UINT8_TO_UINT16(pdu->data.bytes, 0),
             &pdu->data
     );
+    uint16_t s = pdu->data.size - 2;
+    UINT16_TO_UINT8_ARRAY(pdu->data.bytes, 0, s);
 }
 
 static void

@@ -36,9 +36,9 @@ extern "C" {
  * @brief Basic settings for ADC peripheral
  * @{
  */
-#define STM32_ENABLE_ADC                1   /**< @brief Enable ADC peripheral */
-#define STM32_ADC_BUFFER_SIZE           100 /**< @brief # of samples to store */
-#define STM32_ADC_ENABLE_DMA            1   /**< @brief Enable DMA requests */
+#define STM32_ENABLE_ADC                0   /**< @brief Enable ADC peripheral */
+#define STM32_ADC_BUFFER_SIZE           25 /**< @brief # of samples to store */
+#define STM32_ADC_ENABLE_DMA            0   /**< @brief Enable DMA requests */
 
 /** @} */
 

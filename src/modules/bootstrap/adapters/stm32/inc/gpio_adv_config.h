@@ -115,9 +115,9 @@ extern "C"
 #define STM32_USART1_TX_PORT            GPIOB
 
 /** @brief GPIO pin for RE */
-#define STM32_USART1_RE_PIN             LL_GPIO_PIN_11
+#define STM32_USART1_RE_PIN             LL_GPIO_PIN_9
 /** @brief GPIO port for RE */
-#define STM32_USART1_RE_PORT            GPIOA
+#define STM32_USART1_RE_PORT            GPIOB
 
 /** @brief GPIO pin for DE */
 #define STM32_USART1_DE_PIN             LL_GPIO_PIN_12
@@ -176,9 +176,14 @@ extern "C"
 #define STM32_SPI1_SCK_PORT            GPIOA
 
 /** @brief GPIO pin to use for MISO */
-#define STM32_SPI1_MISO_PIN             LL_GPIO_PIN_6
+#define STM32_SPI1_MISO_PIN             LL_GPIO_PIN_11
 /** @brief GPIO port to use for MISO */
 #define STM32_SPI1_MISO_PORT            GPIOA
+
+/** @brief GPIO pin to use for MOSI */
+#define STM32_SPI1_MOSI_PIN             LL_GPIO_PIN_7
+/** @brief GPIO port to use for MOSI */
+#define STM32_SPI1_MOSI_PORT            GPIOA
 /** @} */
 
 /**

@@ -12,13 +12,13 @@
   *
   ******************************************************************************
   */
-#ifndef FORCE_PUMP_INPUT_REGISTERS_H
-#define FORCE_PUMP_INPUT_REGISTERS_H
+#ifndef NEEDLE_MOVER_INPUT_REGISTERS_H
+#define NEEDLE_MOVER_INPUT_REGISTERS_H
 
 #include "modbus.h"
-#include "stepdir.h"
-#include "analog.h"
+#include "linear_axis.h"
+#include "hx711.h"
 
-void input_registers_create(PrimaryTable base, Device device, StepDir stepdir, Analog analog);
+void input_registers_create(PrimaryTable base, Device device, Axis axis, HX711 sensor);
 
-#endif //FORCE_PUMP_INPUT_REGISTERS_H
+#endif //NEEDLE_MOVER_INPUT_REGISTERS_H

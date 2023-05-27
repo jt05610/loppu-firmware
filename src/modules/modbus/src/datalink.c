@@ -17,73 +17,59 @@ typedef struct datalink_t
     SerialPDU        rx_pdu;
     SerialPDU        tx_pdu;
     Timer            timer;
+    uint8_t          addr;
     void * serial_instance;
-    void * half_char_timer;
 } datalink_t;
 
 static datalink_t self = {0};
 
-static inline uint8_t init(Datalink dl);
+static uint8_t init(Datalink dl);
 
-static inline uint8_t idle_handler(Datalink dl);
+static uint8_t idle_handler(Datalink dl);
 
-static inline uint8_t rx_handler(Datalink dl);
+static uint8_t rx_handler(Datalink dl);
 
-static inline uint8_t control_handler(Datalink dl);
-
-static inline uint8_t tx_handler(Datalink dl);
+static uint8_t control_handler(Datalink dl);
 
 Datalink
-dl_create(Serial serial, Timer timer, void * serial_inst, void * tim_inst)
+dl_create(Serial serial, Timer timer, void * serial_inst, uint8_t addr)
 {
     self.new_data        = false;
     self.serial          = serial;
     self.timer           = timer;
     self.serial_instance = serial_inst;
-    self.half_char_timer = tim_inst;
     mod_pdu.data.bytes   = buffer;
     mod_pdu.data.size    = 0;
     self.rx_pdu          = &rx_pdu;
     self.rx_pdu->pdu     = &mod_pdu;
     self.state           = init(&self);
+    self.addr            = addr;
     return &self;
 }
+
+static uint8_t (* handlers[])(Datalink) = {
+        idle_handler,
+        rx_handler,
+        control_handler,
+};
 
 uint8_t
 dl_update(Datalink base)
 {
-    static uint8_t (* handlers[])(Datalink) = {
-            idle_handler,
-            rx_handler,
-            control_handler,
-            tx_handler,
-    };
     base->state = handlers[base->state](base);
     return base->state;
 }
 
-static inline void
-tim_update_cb(void)
-{
-    if (self.state == DL_RX_STATE) {
-        self.state = DL_CONTROL_STATE;
-    } else {
-        self.state = DL_IDLE_STATE;
-    }
-    //timer_stop(self.timer, self.half_char_timer);
-}
-
-static inline void
+static void
 serial_rx_cb()
 {
-    //timer_reset(self.timer, self.half_char_timer);
     self.state = DL_CONTROL_STATE;
 }
 
 bool
 dl_new_data(Datalink base)
 {
-    return self.new_data;
+    return base->new_data;
 }
 
 void
@@ -110,6 +96,7 @@ void dl_send(Datalink base, ModbusPDU pdu)
     } else {
 
     }
+    serial_clear(base->serial, base->serial_instance);
 }
 
 uint8_t
@@ -146,17 +133,18 @@ uint8_t
 control_handler(Datalink dl)
 {
     uint16_t size = serial_available(dl->serial, dl->serial_instance);
-    dl->rx_pdu->pdu->data.size = size - 4;
-    while (size--) {
-        process_byte(dl->rx_pdu, circ_buf_pop(dl->serial->serial_buffer));
-    }
-    self.new_data = pdu_is_valid(dl->rx_pdu);
-    serial_clear(dl->serial, dl->serial_instance);
-    return DL_IDLE_STATE;
-}
+    if (size) {
+        dl->rx_pdu->pdu->data.size = size - 4;
+        while (size--) {
+            process_byte(dl->rx_pdu, circ_buf_pop(dl->serial->serial_buffer));
+        }
+        self.new_data = (pdu_is_valid(dl->rx_pdu) &&
+                         (dl->rx_pdu->address == 0 ||
+                          dl->rx_pdu->address == self.addr));
 
-uint8_t
-tx_handler(Datalink dl)
-{
-    return 0;
+        serial_clear(dl->serial, dl->serial_instance);
+    } else {
+        serial_clear(dl->serial, dl->serial_instance);
+    }
+    return DL_IDLE_STATE;
 }

@@ -38,6 +38,11 @@ stm32_rcc_config()
 {
     sys_clock_init();
 
+
+#if STM32_ENABLE_SPI
+    spi_clock_init();
+#endif
+
 #if STM32_ENABLE_GPIO
     gpio_clock_init();
 #endif
@@ -58,10 +63,6 @@ stm32_rcc_config()
     serial_clock_init();
 #endif
 
-
-#if STM32_ENABLE_SPI
-    spi_clock_init();
-#endif
 }
 
 static inline void
