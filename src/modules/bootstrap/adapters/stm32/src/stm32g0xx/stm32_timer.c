@@ -14,9 +14,9 @@
   */
 
 #include "stm32_timer.h"
-#include "default/rcc_config.h"
-#include "default/timer_config.h"
-#include "advanced/timer_adv_config.h"
+#include "rcc_config.h"
+#include "timer_config.h"
+#include "timer_adv_config.h"
 #include "stm32g0xx_ll_tim.h"
 #include "stm32_interrupts.h"
 

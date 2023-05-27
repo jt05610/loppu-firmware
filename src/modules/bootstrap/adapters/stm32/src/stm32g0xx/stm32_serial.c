@@ -20,17 +20,19 @@
 #include "stm32g0xx_ll_dma.h"
 #include "stm32_interrupts.h"
 #include "stm32_dma.h"
-#include "advanced/serial_adv_config.h"
-#include "advanced/gpio_adv_config.h"
-#include "advanced/dma_adv_config.h"
-#include "default/dma_config.h"
+#include "serial_adv_config.h"
+#include "gpio_adv_config.h"
+#include "dma_adv_config.h"
+#include "dma_config.h"
 #include "stm32_timer.h"
 
 
 static struct
 {
     serial_base_t base;
-    bool new_data;
+    volatile bool new_data;
+    volatile bool sending;
+    volatile bool receiving;
 
     void (* rto_cb)(void);
 
@@ -305,13 +307,16 @@ write(void * instance, uint8_t * bytes, uint16_t size)
 static inline void
 read_write(void * instance, uint8_t * bytes, uint16_t n_w, uint16_t n_r)
 {
-    while (stm32_dma_channel_remaining(STM32_USART2_RX_DMA_CHANNEL));
+    //while (stm32_dma_channel_remaining(STM32_USART2_RX_DMA_CHANNEL));
+    self.sending   = true;
+    self.receiving = n_r > 0;
     stm32_dma_transfer(
             STM32_USART2_RX_DMA_CHANNEL, (uint32_t) self.uart2_rx_buffer,
             n_w + n_r);
     write(instance, bytes, n_w);
+    while (self.sending);
+    while (self.receiving);
     if (n_r) {
-        while (stm32_dma_channel_remaining(STM32_USART2_RX_DMA_CHANNEL));
         memcpy(bytes, self.uart2_rx_buffer + n_w, n_r);
     }
 }
@@ -506,6 +511,8 @@ uart2_init(LL_USART_InitTypeDef * uart_params)
     LL_USART_EnableIT_##it(inst);
 #else
     LL_USART_DisableIT_ERROR(USART2);
+    __SET_IT(USART2, TC);
+    __SET_IT(USART2, IDLE);
 #endif
 
 }
@@ -534,7 +541,7 @@ uart_init()
     uart1_init(&uart_params);
 
     LL_USART_Enable(USART1);
-    input_cap_irq(TIM3, STM32_USART1_BAUD_RATE*8, 150, byte_rx_cb);
+    input_cap_irq(TIM3, STM32_USART1_BAUD_RATE * 8, 150, byte_rx_cb);
 #endif // STM32_ENABLE_USART1
 
 #if STM32_ENABLE_USART2
@@ -560,7 +567,7 @@ available(void * instance)
 static inline void
 clear(void * instance)
 {
-    self.new_data  = false;
+    self.new_data = false;
 }
 
 static inline void
@@ -584,4 +591,12 @@ USART1_IRQHandler()
 __INTERRUPT
 USART2_IRQHandler()
 {
+    if (LL_USART_IsActiveFlag_TC(USART2)) {
+        self.sending = false;
+        LL_USART_ClearFlag_TC(USART2);
+    }
+    if (LL_USART_IsActiveFlag_IDLE(USART2)) {
+        self.receiving = false;
+        LL_USART_ClearFlag_IDLE(USART2);
+    }
 }

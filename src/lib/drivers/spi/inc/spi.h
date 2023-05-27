@@ -64,6 +64,15 @@ uint16_t spi_read(SPI self, void * spi_inst, uint8_t * dest);
  */
 uint16_t spi_write(SPI self, void * spi_inst, uint8_t * data, uint16_t size);
 
+/**
+ * @brief writes to SPI
+ * @param self SPI instance
+ * @param spi_inst If Target mcu has multiple SPIs, this is to select which one
+ * @param r Buffer to read to
+ * @param w Buffer to write from
+ * @param size size of buffer
+ */
+void spi_transact(SPI base, void * instance, uint8_t * r, uint8_t * w, uint16_t size);
 /** @} */
 
 #include "spi_private.h"

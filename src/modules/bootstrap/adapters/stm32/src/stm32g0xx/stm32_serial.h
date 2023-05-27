@@ -16,7 +16,7 @@
 #ifndef INJECTOR_STM32_SERIAL_H
 #define INJECTOR_STM32_SERIAL_H
 
-#include "default/serial_config.h"
+#include "serial_config.h"
 
 /**
  * @defgroup STM32G0xx_Serial Universal synchronous/asynchronous

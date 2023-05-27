@@ -14,11 +14,11 @@
   */
 
 #include "stm32_gpio.h"
-#include "default/gpio_config.h"
-#include "default/spi_config.h"
+#include "gpio_config.h"
+#include "spi_config.h"
 #include "stm32g0xx_ll_gpio.h"
 #include "stm32g0xx_ll_exti.h"
-#include "advanced/gpio_adv_config.h"
+#include "gpio_adv_config.h"
 #include "stm32_interrupts.h"
 
 static inline uint8_t pin_from_mask(uint32_t mask);
@@ -72,9 +72,11 @@ static struct
 {
     gpio_t              base;
     LL_GPIO_InitTypeDef init;
+    LL_EXTI_InitTypeDef exti_init;
     exti_handler_t      handlers[MAX_EXTI_HANDLERS];
     uint8_t             n_handlers;
-}                       self      = {0};
+
+} self = {0};
 
 
 GPIO
@@ -102,14 +104,15 @@ stm32_gpio_create()
     self.init.Alternate  = LL_GPIO_AF_0;    \
     LL_GPIO_Init((port), &self.init)
 
-#define INIT_EXTI_PIN(port, pin)                                        \
-    LL_EXTI_SetEXTISource(LL_EXTI_CONFIG_PORTA, pin_from_mask(pin));    \
-    LL_EXTI_DisableEvent_0_31(pin);                                     \
-    LL_EXTI_EnableIT_0_31(pin);                                         \
-    LL_EXTI_DisableFallingTrig_0_31(pin);                               \
-    LL_EXTI_EnableRisingTrig_0_31(pin);                                 \
-    LL_GPIO_SetPinPull(port, pin, LL_GPIO_PULL_NO);                     \
-    LL_GPIO_SetPinMode(port, pin, LL_GPIO_MODE_INPUT)
+#define INIT_EXTI_PIN(port, line, pin)                                 \
+    LL_EXTI_SetEXTISource(LL_EXTI_CONFIG_PORTA, (line)); \
+    self.exti_init.Line_0_31 = (pin);                        \
+    self.exti_init.LineCommand = 1;                              \
+    self.exti_init.Mode = LL_EXTI_MODE_IT;                            \
+    self.exti_init.Trigger = LL_EXTI_TRIGGER_RISING;                  \
+    LL_EXTI_Init(&self.exti_init);                                    \
+    LL_GPIO_SetPinPull((port), (pin), LL_GPIO_PULL_NO);         \
+    LL_GPIO_SetPinMode((port), (pin), LL_GPIO_MODE_INPUT);
 
 #define INIT_ADC_PIN(port, pin)             \
     self.init.Pin  = (pin);                 \
@@ -139,11 +142,10 @@ init_usart(LL_GPIO_InitTypeDef * p)
     p->Pin = STM32_USART1_RX_CAP_PIN;
     LL_GPIO_Init(STM32_USART1_RX_CAP_PORT, p);
 
-
     p->Pin       = STM32_USART1_RE_PIN;
     p->Mode      = LL_GPIO_MODE_OUTPUT;
     p->Alternate = 0;
-    LL_GPIO_Init(STM32_USART1_DE_PORT, p);
+    LL_GPIO_Init(STM32_USART1_RE_PORT, p);
 
 
 #endif // STM32_ENABLE_USART1
@@ -202,13 +204,12 @@ init_spi(LL_GPIO_InitTypeDef * p)
     p->Alternate  = LL_GPIO_AF_0;
     LL_GPIO_Init(STM32_SPI1_SCK_PORT, p);
 
-    p->Pin        = STM32_SPI1_MISO_PIN;
-    p->Mode       = LL_GPIO_MODE_ALTERNATE;
-    p->Speed      = LL_GPIO_SPEED_FREQ_LOW;
-    p->OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    p->Pull       = LL_GPIO_PULL_NO;
-    p->Alternate  = LL_GPIO_AF_0;
+    p->Pin = STM32_SPI1_MOSI_PIN;
+    LL_GPIO_Init(STM32_SPI1_MOSI_PORT, p);
+
+    p->Pin = STM32_SPI1_MISO_PIN;
     LL_GPIO_Init(STM32_SPI1_MISO_PORT, p);
+
 #endif
 
 #if STM32_ENABLE_SPI2
@@ -266,6 +267,21 @@ toggle(gpio_port_t port, gpio_pin_t pin)
     LL_GPIO_TogglePin(port, pin);
 }
 
+static uint32_t
+line_from_pin(uint32_t pin)
+{
+    uint32_t line;
+    switch (pin) {
+        case LL_GPIO_PIN_0:
+            line = LL_EXTI_CONFIG_LINE0;
+            break;
+        case LL_GPIO_PIN_7:
+            line = LL_EXTI_CONFIG_LINE7;
+            break;
+    }
+    return line;
+}
+
 static inline void
 init_pin(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode)
 {
@@ -274,7 +290,7 @@ init_pin(gpio_port_t port, gpio_pin_t pin, uint8_t pin_mode)
         INIT_NORMAL_PIN(port, pin);
             break;
         case GPIO_PIN_MODE_INTERRUPT:
-        INIT_EXTI_PIN(port, pin);
+        INIT_EXTI_PIN(port, line_from_pin(pin), pin);
             break;
         case GPIO_PIN_MODE_ANALOG:
         INIT_ADC_PIN(port, pin);
@@ -348,5 +364,12 @@ EXTI2_3_IRQHandler()
 __INTERRUPT
 EXTI4_15_IRQHandler()
 {
-
+    if (self.n_handlers) {
+        for (uint8_t i = 0; i < self.n_handlers; i++) {
+            if (self.handlers[i].check(self.handlers[i].pin)) {
+                self.handlers[i].cb();
+                self.handlers[i].clear(self.handlers[i].pin);
+            }
+        }
+    }
 }

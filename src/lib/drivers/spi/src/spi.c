@@ -51,3 +51,12 @@ spi_write(SPI base, void * instance, uint8_t * data, uint16_t size)
     }
     return ret;
 }
+
+void
+spi_transact(SPI base, void * instance, uint8_t * r, uint8_t * w, uint16_t size)
+{
+    if (base && base->vtable && base->vtable->transact) {
+        base->vtable->transact(instance, r, w, size);
+    }
+}
+

@@ -161,10 +161,10 @@ extern "C"
 #define STM32_USART2_ASYNC              1
 
 /** @brief Enable STM32 RTO interrupt */
-#define STM32_USART2_IDLE_ENABLE        0
+#define STM32_USART2_IDLE_ENABLE        1
 
 /** @brief Enable STM32 TC interrupt */
-#define STM32_USART2_TC_ENABLE          0
+#define STM32_USART2_TC_ENABLE          1
 
 /** @brief Enable STM32 PE interrupt */
 #define STM32_USART2_PE_ENABLE          0

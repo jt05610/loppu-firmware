@@ -1,4 +1,4 @@
-add_library(force_pump)
+add_library(force_pump INTERFACE)
 
 file(
     GLOB_RECURSE
@@ -6,8 +6,8 @@ file(
     src/*.*
 )
 
-target_sources(force_pump PUBLIC ${FORCE_PUMP_SOURCES})
+target_sources(force_pump INTERFACE ${FORCE_PUMP_SOURCES})
 
-target_include_directories(force_pump PUBLIC inc src/data_model)
+target_include_directories(force_pump INTERFACE inc src/data_model)
 
-target_link_libraries(force_pump PUBLIC device linear_axis)
+target_link_libraries(force_pump INTERFACE device linear_axis stepper tmc hx711)

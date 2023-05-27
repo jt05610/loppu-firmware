@@ -29,8 +29,8 @@ extern "C" {
  */
 
 #include <stdint.h>
-#include "adapters/stm32/config/default/dma_config.h"
-#include "adapters/stm32/config/default/adc_config.h"
+#include "dma_config.h"
+#include "adc_config.h"
 #include "buffer/circular_buffer.h"
 
 /** @brief Struct to pass memory address to dma */

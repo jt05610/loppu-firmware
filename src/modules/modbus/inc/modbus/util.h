@@ -21,13 +21,18 @@
 #define UINT16_TO_UINT32(values, start)                         \
 (uint32_t) (((values)[(start)] << 16) | (values)[(start) + 1])  \
 
-#define UINT16_TO_UINT8_ARRAY(array, start, value)             \
-    (array)[(start)]     = *((uint8_t *) &(value) + 1);       \
+#define UINT16_TO_UINT8_ARRAY(array, start, value)              \
+    (array)[(start)]     = *((uint8_t *) &(value) + 1);         \
     (array)[(start) + 1] = *((uint8_t *) &(value) + 0)
 
+#define INT32_TO_UINT8_ARRAY(array, start, value)               \
+    (array)[(start)]     = (value)>>24;                         \
+    (array)[(start) + 1] = (value)>>16;                         \
+    (array)[(start) + 2] = (value)>>8;                          \
+    (array)[(start) + 3] = (value)
 
 #define UINT32_TO_UINT16_ARRAY(array, start, value)            \
-    (array)[(start)]     = *((uint16_t *) &(value) + 1);      \
+    (array)[(start)]     = *((uint16_t *) &(value) + 1);       \
     (array)[(start) + 1] = *((uint16_t *) &(value) + 0)
 
 #define BYTE_COUNT(quantity)                                    \
@@ -37,8 +42,9 @@ static inline uint8_t
 build_byte(const uint8_t * bits, uint8_t n)
 {
     uint8_t      result = 0;
-    for (uint8_t i      = 0; i < n; i++)
+    for (uint8_t i      = 0; i < n; i++) {
         result |= (bits[i] << i);
+    }
     return result;
 
 }

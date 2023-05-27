@@ -21,7 +21,7 @@ ServerApp
 server_create(app_init_t * params)
 {
     self.datalink = dl_create(
-            params->serial, params->timer, params->ser_inst, params->tim_inst);
+            params->serial, params->timer, params->ser_inst, params->address);
 
     self.state    = SERVER_IDLE;
     self.data_model = params->data_model;

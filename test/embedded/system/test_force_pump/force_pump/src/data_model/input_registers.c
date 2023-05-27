@@ -15,40 +15,43 @@
 /* start includes code */
 
 #include "force_pump.h"
-#include "analog.h"
 #include "input_registers.h"
+#include "ic/tmc2209_stepper.h"
+#include "hx711.h"
 
 /* end includes code */
 
 /* start macros code */
 
-#define N_INPUT_REGISTERS 3
+#define N_INPUT_REGISTERS 4
 
 /* end macros code */
 
 /* start struct code */
 
-
 static struct
 {
-    Device  base;
-    Analog  analog;
-    StepDir stepdir;
+    Device base;
+    Axis   axis;
+    HX711  sensor;
 
 } self = {0};
 
 /* end struct code */
 
-static inline void read_force(sized_array_t * dest);
-
 static inline void read_pos(sized_array_t * dest);
 
 static inline void read_vel(sized_array_t * dest);
 
+static inline void read_tstep(sized_array_t * dest);
+
+static inline void read_force(sized_array_t * dest);
+
 static pt_read_t read_handlers[N_INPUT_REGISTERS] = {
-        read_force,
         read_pos,
         read_vel,
+        read_tstep,
+        read_force
 };
 
 static primary_table_interface_t interface = {
@@ -58,30 +61,16 @@ static primary_table_interface_t interface = {
 
 void
 input_registers_create(
-        PrimaryTable base, Device device, StepDir stepdir, Analog analog)
+        PrimaryTable base, Device device, Axis axis, HX711 sensor)
 {
     base->vtable = &interface;
     self.base    = device;
-    self.analog  = analog;
-    self.stepdir = stepdir;
-    /* start create code */
+    self.sensor  = sensor;
 
+    /* start create code */
+    self.axis = axis;
     /* end create code */
 }
-
-/**
- * @brief reads force
- * @param dest Array to store results into.
- **/
-static inline void
-read_force(sized_array_t * dest)
-{
-    uint16_t v = adc_average(self.analog);
-    /* start read_force code */
-    UINT16_TO_UINT8_ARRAY(dest->bytes, 0, v);
-    /* end read_force code */
-}
-
 
 /**
  * @brief reads pos
@@ -91,8 +80,9 @@ static inline void
 read_pos(sized_array_t * dest)
 {
     /* start read_pos code */
-    uint16_t pos = stepdir_get_pos(self.stepdir);
-    UINT16_TO_UINT8_ARRAY(dest->bytes, 0, pos);
+    uint16_t pos = axis_current_pos(self.axis);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, pos);
+    dest->size = 4;
     /* end read_pos code */
 }
 
@@ -105,8 +95,35 @@ static inline void
 read_vel(sized_array_t * dest)
 {
     /* start read_vel code */
-    uint16_t vel = stepdir_get_vel(self.stepdir);
-    UINT16_TO_UINT8_ARRAY(dest->bytes, 0, vel);
+    uint16_t vel = axis_current_vel(self.axis);
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, vel);
+    dest->size = 4;
     /* end read_vel code */
 }
 
+/**
+ * @brief reads tstep
+ * @param dest Array to store results into.
+ **/
+static inline void
+read_tstep(sized_array_t * dest)
+{
+    /* start read_vel code */
+    uint16_t tstep = tmc2209_tstep_result();
+    UINT16_TO_UINT8_ARRAY(dest->bytes, 2, tstep);
+    dest->size = 4;
+    /* end read_vel code */
+}
+
+/**
+ * @brief reads force
+ * @param dest Array to store results into.
+ **/
+static inline void
+read_force(sized_array_t * dest)
+{
+    int32_t v = hx711_read(self.sensor);
+    INT32_TO_UINT8_ARRAY(dest->bytes, 2, v);
+    dest->bytes[1] = 4;
+    dest->size = 6;
+}

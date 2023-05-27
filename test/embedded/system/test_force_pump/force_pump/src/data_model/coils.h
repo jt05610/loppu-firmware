@@ -12,12 +12,12 @@
   *
   ******************************************************************************
   */
-#ifndef FORCE_PUMP_COILS_H
-#define FORCE_PUMP_COILS_H
+#ifndef NEEDLE_MOVER_COILS_H
+#define NEEDLE_MOVER_COILS_H
 
 #include "modbus.h"
 #include "linear_axis.h"
 
 void coils_create(PrimaryTable base, Device device, Axis axis);
 
-#endif //FORCE_PUMP_COILS_H
+#endif //NEEDLE_MOVER_COILS_H

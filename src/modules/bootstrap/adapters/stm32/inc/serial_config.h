@@ -41,7 +41,7 @@ extern "C"
  * @brief whether to configure and enable USART2 instance
  * @ingroup STM32G0xx_USART2Config
  * */
-#define STM32_ENABLE_USART2             0
+#define STM32_ENABLE_USART2             1
 
 #define STM32_ENABLE_USART2_ONEWIRE     0
 

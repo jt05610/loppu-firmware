@@ -28,14 +28,24 @@ extern "C" {
 #include "device.h"
 #include "linear_axis.h"
 
+typedef struct force_pump_init_t
+{
+    Peripherals hal;
+    Axis axis;
+    void * uart_inst;
+    void * tim_inst;
+    void * spi_inst;
+
+} force_pump_init_t;
+
 /**
  * @brief Instantiates FORCE_PUMP
  * @param hal device-specific hardware abstraction layer. @see Peripherals
+ * @param Axis Linear axis instance
  * @param uart_inst Serial instance if needed by target mcu. @see Serial
  * @param tim_inst Timer instance if needed by target mcu. @see Timer
- * @param Axis Linear axis instance
  */
-Device force_pump_create(Peripherals hal, void * uart_inst, void * tim_inst, Axis axis);
+Device force_pump_create(force_pump_init_t *params);
 
 /**
  * @brief Forever loop to run device.

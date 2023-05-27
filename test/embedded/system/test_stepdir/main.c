@@ -48,12 +48,10 @@ static struct
 
 static inline void get_spinning();
 
-static inline void stall_cb();
-
 void
 setUp()
 {
-    stepdir = stepdir_create(stepper, STEPDIR_FREQ, STEPDIR_FREQ, stall_cb);
+    stepdir = stepdir_create(stepper, STEPDIR_FREQ, STEPDIR_FREQ);
     stepper_set_enabled(stepper, true);
 }
 
@@ -156,14 +154,6 @@ GETTER_TEST(test_get_status, target_pos, 0x00)
 
 SET_GET_TEST(test_set_get_pos, pos, 0x00)
 
-SET_GET_TEST(test_set_get_vel_max, vel_max, 2000)
-
-SET_GET_TEST(test_accel, accel, 5000)
-
-SET_GET_TEST(test_set_get_freq, freq, 1000)
-
-SET_GET_TEST(test_set_get_precision, precision, 10000)
-
 int
 main()
 {
@@ -185,10 +175,6 @@ main()
     stepper = tmc2209_stepper_create(&p);
 
     RUN_TEST(test_set_get_pos);
-    RUN_TEST(test_set_get_vel_max);
-    RUN_TEST(test_accel);
-    RUN_TEST(test_set_get_freq);
-    RUN_TEST(test_set_get_precision);
     RUN_TEST(test_get_status);
     RUN_TEST(test_set_get_target_pos);
     RUN_TEST(test_move_rel);
@@ -198,7 +184,6 @@ main()
     RUN_TEST(test_rotate);
     UNITY_END();
 }
-
 
 uint8_t
 unity_output_char(char a)
