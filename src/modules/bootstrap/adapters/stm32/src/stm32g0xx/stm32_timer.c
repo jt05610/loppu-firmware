@@ -20,17 +20,33 @@
 #include "stm32g0xx_ll_tim.h"
 #include "stm32_interrupts.h"
 
+#define MAX_CALLBACKS 5
+
+#define TIM1_INDEX 0
+#define TIM2_INDEX 1
+#define TIM3_INDEX 2
+#define TIM17_INDEX 3
+
+#define N_TIMERS 4
+
+typedef void (* callback)(void);
+
+typedef struct tim_inst_t
+{
+    TIM_TypeDef * timer;
+    callback update_cb[MAX_CALLBACKS];
+    callback cc_cb[MAX_CALLBACKS];
+    uint8_t  n_update_cb;
+    uint8_t  n_cc_cb;
+}            tim_inst_t;
+
 static struct
 {
     timer_base_t base;
     TIM_TypeDef * micros_timer;
-    TIM_TypeDef * update_cb_inst;
-
-    void (* update_cb)(void);
-
-    void (* input_cap_cb)(void);
-
-} self = {0};
+    tim_inst_t timers[N_TIMERS];
+    uint8_t    n_timers;
+}            self = {0};
 
 static inline void start(void * timer_instance, uint32_t freq);
 
@@ -115,14 +131,26 @@ gen_tim_init()
 
 #if STM32_ENABLE_TIM1
     INIT_GEN_TIM(1, init);
+    self.timers[TIM1_INDEX] = (tim_inst_t) {
+            .timer = TIM1,
+            .n_update_cb = 0
+    };
 #endif
 
 #if STM32_ENABLE_TIM2
     INIT_GEN_TIM(2, init);
+    self.timers[TIM2_INDEX] = (tim_inst_t) {
+            .timer = TIM2,
+            .n_update_cb = 0
+    };
 #endif
 
 #if STM32_ENABLE_TIM3
     INIT_GEN_TIM(3, init);
+    self.timers[TIM3_INDEX] = (tim_inst_t) {
+            .timer = TIM3,
+            .n_update_cb = 0
+    };
 
 #endif
 
@@ -136,16 +164,18 @@ gen_tim_init()
 
 #if STM32_ENABLE_TIM17
     INIT_GEN_TIM(17, init);
-
+    self.timers[TIM17_INDEX] = (tim_inst_t) {
+            .timer = TIM17,
+            .n_update_cb = 0
+    };
 #endif
-
 }
 
 Timer
 stm32_timer_create()
 {
     self.base.vtable = &interface;
-
+    gen_tim_init();
     return &self.base;
 }
 
@@ -306,8 +336,17 @@ stop_pwm(void * instance)
 static inline void
 reg_update_cb(void * tim_inst, void (* cb)(void))
 {
-    self.update_cb_inst = tim_inst;
-    self.update_cb      = cb;
+    for (uint8_t i = 0; i < N_TIMERS; i++) {
+        if (self.timers[i].timer == tim_inst) {
+            tim_inst_t * tim = &self.timers[i];
+            if (tim->n_update_cb >= MAX_CALLBACKS) {
+                return;
+            }
+            tim->update_cb[tim->n_update_cb++] = cb;
+            return;
+        }
+    }
+
 }
 
 void input_cap_irq(
@@ -327,54 +366,79 @@ void input_cap_irq(
             .CompareValue=timeout_ticks,
             .OCPolarity=LL_TIM_OCPOLARITY_HIGH,
     };
-    LL_TIM_OC_Init(TIM3, LL_TIM_CHANNEL_CH2, &tim_oc);
-    LL_TIM_OC_DisableFast(TIM3, LL_TIM_CHANNEL_CH2);
-    LL_TIM_SetOnePulseMode(TIM3, LL_TIM_ONEPULSEMODE_SINGLE);
-    LL_TIM_SetTriggerInput(TIM3, LL_TIM_TS_TI1F_ED);
-    LL_TIM_SetSlaveMode(TIM3, LL_TIM_SLAVEMODE_COMBINED_RESETTRIGGER);
-    LL_TIM_CC_DisableChannel(TIM3, LL_TIM_CHANNEL_CH1);
-    LL_TIM_IC_SetFilter(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
-    LL_TIM_SetAutoReload(TIM3, timeout_ticks + 10);
-    LL_TIM_DisableIT_TRIG(TIM3);
-    LL_TIM_DisableDMAReq_TRIG(TIM3);
-    LL_TIM_EnableIT_CC2(TIM3);
-    LL_TIM_DisableIT_UPDATE(TIM3);
-    LL_TIM_SetTriggerOutput(TIM3, LL_TIM_TRGO_RESET);
-    LL_TIM_DisableMasterSlaveMode(TIM3);
-    LL_TIM_IC_SetActiveInput(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_ACTIVEINPUT_TRC);
-    LL_TIM_IC_SetPrescaler(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_ICPSC_DIV1);
-    LL_TIM_IC_SetPolarity(TIM3, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_RISING);
-    self.input_cap_cb = cb;
+    LL_TIM_OC_Init(tim_inst, LL_TIM_CHANNEL_CH2, &tim_oc);
+    LL_TIM_OC_DisableFast(tim_inst, LL_TIM_CHANNEL_CH2);
+    LL_TIM_SetOnePulseMode(tim_inst, LL_TIM_ONEPULSEMODE_SINGLE);
+    LL_TIM_SetTriggerInput(tim_inst, LL_TIM_TS_TI1F_ED);
+    LL_TIM_SetSlaveMode(tim_inst, LL_TIM_SLAVEMODE_COMBINED_RESETTRIGGER);
+    LL_TIM_CC_DisableChannel(tim_inst, LL_TIM_CHANNEL_CH1);
+    LL_TIM_IC_SetFilter(tim_inst, LL_TIM_CHANNEL_CH1, LL_TIM_IC_FILTER_FDIV1);
+    LL_TIM_SetAutoReload(tim_inst, timeout_ticks + 10);
+    LL_TIM_DisableIT_TRIG(tim_inst);
+    LL_TIM_DisableDMAReq_TRIG(tim_inst);
+    LL_TIM_EnableIT_CC2(tim_inst);
+    LL_TIM_DisableIT_UPDATE(tim_inst);
+    LL_TIM_SetTriggerOutput(tim_inst, LL_TIM_TRGO_RESET);
+    LL_TIM_DisableMasterSlaveMode(tim_inst);
+    LL_TIM_IC_SetActiveInput(
+            tim_inst, LL_TIM_CHANNEL_CH1, LL_TIM_ACTIVEINPUT_TRC);
+    LL_TIM_IC_SetPrescaler(tim_inst, LL_TIM_CHANNEL_CH1, LL_TIM_ICPSC_DIV1);
+    LL_TIM_IC_SetPolarity(
+            tim_inst, LL_TIM_CHANNEL_CH1, LL_TIM_IC_POLARITY_RISING);
+    for (uint8_t i = 0; i < self.n_timers; i++) {
+        if (self.timers[i].timer == tim_inst) {
+            if (self.timers[i].n_cc_cb >= MAX_CALLBACKS) {
+                return;
+            }
+            self.timers[i].cc_cb[self.timers[i].n_cc_cb++] = cb;
+            return;
+        }
+    }
+}
+
+void
+run_update_cbs(uint8_t tim_index)
+{
+    self.timers[tim_index].update_cb[0]();
+}
+
+void
+run_cc_cbs(uint8_t tim_index)
+{
+    for (uint8_t i = 0; i < self.timers[tim_index].n_cc_cb; i++) {
+        self.timers[tim_index].cc_cb[i]();
+    }
 }
 
 __INTERRUPT
 TIM1_BRK_UP_TRG_COM_IRQHandler()
 {
-    if (self.update_cb) {
-        self.update_cb();
+    if (LL_TIM_IsActiveFlag_UPDATE(TIM1)) {
+        run_update_cbs(TIM1_INDEX);
+        LL_TIM_ClearFlag_UPDATE(TIM1);
     }
-    LL_TIM_ClearFlag_UPDATE(TIM1);
 }
 
 /** @brief TIM2 interrupt handler */
 __INTERRUPT
 TIM2_IRQHandler()
 {
-    if (self.update_cb) {
-        self.update_cb();
+    if (LL_TIM_IsActiveFlag_UPDATE(TIM2)) {
+        run_update_cbs(TIM2_INDEX);
+        LL_TIM_ClearFlag_UPDATE(TIM2);
     }
-    LL_TIM_ClearFlag_UPDATE(TIM2);
 }
 
 /** @brief TIM3 interrupt handler */
 __INTERRUPT
 TIM3_IRQHandler()
 {
+    if (LL_TIM_IsActiveFlag_UPDATE(TIM3)) {
+        run_update_cbs(TIM3_INDEX);
+        LL_TIM_ClearFlag_UPDATE(TIM3);
+    }
     if (LL_TIM_IsActiveFlag_CC2(TIM3)) {
-        LL_TIM_ClearFlag_CC2(TIM3);
-        if (self.input_cap_cb) {
-            self.input_cap_cb();
-        }
+        run_cc_cbs(TIM3_INDEX);
     }
 }
 
@@ -382,9 +446,7 @@ __INTERRUPT
 TIM17_IRQHandler()
 {
     if (LL_TIM_IsActiveFlag_UPDATE(TIM17)) {
-        if (self.update_cb) {
-            self.update_cb();
-        }
+        run_update_cbs(TIM17_INDEX);
         LL_TIM_ClearFlag_UPDATE(TIM17);
     }
 }

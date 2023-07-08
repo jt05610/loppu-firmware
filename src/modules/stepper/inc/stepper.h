@@ -18,20 +18,20 @@
 
 #include "gpio.h"
 #include <stdbool.h>
+
 /**
  * @defgroup Stepper
  * @brief Abstraction layer for stepper motor drivers
  * @{
  */
 
-typedef struct stepper_t * Stepper;
+typedef struct stepper_t *Stepper;
 
 #define STEPPER_DIR_CW   0x00
 #define STEPPER_DIR_CCW  0x01
 #define STEPPER_DIR_SAME 0xFF
 
-typedef enum microstep_t
-{
+typedef enum microstep_t {
     MS_FULL,
     MS_2,
     MS_4,

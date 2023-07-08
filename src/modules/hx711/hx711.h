@@ -23,9 +23,15 @@
 
 typedef struct hx711_t * HX711;
 
-HX711 hx711_create(Peripherals hal, void * spi_inst);
+HX711 hx711_create(
+        Peripherals hal, void * spi_inst, void * tim_inst,
+        uint32_t update_freq);
 
 int32_t hx711_read(HX711 base);
+
+void hx711_start(HX711 base);
+
+void hx711_stop(HX711 base);
 
 void hx711_poll(HX711 base);
 

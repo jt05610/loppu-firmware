@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /** @brief Enable EXTI Line 0 and 1 interrupt handler */
-#define STM32_ENABLE_EXTI0_1_IRQn                       1
+#define STM32_ENABLE_EXTI0_1_IRQn                       0
 /** @brief EXTI Line 0 and 1 interrupt priority */
 #define STM32_EXTI0_1_IRQn_PRIORITY                     0
 
@@ -30,7 +30,7 @@ extern "C" {
 #define STM32_EXTI2_3_IRQn_PRIORITY                     0
 
 /** @brief Enable EXTI Line 4 to 15 interrupt handler */
-#define STM32_ENABLE_EXTI4_15_IRQn                      0
+#define STM32_ENABLE_EXTI4_15_IRQn                      1
 /** @brief EXTI Line 4 to 15 interrupt priority */
 #define STM32_EXTI4_15_IRQn_PRIORITY                    0
 

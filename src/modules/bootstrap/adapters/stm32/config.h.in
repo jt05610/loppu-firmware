@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file   input_registers.h
+  * @file   bootstrap.h
   * @author Jonathan Taylor
-  * @date   11 Dec 2022
+  * @date   5/26/23
   * @brief  DESCRIPTION
   ******************************************************************************
   * @attention
@@ -12,11 +12,14 @@
   *
   ******************************************************************************
   */
-#ifndef NEEDLEPOSITIONER_INPUT_REGISTERS_H
-#define NEEDLEPOSITIONER_INPUT_REGISTERS_H
 
-#include "../../../../modules/modbus/inc/modbus.h"
+#ifndef INJECTOR_BOOTSTRAP_H
+#define INJECTOR_BOOTSTRAP_H
 
-void input_registers_create(PrimaryTable base, void * device);
+#cmakedefine MODBUS_ADDRESS @MODBUS_ADDRESS@
+#cmakedefine HAS_HX711 @HAS_HX711@
+#cmakedefine HAS_ADC @HAS_ADC@
+#cmakedefine HAS_A4988 @HAS_A4988@
+#cmakedefine HAS_TMC2209 @HAS_TMC2209@
 
-#endif //NEEDLEPOSITIONER_INPUT_REGISTERS_H
+#endif //INJECTOR_BOOTSTRAP_H

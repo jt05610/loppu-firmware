@@ -19,9 +19,9 @@
 
 #define IC_CHANNEL 0x00
 #define SERVER_ADDR 0x00
-#define R_SENSE 0.11f
-#define HOLD_MULTIPLIER 0.5f
 
+#define SG_THRESH 102
+#define CS_THRESH 400
 
 static struct
 {
@@ -163,11 +163,10 @@ tmc2209_stepper_create(tmc2209_init_t * params)
 
     i++;
     while (tmc2209_stepper_msg_count() < i) {
-        tmc2209_set_cs_thresh_vel(600);
+        tmc2209_set_cs_thresh_vel(CS_THRESH);
     }
     tmc2209_set_t_pwm_thresh(0);
-    tmc2209_set_sg_thresh(13);
-    timer_set_timeout(self.base.hal->timer, self.base.tim_inst, 1);
+    tmc2209_set_sg_thresh(SG_THRESH);
     stepper_set_enabled(&self.base, 0);
     return &self.base;
 }
@@ -341,7 +340,7 @@ _read_reg(uint8_t addr, uint8_t shift, uint8_t mask)
 static inline void
 _write_reg(uint8_t addr, uint16_t shift, int32_t mask, int32_t val)
 {
-    int16_t cur = tmc2209_readInt(&self.ic, addr);
+    int32_t cur = tmc2209_readInt(&self.ic, addr);
     cur &= ~mask;
     cur |= (val << shift) & mask;
     tmc2209_writeInt(&self.ic, addr, cur);

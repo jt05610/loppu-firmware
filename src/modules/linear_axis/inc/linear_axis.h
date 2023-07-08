@@ -36,6 +36,8 @@ typedef struct axis_t * Axis;
 
 Axis axis_create(StepDir stepdir);
 
+void axis_update(Axis axis);
+
 void axis_home(Axis axis);
 
 void axis_forward_stall(Axis axis);
@@ -75,5 +77,20 @@ void axis_stop(Axis axis);
 void axis_set_enabled(Axis axis, bool enabled);
 
 bool axis_get_enabled(Axis axis);
+
+/**
+ * Sets the steps/mm for the stepper
+ * @param base Axis instance
+ * @param steps_per_um steps per micrometer
+ */
+void axis_set_steps_per_mm(Axis base, int32_t steps_per_um);
+
+/**
+ * Gets the steps/mm for the stepper
+ * @param base Axis instance
+ * @return steps per mm
+ */
+int32_t axis_get_steps_per_mm(Axis base);
+
 
 #endif //INJECTOR_LINEAR_AXIS_H

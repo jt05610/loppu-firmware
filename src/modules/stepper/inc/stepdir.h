@@ -25,7 +25,7 @@ typedef struct stepdir_t * StepDir;
 #define STEPDIR_MAX_VELOCITY STEPDIR_FREQ
 #define STEPDIR_MAX_ACCELERATION 2147418111
 
-#define STEPDIR_DEFAULT_ACCELERATION (1000000)
+#define STEPDIR_DEFAULT_ACCELERATION (5000000)
 #define STEPDIR_DEFAULT_MAX_VELOCITY STEPDIR_MAX_VELOCITY
 #define STEPDIR_STOP_NORMAL 0x00
 #define STEPDIR_STOP_STALL  0x01
@@ -49,6 +49,7 @@ typedef struct stepdir_t
     volatile int32_t step_difference;
     volatile bool    accel_steps_updated;
     volatile bool    stalled;
+    volatile bool    run_periodic_job;
     uint32_t         freq;
     void * ramp;
 } stepdir_t;
@@ -67,9 +68,11 @@ void stepdir_move_to(StepDir base, int32_t pos);
 
 void stepdir_move_rel(StepDir base, int32_t pos);
 
-void stepdir_periodic_job();
+void stepdir_run_periodic_job();
 
 void stepdir_attach_limit_cb(StepDir base, void (* cb)());
+
+void stepdir_update(StepDir base);
 
 /* Getters */
 
@@ -92,5 +95,6 @@ void stepdir_set_target_vel(StepDir base, int32_t vel_max);
 void stepdir_set_accel(StepDir base, int32_t accel);
 
 void stepdir_set_ms(StepDir base, microstep_t ms);
+
 
 #endif //INJECTOR_STEPDIR_H

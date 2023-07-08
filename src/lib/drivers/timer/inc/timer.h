@@ -58,7 +58,7 @@ void timer_start(Timer self, void * timer_instance, uint32_t freq);
 void timer_stop(Timer self, void * timer_instance);
 
 /**
- * @brief Stops the timer.
+ * @brief Sets the value the timer counts to before reloading.
  * @param self Timer instance.
  * @param timer_instance Timer instance if needed by target MCU.
  * @param timeout counter value to trigger update event at

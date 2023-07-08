@@ -267,19 +267,19 @@ toggle(gpio_port_t port, gpio_pin_t pin)
     LL_GPIO_TogglePin(port, pin);
 }
 
+
 static uint32_t
 line_from_pin(uint32_t pin)
 {
     uint32_t line;
-    switch (pin) {
-        case LL_GPIO_PIN_0:
-            line = LL_EXTI_CONFIG_LINE0;
-            break;
-        case LL_GPIO_PIN_7:
-            line = LL_EXTI_CONFIG_LINE7;
-            break;
+    for (uint32_t i = 0; i < 16; i++) {
+        if (pin & (1 << i)) {
+            uint8_t shift = i / 4;
+            line = (((i*8)%32) << LL_EXTI_REGISTER_PINPOS_SHFT) | shift;
+            return line;
+        }
     }
-    return line;
+    return 0;
 }
 
 static inline void

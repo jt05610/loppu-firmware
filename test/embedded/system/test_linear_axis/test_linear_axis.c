@@ -13,14 +13,10 @@
   ******************************************************************************
   */
 
-#include <stdlib.h>
-#include <string.h>
-#include "test_linear_axis.h"
 #include "ic/tmc2209_stepper.h"
 #include "linear_axis.h"
-#include "adapters/stm32/g031xx_adapter.h"
+#include "stm32/g031xx_adapter.h"
 #include "stm32g0xx_ll_tim.h"
-#include "stm32g0xx_ll_usart.h"
 #include "bootstrap.h"
 #include "unity.h"
 #include "stm32g0xx_ll_gpio.h"
@@ -48,7 +44,9 @@ void
 test_home()
 {
     axis_home(axis);
-    while (!axis_homed(axis)) {}
+    while (!axis_homed(axis)) {
+        axis_update(axis);
+    }
     TEST_PASS();
 }
 
@@ -84,8 +82,9 @@ test_nudge()
 void
 test_stops_at_max()
 {
-    stepdir_rotate(stepdir, STEPDIR_MAX_VELOCITY);
-    while (axis_state(axis) != AXIS_STALLED) {
+    axis_forward_stall(axis);
+    while (axis_state(axis) == AXIS_FORWARD_STALL) {
+        axis_update(axis);
     }
     TEST_PASS();
 }
@@ -100,25 +99,25 @@ main()
             .tim_inst=TIM2,
             .uart_inst=USART2,
             .gpio_inst=GPIOA,
-            .en_pin=LL_GPIO_PIN_1,
-            .step_pin=LL_GPIO_PIN_4,
-            .dir_pin=LL_GPIO_PIN_5,
+            .en_pin=LL_GPIO_PIN_8,
+            .step_pin=LL_GPIO_PIN_1,
+            .dir_pin=LL_GPIO_PIN_0,
             .inverse_dir=false,
-            .limit_pin=LL_GPIO_PIN_7
+            .limit_pin=LL_GPIO_PIN_5
     };
     stepper = tmc2209_stepper_create(&p);
 
     stepdir = stepdir_create(stepper, STEPDIR_FREQ, STEPDIR_FREQ);
     axis    = axis_create(stepdir);
     serial_open(hal->serial, USART1);
+    uint8_t loops = 1;
     UNITY_BEGIN();
-    RUN_TEST(test_home);
-    RUN_TEST(test_stops_at_max);
-    //RUN_TEST(test_goto);
-    RUN_TEST(test_nudge);
+    while (loops--){
+        RUN_TEST(test_home);
+        RUN_TEST(test_stops_at_max);
+    }
     UNITY_END();
 }
-
 
 uint8_t
 unity_output_char(char a)

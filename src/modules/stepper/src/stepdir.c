@@ -75,7 +75,7 @@ stepdir_periodic_job()
     gpio_reset_pin(
             self.stepper->hal->gpio, self.stepper->port,
             self.stepper->step_pin);
-    int32_t dx = tmc_ramp_linear_compute(self.ramp);
+    int32_t dx            = tmc_ramp_linear_compute(self.ramp);
     if (dx) {
         stepper_set_dir(self.stepper, dx <= 0);
         gpio_set_pin(
@@ -90,6 +90,12 @@ stepdir_periodic_job()
         ramp.accelerationSteps += self.step_difference;
         self.accel_steps_updated = false;
     }
+}
+
+void
+stepdir_run_periodic_job()
+{
+    self.run_periodic_job = true;
 }
 
 uint8_t
@@ -268,6 +274,7 @@ StepDir stepdir_create(Stepper stepper, uint32_t freq, uint32_t precision)
     self.stepper             = stepper;
     self.freq                = freq;
     self.stalled             = false;
+    self.run_periodic_job    = false;
     self.ms                  = MS_256;
     self.old_vel             = 0;
     self.new_accel           = 0;
@@ -275,6 +282,7 @@ StepDir stepdir_create(Stepper stepper, uint32_t freq, uint32_t precision)
     self.accel_steps_updated = false;
     self.ramp                = &ramp;
     /* Ramp */
+    stepper_set_microstep(self.stepper, self.ms);
     tmc_ramp_linear_init(self.ramp);
     tmc_ramp_linear_set_precision(self.ramp, precision);
     tmc_ramp_linear_set_maxVelocity(self.ramp, STEPDIR_DEFAULT_MAX_VELOCITY);
@@ -282,9 +290,11 @@ StepDir stepdir_create(Stepper stepper, uint32_t freq, uint32_t precision)
             self.ramp, STEPDIR_DEFAULT_ACCELERATION
     );
     /* timer init */
+
+    timer_set_timeout(self.stepper->hal->timer, self.stepper->tim_inst, 1);
     timer_register_update_callback(
             self.stepper->hal->timer, self.stepper->tim_inst,
-            stepdir_periodic_job);
+            stepdir_run_periodic_job);
 
     return &self;
 }
@@ -307,7 +317,18 @@ void stepdir_set_ms(StepDir base, microstep_t ms)
     stepper_set_microstep(_STEP, base->ms);
 }
 
+void stepdir_update(StepDir base)
+{
+    if (base->run_periodic_job) {
+        stepdir_periodic_job();
+        base->run_periodic_job = false;
+    }
+}
+
 microstep_t stepdir_get_ms(StepDir base)
 {
     return stepper_get_microstep(base->stepper);
 }
+
+
+
