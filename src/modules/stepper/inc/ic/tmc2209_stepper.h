@@ -56,4 +56,6 @@ void tmc2209_set_internal_r_sense(bool value);
 
 void tmc2209_set_pdn_disable(bool value);
 
+void tmc2209_set_coolstep(bool value);
+
 #endif //INJECTOR_TMC2209_STEPPER_H

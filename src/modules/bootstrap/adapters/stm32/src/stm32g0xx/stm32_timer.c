@@ -407,8 +407,8 @@ TIM1_BRK_UP_TRG_COM_IRQHandler() {
 __INTERRUPT
 TIM2_IRQHandler() {
     if (LL_TIM_IsActiveFlag_UPDATE(TIM2)) {
-        run_update_cbs(TIM2_INDEX);
         LL_TIM_ClearFlag_UPDATE(TIM2);
+        run_update_cbs(TIM2_INDEX);
     }
 }
 

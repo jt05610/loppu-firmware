@@ -1,0 +1,5 @@
+pump:
+  csThreshold: 14000
+  sgThreshold: 255
+  homeMS: 16
+  homeVel: STEPDIR_MAX_VELOCITY / 16

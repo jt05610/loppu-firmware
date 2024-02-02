@@ -54,7 +54,6 @@ static inline bool get_enabled();
 
 static inline void periodic_job();
 
-static inline void current_setup(uint16_t mA);
 
 static stepper_interface_t interface = {
     .get_dir = get_dir,
@@ -148,7 +147,7 @@ tmc2209_stepper_create(const tmc2209_init_t *params) {
     while (tmc2209_stepper_msg_count() < i) {
         _write_reg(
             TMC2209_COOLCONF, TMC2209_SEMIN_SHIFT, TMC2209_SEMIN_MASK,
-            0b1111);
+            0b0);
     }
     i++;
     while (tmc2209_stepper_msg_count() < i) {
@@ -229,6 +228,11 @@ void tmc2209_set_pdn_disable(bool value) {
         TMC2209_GCONF, TMC2209_PDN_DISABLE_SHIFT,
         TMC2209_PDN_DISABLE_MASK,
         value);
+}
+
+void tmc2209_set_coolstep(bool value) {
+    const uint8_t v = value ? 0b1111 : 0;
+    _write_reg(TMC2209_COOLCONF, TMC2209_SEMIN_SHIFT, TMC2209_SEMIN_MASK, v);
 }
 
 static inline uint8_t

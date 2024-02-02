@@ -84,7 +84,7 @@ extern "C" {
 /** @brief Enable TIM2 interrupt handler */
 #define STM32_ENABLE_TIM2_IRQn                          1
 /** @brief TIM2 interrupt priority */
-#define STM32_TIM2_IRQn_PRIORITY                        0
+#define STM32_TIM2_IRQn_PRIORITY                        1
 
 /** @brief Enable TIM3 interrupt handler */
 #define STM32_ENABLE_TIM3_IRQn                          1

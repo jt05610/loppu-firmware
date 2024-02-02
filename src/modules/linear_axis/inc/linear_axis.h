@@ -33,6 +33,8 @@ typedef struct axis_t *Axis;
 typedef struct axis_params_t *AxisParams;
 
 typedef struct axis_params_t {
+    uint32_t home_timeout;
+    void * timeout_timer;
     int32_t max_pos;
     int32_t max_vel;
     int32_t accel;

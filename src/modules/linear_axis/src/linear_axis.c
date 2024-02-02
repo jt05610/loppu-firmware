@@ -19,6 +19,8 @@
 
 
 typedef struct axis_t {
+    uint32_t home_timeout;
+    void *timeout_timer;
     StepDir stepdir;
     volatile uint8_t state;
     microstep_t last_ms;
@@ -29,6 +31,7 @@ typedef struct axis_t {
     int32_t max_pos;
     microstep_t home_ms;
     volatile uint8_t needs_ms_change;
+    volatile bool needs_stop;
 } axis_t;
 
 #define _SD (axis->stepdir)
@@ -37,7 +40,10 @@ static axis_t self = {0};
 
 static void on_stalled();
 
-void on_stalled() {
+static void handle_stall() {
+    if (!self.needs_stop) {
+        return;
+    }
     stepdir_stop(self.stepdir, STEPDIR_STOP_NOW);
     if (self.state == AXIS_HOMING) {
         stepdir_set_pos(self.stepdir, 0);
@@ -50,6 +56,12 @@ void on_stalled() {
     } else {
         self.state = AXIS_STALLED;
     }
+    self.needs_stop = false;
+    timer_stop(self.stepdir->stepper->hal->timer, self.timeout_timer);
+}
+
+void on_stalled() {
+    self.needs_stop = true;
 }
 
 Axis
@@ -62,11 +74,23 @@ axis_create(const AxisParams params) {
     self.steps_per_m = params->steps_per_m;
     self.home_ms = params->home_ms;
     self.home_vel = params->home_vel;
+    self.timeout_timer = params->timeout_timer;
+    self.home_timeout = params->home_timeout;
     return &self;
 }
 
 void
+home_timeout() {
+    if (self.state == AXIS_HOMING || self.state == AXIS_FORWARD_STALL) {
+        on_stalled();
+    }
+    timer_stop(self.stepdir->stepper->hal->timer, self.timeout_timer);
+}
+
+void
 axis_home(const Axis axis) {
+    timer_stop(self.stepdir->stepper->hal->timer, axis->timeout_timer);
+    timer_set_interval_ms(axis->stepdir->stepper->hal->timer, axis->timeout_timer, home_timeout, axis->home_timeout);
     axis->last_ms = axis->stepdir->ms;
     stepdir_set_ms(_SD, axis->home_ms);
     stepdir_set_target_vel(_SD, -axis->home_vel);
@@ -76,6 +100,8 @@ axis_home(const Axis axis) {
 
 void
 axis_forward_stall(const Axis axis) {
+    timer_stop(self.stepdir->stepper->hal->timer, axis->timeout_timer);
+    timer_set_interval_ms(axis->stepdir->stepper->hal->timer, axis->timeout_timer, home_timeout, axis->home_timeout);
     axis->last_ms = axis->stepdir->ms;
     stepdir_set_ms(_SD, axis->home_ms);
     stepdir_set_target_vel(_SD, axis->home_vel);
@@ -189,6 +215,7 @@ axis_get_accel(const Axis axis) {
 }
 
 void axis_update(const Axis axis) {
+    handle_stall();
     stepdir_update(axis->stepdir);
     if (axis->needs_ms_change) {
         stepdir_set_ms(_SD, axis->last_ms);
