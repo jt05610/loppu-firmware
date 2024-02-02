@@ -9,5 +9,14 @@
     <mapping directory="$PROJECT_DIR$/cmake-build-simulated/_deps/unity-src" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/third_party/CMock" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/src/lib/third_party/TMC-API" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/stm32g0xx/STM32CubeG0" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/stm32g0xx/STM32CubeG0/Drivers/BSP/STM32G0316-DISCO" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/stm32g0xx/STM32CubeG0/Drivers/BSP/STM32G071B-Discovery" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/stm32g0xx/STM32CubeG0/Drivers/BSP/STM32G081B_EVAL" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/stm32g0xx/STM32CubeG0/Drivers/BSP/STM32G0C1E-EV" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/stm32g0xx/STM32CubeG0/Drivers/BSP/STM32G0xx_Nucleo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/stm32g0xx/STM32CubeG0/Drivers/BSP/STM32G0xx_Nucleo_32" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/stm32g0xx/STM32CubeG0/Drivers/CMSIS/Device/ST/STM32G0xx" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/src/lib/third_party/stm32g0xx/STM32CubeG0/Drivers/STM32G0xx_HAL_Driver" vcs="Git" />
   </component>
 </project>

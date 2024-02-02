@@ -19,13 +19,13 @@
 #include "peripherals.h"
 #include "stepper.h"
 
-typedef struct stepdir_t * StepDir;
+typedef struct stepdir_t *StepDir;
 
 #define STEPDIR_FREQ (1<<17)
 #define STEPDIR_MAX_VELOCITY STEPDIR_FREQ
 #define STEPDIR_MAX_ACCELERATION 2147418111
 
-#define STEPDIR_DEFAULT_ACCELERATION (5000000)
+#define STEPDIR_DEFAULT_ACCELERATION (STEPDIR_MAX_ACCELERATION >> 12)
 #define STEPDIR_DEFAULT_MAX_VELOCITY STEPDIR_MAX_VELOCITY
 #define STEPDIR_STOP_NORMAL 0x00
 #define STEPDIR_STOP_STALL  0x01
@@ -39,19 +39,18 @@ typedef struct stepdir_t * StepDir;
 #define STEPDIR_STATUS_STALLED  0x01 < 0x02
 #define STEPDIR_STATUS_MODE 0xFF < 0x04
 
-typedef struct stepdir_t
-{
-    Stepper          stepper;
-    microstep_t      ms;
-    uint8_t          state;
+typedef struct stepdir_t {
+    Stepper stepper;
+    microstep_t ms;
+    uint8_t state;
     volatile int32_t old_vel;
     volatile int32_t new_accel;
     volatile int32_t step_difference;
-    volatile bool    accel_steps_updated;
-    volatile bool    stalled;
-    volatile bool    run_periodic_job;
-    uint32_t         freq;
-    void * ramp;
+    volatile bool accel_steps_updated;
+    volatile bool stalled;
+    volatile bool run_periodic_job;
+    uint32_t freq;
+    void *ramp;
 } stepdir_t;
 
 StepDir stepdir_create(Stepper stepper, uint32_t freq, uint32_t precision);
@@ -70,11 +69,13 @@ void stepdir_move_rel(StepDir base, int32_t pos);
 
 void stepdir_run_periodic_job();
 
-void stepdir_attach_limit_cb(StepDir base, void (* cb)());
+void stepdir_attach_limit_cb(StepDir base, void (*cb)());
 
 void stepdir_update(StepDir base);
 
 /* Getters */
+
+bool stepdir_is_moving(StepDir base);
 
 int32_t stepdir_get_pos(StepDir base);
 

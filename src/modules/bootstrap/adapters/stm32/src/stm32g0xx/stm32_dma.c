@@ -66,30 +66,26 @@ __ENABLE(periph, TE)
 
 #define __HNDLR(flag, channel)  dma_##flag##channel##_hndl
 
-static struct
-{
-    circ_buf_t * dest_buf;
+static struct {
+    circ_buf_t *dest_buf;
 } self = {};
 
 STATIC_CIRC_BUF(uart1_dma, STM32_USART1_RX_DMA_BUFFER_SIZE);
 
 void
-stm32_start_circ_buf_channel(uint8_t channel)
-{
+stm32_start_circ_buf_channel(uint8_t channel) {
     LL_DMA_DisableChannel(DMA1, channel);
     LL_DMA_SetDataLength(DMA1, channel, STM32_USART1_RX_DMA_BUFFER_SIZE);
     LL_DMA_SetMemoryAddress(DMA1, channel, (uint32_t) uart1_dma_buffer);
     LL_DMA_EnableChannel(DMA1, channel);
 }
 
-circ_buf_t * stm32_dma_circ_buf()
-{
+circ_buf_t *stm32_dma_circ_buf() {
     return &uart1_dma;
 }
 
 void
-stm32_dma_create(stm32_dma_mem_addr_t * params)
-{
+stm32_dma_create(stm32_dma_mem_addr_t *params) {
 #if STM32_ADC_ENABLE_DMA
     __INIT_PERIPH(_ADC, params->adc);
 #endif
@@ -110,36 +106,34 @@ stm32_dma_create(stm32_dma_mem_addr_t * params)
 }
 
 void
-stm32_dma_start_channel(uint8_t channel)
-{
+stm32_dma_start_channel(uint8_t channel) {
     LL_DMA_EnableChannel(DMA1, channel);
     while (!LL_DMA_IsEnabledChannel(DMA1, channel));
 }
 
 void
-stm32_dma_stop_channel(uint8_t channel)
-{
+stm32_dma_stop_channel(uint8_t channel) {
     LL_DMA_DisableChannel(DMA1, channel);
     while (LL_DMA_IsEnabledChannel(DMA1, channel));
 }
 
 uint16_t
-stm32_dma_channel_remaining(uint8_t channel)
-{
+stm32_dma_channel_remaining(uint8_t channel) {
     return LL_DMA_GetDataLength(DMA1, channel);
 }
 
 uint8_t
-stm32_dma_transfer(uint8_t channel, uint32_t mem_addr, uint16_t len)
-{
+stm32_dma_transfer(uint8_t channel, uint32_t mem_addr, uint16_t len) {
     uint8_t started = 0;
     if (len) {
         LL_DMA_DisableChannel(DMA1, channel);
-        while (LL_DMA_IsEnabledChannel(DMA1, channel));
+        while (LL_DMA_IsEnabledChannel(DMA1, channel)) {
+        }
         LL_DMA_SetDataLength(DMA1, channel, len);
         LL_DMA_SetMemoryAddress(DMA1, channel, mem_addr);
         LL_DMA_EnableChannel(DMA1, channel);
-        while (!LL_DMA_IsEnabledChannel(DMA1, channel));
+        while (!LL_DMA_IsEnabledChannel(DMA1, channel)) {
+        }
         started = 1;
     }
     return started;
@@ -148,14 +142,14 @@ stm32_dma_transfer(uint8_t channel, uint32_t mem_addr, uint16_t len)
 #if STM32_ENABLE_DMA1_Channel1_IRQn
 
 __INTERRUPT
-DMA1_Channel1_IRQHandler()
-{
+DMA1_Channel1_IRQHandler() {
     if (LL_DMA_IsActiveFlag_TC1(DMA1)) {
         uart1_dma.head = STM32_USART1_RX_DMA_BUFFER_SIZE;
         circ_buf_transfer(self.dest_buf, &uart1_dma);
         uart1_dma.empty = true;
         LL_DMA_ClearFlag_TC1(DMA1);
-    } if (LL_DMA_IsActiveFlag_HT1(DMA1)) {
+    }
+    if (LL_DMA_IsActiveFlag_HT1(DMA1)) {
         uart1_dma.head = STM32_USART1_RX_DMA_BUFFER_SIZE / 2;
         LL_DMA_ClearFlag_HT1(DMA1);
         uart1_dma.empty = false;

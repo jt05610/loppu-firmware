@@ -29,18 +29,18 @@
 /**
  * @brief Timer is a pointer to a privately defined timer instance.
  */
-typedef struct timer_base_t * Timer;
+typedef struct timer_base_t *Timer;
 
 /**
  * @brief TimerInterface points to a struct of functions needed to implement
  *        a Timer on the target mcu.
  */
-typedef struct timer_interface_t * TimerInterface;
+typedef struct timer_interface_t *TimerInterface;
 
 /**
  * @brief PeriodicCallback points to a callback struct.
  */
-typedef struct periodic_callback_t * PeriodicCallback;
+typedef struct periodic_callback_t *PeriodicCallback;
 
 /**
  * @brief Starts a timer with specified tick frequency.
@@ -48,14 +48,14 @@ typedef struct periodic_callback_t * PeriodicCallback;
  * @param timer_instance Timer instance if needed by target MCU.
  * @param freq Tick frequency in Hz.
  */
-void timer_start(Timer self, void * timer_instance, uint32_t freq);
+void timer_start(Timer self, void *timer_instance, uint32_t freq);
 
 /**
  * @brief Stops the timer.
  * @param self Timer instance.
  * @param timer_instance Timer instance if needed by target MCU.
  */
-void timer_stop(Timer self, void * timer_instance);
+void timer_stop(Timer self, void *timer_instance);
 
 /**
  * @brief Sets the value the timer counts to before reloading.
@@ -63,7 +63,7 @@ void timer_stop(Timer self, void * timer_instance);
  * @param timer_instance Timer instance if needed by target MCU.
  * @param timeout counter value to trigger update event at
  */
-void timer_set_timeout(Timer self, void * timer_instance, uint32_t timeout);
+void timer_set_timeout(Timer self, void *timer_instance, uint32_t timeout);
 
 /**
  * @brief Gets the current tick count.
@@ -71,18 +71,19 @@ void timer_set_timeout(Timer self, void * timer_instance, uint32_t timeout);
  * @param timer_instance timer instance of MCU if needed.
  * @return Current tick of timer.
  */
-uint32_t timer_get_tick(Timer self, void * timer_instance);
+uint32_t timer_get_tick(Timer self, void *timer_instance);
 
-void timer_reset(Timer self, void * timer_instance);
+void timer_reset(Timer self, void *timer_instance);
 
 void timer_register_update_callback(
-        Timer self, void * timer_instance, void (* cb)(void));
+    Timer self, void *timer_instance, void (*cb)(void));
 
 void timer_register_pwm_callback(
-        Timer self, void * timer_instance, void (* cb)(void));
+    Timer self, void *timer_instance, void (*cb)(void));
 
 void timer_reg_periodic_job(
-        Timer self, void * timer_instance, void (* job)(void), uint32_t freq);
+    Timer self, void *timer_instance, void (*job)(void), uint32_t freq);
+
 /**
  * @defgroup Microsecond
  * @brief Provides functions for timing with microsecond precision.
@@ -94,14 +95,14 @@ void timer_reg_periodic_job(
  * @param self Timer instance.
  * @param timer_instance Any timer instance needed for the target mcu.
  */
-void timer_start_microsecond_timer(Timer self, void * timer_instance);
+void timer_start_microsecond_timer(Timer self, void *timer_instance);
 
 /**
  * @brief Stops a previously started microsecond timer.
  * @param self Timer instance
  * @param timer_instance Any timer instance needed for the target mcu
  */
-void timer_stop_microsecond_timer(Timer self, void * timer_instance);
+void timer_stop_microsecond_timer(Timer self, void *timer_instance);
 
 /**
  * @brief Blocking delay for a microsecond period if microsecond timer is
@@ -139,6 +140,8 @@ uint32_t timer_micros(Timer self);
  */
 uint32_t timer_millis(Timer self);
 
+void timer_set_interval_ms(Timer self, void *inst, void (*f)(), uint32_t interval);
+
 /** @} */
 
 /**
@@ -156,14 +159,14 @@ uint32_t timer_millis(Timer self);
  *                   Scales between 0% and 100%.
 */
 void timer_start_pwm(
-        Timer self, void * pwm_instance, uint32_t freq, uint16_t duty_cycle);
+    Timer self, void *pwm_instance, uint32_t freq, uint16_t duty_cycle);
 
 /**
  * @brief Stops pwm timer.
  * @param self Timer instance.
  * @param pwm_instance PWM timer instance if needed by target mcu.
  */
-void timer_stop_pwm(Timer self, void * pwm_instance);
+void timer_stop_pwm(Timer self, void *pwm_instance);
 
 /**
  * @brief Sets PWM frequency.
@@ -171,7 +174,7 @@ void timer_stop_pwm(Timer self, void * pwm_instance);
  * @param pwm_instance PWM timer instance if needed for target mcu.
  * @param freq PWM frequency.
  */
-void timer_set_pwm_freq(Timer self, void * pwm_instance, uint32_t freq);
+void timer_set_pwm_freq(Timer self, void *pwm_instance, uint32_t freq);
 
 /**
  * @brief Sets PWM period
@@ -179,7 +182,7 @@ void timer_set_pwm_freq(Timer self, void * pwm_instance, uint32_t freq);
  * @param pwm_instance PWM timer instance if needed for target mcu.
  * @param period Period in umber of ticks at the timer's set frequency.
  */
-void timer_set_pwm_period(Timer self, void * pwm_instance, uint32_t period);
+void timer_set_pwm_period(Timer self, void *pwm_instance, uint32_t period);
 
 /**
  * @brief Sets duty cycle for pwm.
@@ -189,7 +192,7 @@ void timer_set_pwm_period(Timer self, void * pwm_instance, uint32_t period);
  *                   Scales between 0% and 100%.
  */
 void
-timer_set_pwm_duty_cycle(Timer self, void * pwm_instance, uint16_t duty_cycle);
+timer_set_pwm_duty_cycle(Timer self, void *pwm_instance, uint16_t duty_cycle);
 
 /**
  * @brief Sets pwm callback function.
@@ -197,7 +200,7 @@ timer_set_pwm_duty_cycle(Timer self, void * pwm_instance, uint16_t duty_cycle);
  * @param cb PeriodicCallback to run.
  * @param data Any additional data needed.
  */
-void timer_set_pwm_callback(Timer self, PeriodicCallback cb, void * data);
+void timer_set_pwm_callback(Timer self, PeriodicCallback cb, void *data);
 
 /** @} */
 

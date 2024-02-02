@@ -314,8 +314,8 @@ read_write(void * instance, uint8_t * bytes, uint16_t n_w, uint16_t n_r)
             STM32_USART2_RX_DMA_CHANNEL, (uint32_t) self.uart2_rx_buffer,
             n_w + n_r);
     write(instance, bytes, n_w);
-    while (self.sending);
-    while (self.receiving);
+    while (self.sending) {}
+    while (self.receiving) {}
     if (n_r) {
         memcpy(bytes, self.uart2_rx_buffer + n_w, n_r);
     }

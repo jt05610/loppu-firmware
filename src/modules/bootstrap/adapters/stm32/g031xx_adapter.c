@@ -18,6 +18,7 @@
 
 #include "stm32g0xx/stm32_rcc.h"
 #include "stm32g0xx/stm32_adc.h"
+#include "stm32g0xx/stm32_device_id.h"
 #include "stm32g0xx/stm32_serial.h"
 #include "stm32g0xx/stm32_timer.h"
 #include "stm32g0xx/stm32_gpio.h"
@@ -28,29 +29,27 @@
 static peripherals_t self = {0};
 
 static inline void
-adc_config()
-{
+adc_config() {
 #if STM32_ENABLE_ADC
     self.analog = stm32_adc_create();
 #endif
 }
 
 static inline void
-dma_config()
-{
+dma_config() {
 #if STM32_ENABLE_DMA
     stm32_dma_mem_addr_t addr = {
 #if STM32_ADC_ENABLE_DMA
             .adc=(uint32_t) stm32_adc_get_buffer(),
 #endif
 #if STM32_ENABLE_USART1_RX_DMA
-             .usart1_rx_buffer=stm32_get_usart1_rx_circ_buffer(),
+        .usart1_rx_buffer = stm32_get_usart1_rx_circ_buffer(),
 #endif
 #if STM32_ENABLE_USART1_TX_DMA
-            .usart1_tx=0,
+        .usart1_tx = 0,
 #endif
 #if STM32_ENABLE_USART2_RX_DMA
-            .usart2_rx=(uint32_t) stm32_get_usart2_rx_buffer(),
+        .usart2_rx = (uint32_t) stm32_get_usart2_rx_buffer(),
 #endif
     };
     stm32_dma_create(&addr);
@@ -58,41 +57,38 @@ dma_config()
 }
 
 static inline void
-gpio_config()
-{
+gpio_config() {
 #if STM32_ENABLE_GPIO
     self.gpio = stm32_gpio_create();
 #endif
 }
 
 static inline void
-serial_config()
-{
+serial_config() {
 #if STM32_ENABLE_SERIAL
     self.serial = stm32_serial_create();
 #endif
 }
 
 static inline void
-timer_config()
-{
+timer_config() {
 #if STM32_ENABLE_TIMER
     self.timer = stm32_timer_create();
 #endif
 }
 
 Peripherals
-stm32_dependency_injection()
-{
+stm32_dependency_injection() {
     stm32_rcc_config();
     adc_config();
+    timer_config();
     gpio_config();
     serial_config();
     dma_config();
-    timer_config();
     stm32_nvic_config();
 #if STM32_ENABLE_SPI1
     self.spi = stm32_spi_create();
 #endif
+    self.device_id = stm32_get_device_id();
     return &self;
 }

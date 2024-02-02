@@ -27,34 +27,26 @@ extern "C"
 
 #define RX_BUFFER_SIZE 256
 
-typedef struct sized_array_t
-{
-
-    uint8_t * bytes;
+typedef struct sized_array_t {
+    uint8_t *bytes;
     uint16_t size;
 } sized_array_t;
 
 static inline void
-sized_array_create(uint8_t * data, size_t size, sized_array_t * dest)
-{
-    dest->size  = size;
+sized_array_create(uint8_t *data, const size_t size, sized_array_t *dest) {
+    dest->size = size;
     dest->bytes = data;
 }
 
 static inline bool
-equal_sized_array(sized_array_t * first, sized_array_t * second)
-{
+equal_sized_array(const sized_array_t *first, const sized_array_t *second) {
     bool ret = true;
 
-    if (first->size != second->size)
-    {
+    if (first->size != second->size) {
         ret = false;
-
     } else
-        for (size_t i = 0; i < first->size; i++)
-        {
-            if (first->bytes[i] != second->bytes[i])
-            {
+        for (size_t i = 0; i < first->size; i++) {
+            if (first->bytes[i] != second->bytes[i]) {
                 ret = false;
                 break;
             }

@@ -2,17 +2,26 @@ add_library(stm32 INTERFACE)
 
 
 file(
-    GLOB_RECURSE
-    STM32_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/*.*
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmsis/Device/ST/STM32G0xx/*.*
+        GLOB_RECURSE
+        STM32_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/Core/Startup/*.*
+        ${CMAKE_CURRENT_SOURCE_DIR}/STM32CubeG0/Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_ll_*.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/STM32CubeG0/Drivers/CMSIS/Device/ST/STM32G0xx/*.c
+
 )
 
+list(
+        REMOVE_ITEM
+        STM32_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/STM32CubeG0/Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_ll_usb.c
+)
+
+
 set(
-    STM32_INC_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmsis/Include
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmsis/Device/ST/STM32G0xx/Include
+        STM32_INC_DIRS
+        ${CMAKE_CURRENT_SOURCE_DIR}/STM32CubeG0/Drivers/CMSIS/Include
+        ${CMAKE_CURRENT_SOURCE_DIR}/STM32CubeG0/Drivers/STM32G0xx_HAL_Driver/Inc
+        ${CMAKE_CURRENT_SOURCE_DIR}/STM32CubeG0/Drivers/CMSIS/Device/ST/STM32G0xx/Include
 )
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
@@ -34,11 +43,11 @@ endif ()
 target_sources(stm32 INTERFACE ${STM32_SOURCES})
 target_include_directories(stm32 INTERFACE ${STM32_INC_DIRS})
 target_compile_definitions(
-    stm32
-    INTERFACE
-    DEBUG
-    STM32G031xx
-    USE_FULL_LL_DRIVER
+        stm32
+        INTERFACE
+        DEBUG
+        STM32G031xx
+        USE_FULL_LL_DRIVER
 )
 
 target_compile_options(stm32 INTERFACE -mcpu=cortex-m0 -mthumb -mthumb-interwork)

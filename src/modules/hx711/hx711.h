@@ -33,7 +33,7 @@ void hx711_start(HX711 base);
 
 void hx711_stop(HX711 base);
 
-void hx711_poll(HX711 base);
+bool hx711_poll(HX711 base);
 
 void hx711_reset(HX711 base);
 

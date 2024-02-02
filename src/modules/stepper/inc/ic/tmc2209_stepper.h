@@ -20,20 +20,21 @@
 #include "peripherals.h"
 
 
-typedef struct tmc2209_init_t
-{
+typedef struct tmc2209_init_t {
     Peripherals hal;
-    void * tim_inst;
-    void * uart_inst;
-    void * gpio_inst;
+    void *tim_inst;
+    void *uart_inst;
+    void *gpio_inst;
     gpio_pin_t en_pin;
     gpio_pin_t step_pin;
     gpio_pin_t dir_pin;
     bool inverse_dir;
     gpio_pin_t limit_pin;
+    int32_t sg_thresh;
+    int32_t cs_thresh;
 } tmc2209_init_t;
 
-Stepper tmc2209_stepper_create(tmc2209_init_t * params);
+Stepper tmc2209_stepper_create(const tmc2209_init_t *params);
 
 int32_t tmc2209_sg_result();
 

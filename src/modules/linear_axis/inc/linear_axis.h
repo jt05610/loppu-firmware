@@ -19,22 +19,31 @@
 #include <stdint.h>
 #include "stepdir.h"
 
-#define AXIS_IDLE 0x00
-#define AXIS_HOMING 0x01
-#define AXIS_HOMED 0x02
-#define AXIS_STALLED 0x03
-#define AXIS_FORWARD_STALL 0x04
+#define AXIS_UNKNOWN 0x00
+#define AXIS_IDLE 0x01
+#define AXIS_HOMING 0x02
+#define AXIS_HOMED 0x03
+#define AXIS_STALLED 0x04
+#define AXIS_FORWARD_STALL 0x05
+#define AXIS_MOVING 0x06
+#define AXIS_ERROR 0xFF
 
-#if 0
-#define STEPS_PER_REV 200
-#define REV_PER_MM 1
-#define STEPS_PER_MM (STEPS_PER_REV * REV_PER_MM)
-#endif
+typedef struct axis_t *Axis;
 
-#define STEPS_PER_MM 150
-typedef struct axis_t * Axis;
+typedef struct axis_params_t *AxisParams;
 
-Axis axis_create(StepDir stepdir);
+typedef struct axis_params_t {
+    int32_t max_pos;
+    int32_t max_vel;
+    int32_t accel;
+    microstep_t ms;
+    int32_t steps_per_m;
+    StepDir step_dir;
+    microstep_t home_ms;
+    int32_t home_vel;
+} axis_params_t;
+
+Axis axis_create(AxisParams params);
 
 void axis_update(Axis axis);
 
@@ -68,6 +77,10 @@ uint16_t axis_get_target_pos(Axis axis);
 
 uint16_t axis_get_target_vel(Axis axis);
 
+void axis_set_steps_per_m(Axis axis, int32_t steps_per_m);
+
+int32_t axis_get_steps_per_m(Axis axis);
+
 void axis_start(Axis axis);
 
 void axis_nudge(Axis axis, int32_t amount);
@@ -77,20 +90,5 @@ void axis_stop(Axis axis);
 void axis_set_enabled(Axis axis, bool enabled);
 
 bool axis_get_enabled(Axis axis);
-
-/**
- * Sets the steps/mm for the stepper
- * @param base Axis instance
- * @param steps_per_um steps per micrometer
- */
-void axis_set_steps_per_mm(Axis base, int32_t steps_per_um);
-
-/**
- * Gets the steps/mm for the stepper
- * @param base Axis instance
- * @return steps per mm
- */
-int32_t axis_get_steps_per_mm(Axis base);
-
 
 #endif //INJECTOR_LINEAR_AXIS_H

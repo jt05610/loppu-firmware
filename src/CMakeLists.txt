@@ -1,3 +1,5 @@
 add_subdirectory(lib)
 add_subdirectory(modules)
 add_subdirectory(devices/force_pump)
+add_subdirectory(devices/valve_2_pos)
+add_subdirectory(devices/valve_mixing)

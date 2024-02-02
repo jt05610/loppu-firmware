@@ -35,19 +35,18 @@
 /**
  * @brief Pointer to @ref peripherals_t.
  */
-typedef struct peripherals_t * Peripherals;
+typedef struct peripherals_t *Peripherals;
 
 /**
  * @brief Container of abstract hardware implementations.
  */
-typedef struct peripherals_t
-{
-    GPIO   gpio;          /**< @brief Implemented gpio instance. */
-    Serial serial;        /**< @brief Implemented serial instance. */
-    Timer  timer;         /**< @brief Implemented timer instance. */
-    Analog analog;        /**< @brief Implemented analog instance. */
-    SPI    spi;        /**< @brief Implemented analog instance. */
-
+typedef struct peripherals_t {
+    GPIO gpio; /**< @brief Implemented gpio instance. */
+    Serial serial; /**< @brief Implemented serial instance. */
+    Timer timer; /**< @brief Implemented timer instance. */
+    Analog analog; /**< @brief Implemented analog instance. */
+    SPI spi; /**< @brief Implemented analog instance. */
+    const char *device_id;
 } peripherals_t;
 
 /** @} */

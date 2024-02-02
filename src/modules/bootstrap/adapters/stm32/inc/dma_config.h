@@ -13,10 +13,10 @@
   ******************************************************************************
   */
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "OCUnusedMacroInspection"
 #ifndef DMA_CONFIG_H
 #define DMA_CONFIG_H
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedMacroInspection"
 
 #ifdef __cplusplus
 extern "C" {

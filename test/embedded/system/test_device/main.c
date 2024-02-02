@@ -14,7 +14,7 @@
   */
 
 #include "fake_device.h"
-#include "adapters/stm32/g031xx_adapter.h"
+#include "stm32/g031xx_adapter.h"
 #include "stm32g031xx.h"
 
 static Device self;
