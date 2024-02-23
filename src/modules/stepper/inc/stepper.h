@@ -105,9 +105,12 @@ bool stepper_get_enabled(Stepper base);
  */
 void stepper_periodic_job(Stepper base);
 
+int32_t stepper_get_tstep(Stepper base);
+
+int32_t stepper_get_stallguard(Stepper base);
+
 #include "stepper_private.h"
 
 /** @} */
 
 #endif //DRIVERS_STEPPER_H
-

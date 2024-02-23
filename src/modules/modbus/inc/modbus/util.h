@@ -30,6 +30,12 @@
     (array)[(start) + 2] = (value)>>8;                          \
     (array)[(start) + 3] = (value)
 
+#define UINT32_TO_UINT8_ARRAY(array, start, value)              \
+    (array)[(start)]     = *((uint8_t *) &(value) + 3);         \
+    (array)[(start) + 1] = *((uint8_t *) &(value) + 2);         \
+    (array)[(start) + 2] = *((uint8_t *) &(value) + 1);         \
+    (array)[(start) + 3] = *((uint8_t *) &(value) + 0)
+
 #define UINT8_ARRAY_TO_INT32(array, start)                      \
     ((int32_t) (array)[(start)] << 24)                          \
     | ((int32_t) (array)[(start) + 1] << 16)                    \
@@ -44,6 +50,7 @@
     ((quantity) >> 3) + ((quantity) % 8 ? 1 : 0)
 
 #define UINT16(sizedArray) UINT8_TO_UINT16((sizedArray)->bytes, 2)
+#define UINT32(sizedArray) UINT8_TO_UINT32((sizedArray)->bytes, 2)
 #define INT32(sizedArray) UINT8_ARRAY_TO_INT32((sizedArray)->bytes, 2)
 
 /* end struct code */

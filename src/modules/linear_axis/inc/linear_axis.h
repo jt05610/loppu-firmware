@@ -34,7 +34,7 @@ typedef struct axis_params_t *AxisParams;
 
 typedef struct axis_params_t {
     uint32_t home_timeout;
-    void * timeout_timer;
+    void *timeout_timer;
     int32_t max_pos;
     int32_t max_vel;
     int32_t accel;
@@ -59,31 +59,35 @@ bool axis_is_moving(Axis axis);
 
 uint8_t axis_state(Axis axis);
 
-void axis_goto(Axis axis, uint16_t position);
+void axis_goto(Axis axis, int32_t position);
 
-uint16_t axis_current_pos(Axis axis);
+int32_t axis_current_pos(Axis axis);
 
-uint16_t axis_current_vel(Axis axis);
+int32_t axis_max_pos(Axis axis);
+
+int32_t axis_current_vel(Axis axis);
 
 void axis_set_zero(Axis axis);
 
-void axis_set_accel(Axis axis, uint16_t accel);
+void axis_set_accel(Axis axis, int32_t accel);
 
 uint16_t axis_get_accel(Axis axis);
 
-void axis_set_target_pos(Axis axis, uint16_t position);
+void axis_set_target_pos(Axis axis, int32_t position);
 
-void axis_set_target_vel(Axis axis, uint16_t vel);
+void axis_set_target_vel(Axis axis, int32_t vel);
 
-uint16_t axis_get_target_pos(Axis axis);
+int32_t axis_get_target_pos(Axis axis);
 
-uint16_t axis_get_target_vel(Axis axis);
+int32_t axis_get_target_vel(Axis axis);
 
 void axis_set_steps_per_m(Axis axis, int32_t steps_per_m);
 
 int32_t axis_get_steps_per_m(Axis axis);
 
 void axis_start(Axis axis);
+
+void axis_await_stopped(Axis axis);
 
 void axis_nudge(Axis axis, int32_t amount);
 

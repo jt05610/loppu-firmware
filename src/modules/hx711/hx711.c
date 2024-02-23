@@ -26,10 +26,10 @@ static struct hx711_t {
     volatile int32_t value;
     volatile bool run_periodic_job;
 } self = {
-        .hal=0,
-        .spiInst=0,
-        .readyPulse={0x00},
-        .clockPulses={0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xa8}
+    .hal = 0,
+    .spiInst = 0,
+    .readyPulse = {0x00},
+    .clockPulses = {0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xa8}
 };
 
 void
@@ -39,7 +39,7 @@ hx711_run_periodic_job() {
 
 HX711
 hx711_create(
-        Peripherals hal, void *spi_inst, void *tim_inst, uint32_t update_freq) {
+    Peripherals hal, void *spi_inst, void *tim_inst, uint32_t update_freq) {
     self.hal = hal;
     self.spiInst = spi_inst;
     self.tim_inst = tim_inst;
@@ -48,8 +48,8 @@ hx711_create(
     timer_set_timeout(self.hal->timer, tim_inst, update_freq);
 
     timer_register_update_callback(
-            self.hal->timer, tim_inst,
-            hx711_run_periodic_job);
+        self.hal->timer, tim_inst,
+        hx711_run_periodic_job);
     return &self;
 }
 
@@ -75,17 +75,17 @@ get_bits(uint8_t buf2[7]) {
 
 bool
 hx711_poll(HX711 base) {
+    if (!base->run_periodic_job) {
+        return false;
+    }
     uint8_t fstBuf[1];
     uint8_t rxBuf[7];
     spi_transact(base->hal->spi, base->spiInst, fstBuf, base->readyPulse, 1);
     if (fstBuf[0] == 0x00) {
         spi_transact(
-                base->hal->spi, base->spiInst, rxBuf, base->clockPulses, 7);
+            base->hal->spi, base->spiInst, rxBuf, base->clockPulses, 7);
+    }
 
-    }
-    if (!base->run_periodic_job) {
-        return false;
-    }
     base->value = get_bits(rxBuf);
     base->run_periodic_job = false;
     return true;

@@ -19,6 +19,9 @@
 
 #define _STEP (base->stepper)
 
+#define IC_FREQ (12000000)
+#define MAX_TSTEP (0x000FFFFF)
+
 static TMC_LinearRamp ramp;
 
 static stepdir_t self = {0};
@@ -130,7 +133,11 @@ stepdir_get_target_pos(StepDir base) {
 
 int32_t
 stepdir_get_vel(StepDir base) {
-    return tmc_ramp_linear_get_rampVelocity(base->ramp);
+    const int32_t tstep = stepper_get_tstep(base->stepper);
+    if (tstep >= MAX_TSTEP) {
+        return 0;
+    }
+    return IC_FREQ / tstep;
 }
 
 int32_t
@@ -250,6 +257,7 @@ stop(StepDir base, uint8_t stop_type) {
     switch (stop_type) {
         case STEPDIR_STOP_NORMAL:
             tmc_ramp_linear_set_targetVelocity(base->ramp, 0);
+            tmc_ramp_linear_set_rampVelocity(base->ramp, 0);
             tmc_ramp_linear_set_mode(base->ramp, TMC_RAMP_LINEAR_MODE_VELOCITY);
             break;
         case STEPDIR_STOP_NOW:
@@ -315,7 +323,11 @@ void stepdir_update(StepDir base) {
 }
 
 bool stepdir_is_moving(StepDir base) {
-    return tmc_ramp_linear_get_rampPosition(base->ramp) != tmc_ramp_linear_get_targetPosition(base->ramp);
+    if (tmc_ramp_linear_get_mode(base->ramp) == TMC_RAMP_LINEAR_MODE_VELOCITY) {
+        return tmc_ramp_linear_get_rampVelocity(base->ramp) != 0;
+    }
+    return tmc_ramp_linear_get_rampVelocity(base->ramp) != 0 || tmc_ramp_linear_get_targetVelocity(base->ramp) != 0 ||
+           tmc_ramp_linear_get_rampPosition(base->ramp) != tmc_ramp_linear_get_targetPosition(base->ramp);
 }
 
 microstep_t stepdir_get_ms(StepDir base) {

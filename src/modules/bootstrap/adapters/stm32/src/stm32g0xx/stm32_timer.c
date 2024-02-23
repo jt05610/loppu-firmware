@@ -119,6 +119,7 @@ p.CounterMode   = __GET(inst, COUNTER_MODE);                        \
 p.Autoreload    = __GET(inst, AUTORELOAD);                          \
 p.ClockDivision = __GET(inst, CLOCK_DIV);                           \
 LL_TIM_Init(TIM##inst, &p);                                         \
+LL_TIM_DisableIT_UPDATE(TIM##inst);                                  \
 __GET(inst, ENABLE_PRELOAD) ? LL_TIM_EnableARRPreload(TIM##inst)    \
                             : LL_TIM_DisableARRPreload(TIM##inst);  \
 LL_TIM_SetClockSource(TIM##inst, __GET(inst, CLOCK_SOURCE))
@@ -205,6 +206,7 @@ start(void *timer_instance, uint32_t freq) {
         );
     }
 
+    LL_TIM_SetCounter(timer_instance, 0);
     LL_TIM_EnableCounter((TIM_TypeDef *) timer_instance);
     while (!LL_TIM_IsEnabledCounter((TIM_TypeDef *) timer_instance));
 }
@@ -317,6 +319,7 @@ reg_update_cb(void *tim_inst, void (*cb)(void)) {
             }
             tim->update_cb[tim->n_update_cb++] = cb;
             LL_TIM_EnableIT_UPDATE(tim_inst);
+            LL_TIM_ClearFlag_UPDATE(tim_inst);
             return;
         }
     }

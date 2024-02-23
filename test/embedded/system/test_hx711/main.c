@@ -36,13 +36,13 @@ tearDown() {
 
 void
 testClockPulses() {
-    device = hx711_create(hal, SPI1, TIM2, 75);
+    device = hx711_create(hal, SPI1, TIM17, 75);
     hx711_start(device);
     uint32_t sum;
     uint32_t n_updates = 10000;
     while (n_updates) {
         if (hx711_poll(device)) {
-            char out[9] = {0};
+            char out[10] = {0};
             sum = hx711_read(device);
             if (sum > 10000 && sum != 3408127) {
                 n_updates--;

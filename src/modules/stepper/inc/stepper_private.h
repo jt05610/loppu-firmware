@@ -38,6 +38,9 @@ typedef struct stepper_interface_t {
 
     void (*periodic_job)();
 
+    int32_t (*get_tstep)();
+
+    int32_t (*get_stall)();
 } stepper_interface_t;
 
 typedef struct stepper_t {

@@ -89,8 +89,8 @@ timer_millis(Timer self) {
 }
 
 void timer_set_interval_ms(Timer self, void *inst, void (*f)(), uint32_t interval) {
-    timer_set_timeout(self, inst, interval);
     timer_register_update_callback(self, inst, f);
+    timer_set_timeout(self, inst, interval);
     timer_start(self, inst, 1000);
 }
 

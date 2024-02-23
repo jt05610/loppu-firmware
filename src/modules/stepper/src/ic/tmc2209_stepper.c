@@ -54,6 +54,10 @@ static inline bool get_enabled();
 
 static inline void periodic_job();
 
+static int32_t tstep_result();
+
+static int32_t stall_result();
+
 
 static stepper_interface_t interface = {
     .get_dir = get_dir,
@@ -65,6 +69,8 @@ static stepper_interface_t interface = {
     .set_enabled = set_enabled,
     .get_enabled = get_enabled,
     .periodic_job = periodic_job,
+    .get_tstep = tstep_result,
+    .get_stall = stall_result
 };
 
 void
@@ -287,6 +293,14 @@ get_enabled() {
 static inline void
 periodic_job() {
     tmc2209_periodicJob(&self.ic, 0);
+}
+
+int32_t tstep_result() {
+    return tmc2209_tstep_result();
+}
+
+int32_t stall_result() {
+    return tmc2209_sg_result();
 }
 
 

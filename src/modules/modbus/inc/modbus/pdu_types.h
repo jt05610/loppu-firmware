@@ -8,42 +8,36 @@
 #include "project_types.h"
 #include "crc.h"
 
-typedef struct modbus_pdu_t * ModbusPDU;
-typedef struct serial_pdu_t * SerialPDU;
+typedef struct modbus_pdu_t *ModbusPDU;
+typedef struct serial_pdu_t *SerialPDU;
 
-typedef struct modbus_pdu_t
-{
-    uint8_t       func_code;
+typedef struct modbus_pdu_t {
+    uint8_t func_code;
     sized_array_t data;
-
 } modbus_pdu_t;
 
-typedef struct serial_pdu_t
-{
-    uint8_t   address;
+typedef struct serial_pdu_t {
+    uint8_t address;
     ModbusPDU pdu;
-    uint16_t  crc;
+    uint16_t crc;
 } serial_pdu_t;
 
 static inline void
-create_modbus_pdu(uint8_t f_code, uint8_t * data, size_t size, ModbusPDU dest)
-{
+create_modbus_pdu(uint8_t f_code, uint8_t *data, size_t size, ModbusPDU dest) {
     dest->func_code = f_code;
     sized_array_create(data, size, &dest->data);
 }
 
 static inline void
-create_serial_pdu(uint8_t addr, ModbusPDU pdu, uint16_t crc, SerialPDU dest)
-{
+create_serial_pdu(uint8_t addr, ModbusPDU pdu, uint16_t crc, SerialPDU dest) {
     dest->address = addr;
-    dest->pdu     = pdu;
-    dest->crc     = crc;
+    dest->pdu = pdu;
+    dest->crc = crc;
 }
 
 static inline void
-serialize_modbus_pdu(ModbusPDU pdu, sized_array_t * dest)
-{
-    for (size_t i      = pdu->data.size; i > 0; i--) {
+serialize_modbus_pdu(ModbusPDU pdu, sized_array_t *dest) {
+    for (size_t i = pdu->data.size; i > 0; i--) {
         pdu->data.bytes[i] = pdu->data.bytes[i - 1];
     }
     pdu->data.bytes[0] = pdu->func_code;
@@ -51,10 +45,9 @@ serialize_modbus_pdu(ModbusPDU pdu, sized_array_t * dest)
 }
 
 static inline void
-serialize_serial_pdu(SerialPDU data, sized_array_t * dest)
-{
-    dest->bytes    = data->pdu->data.bytes;
-    for (size_t i  = data->pdu->data.size; i > 0; i--) {
+serialize_serial_pdu(SerialPDU data, sized_array_t *dest) {
+    dest->bytes = data->pdu->data.bytes;
+    for (size_t i = data->pdu->data.size; i > 0; i--) {
         dest->bytes[i + 1] = dest->bytes[i - 1];
     }
     dest->bytes[0] = data->address;
@@ -65,23 +58,20 @@ serialize_serial_pdu(SerialPDU data, sized_array_t * dest)
 }
 
 static inline uint8_t
-extract_address(SerialPDU pdu, uint8_t byte)
-{
+extract_address(SerialPDU pdu, uint8_t byte) {
     pdu->address = byte;
     return 1;
 }
 
 static inline uint8_t
-extract_func_code(SerialPDU pdu, uint8_t byte)
-{
+extract_func_code(SerialPDU pdu, uint8_t byte) {
     pdu->pdu->func_code = byte;
     return 2;
 }
 
 static inline uint8_t
-extract_data(SerialPDU pdu, uint8_t byte)
-{
-    uint8_t         ret = 2;
+extract_data(SerialPDU pdu, uint8_t byte) {
+    uint8_t ret = 2;
     static uint16_t pos = 0;
     pdu->pdu->data.bytes[pos++] = byte;
     if (pos == pdu->pdu->data.size) {
@@ -93,32 +83,29 @@ extract_data(SerialPDU pdu, uint8_t byte)
 }
 
 static inline uint8_t
-extract_crc_first(SerialPDU pdu, uint8_t byte)
-{
+extract_crc_first(SerialPDU pdu, uint8_t byte) {
     pdu->crc = byte;
     return 4;
 }
 
 static inline uint8_t
-extract_crc_second(SerialPDU pdu, uint8_t byte)
-{
+extract_crc_second(SerialPDU pdu, uint8_t byte) {
     pdu->crc += 256U * byte;
     return 0;
 }
 
-typedef uint8_t (* extractor)(SerialPDU, uint8_t byte);
+typedef uint8_t (*extractor)(SerialPDU, uint8_t byte);
 
 static inline void
-process_byte(SerialPDU pdu, uint8_t byte)
-{
+process_byte(SerialPDU pdu, uint8_t byte) {
     static uint8_t state = 0;
 
     static extractor extractors[5] = {
-            extract_address,
-            extract_func_code,
-            extract_data,
-            extract_crc_first,
-            extract_crc_second,
+        extract_address,
+        extract_func_code,
+        extract_data,
+        extract_crc_first,
+        extract_crc_second,
     };
     state = extractors[state](pdu, byte);
 }
@@ -130,25 +117,23 @@ process_byte(SerialPDU pdu, uint8_t byte)
 
 
 static inline void
-deserialize_pdu(sized_array_t * array, SerialPDU pdu)
-{
-    pdu->address        = *array->bytes++;
+deserialize_pdu(sized_array_t *array, SerialPDU pdu) {
+    pdu->address = *array->bytes++;
     pdu->pdu->func_code = *array->bytes++;
-    pdu->crc            = 256U * array->bytes[array->size - 3]
-                          + array->bytes[array->size - 4];
+    pdu->crc = 256U * array->bytes[array->size - 3]
+               + array->bytes[array->size - 4];
     create_modbus_pdu(
-            pdu->pdu->func_code, array->bytes, array->size - 4, pdu->pdu
+        pdu->pdu->func_code, array->bytes, array->size - 4, pdu->pdu
     );
 }
 
 static inline bool
-equal_serial_pdu(SerialPDU first, SerialPDU second)
-{
+equal_serial_pdu(SerialPDU first, SerialPDU second) {
     bool ret = false;
     if (first->address == second->address
         && first->crc == second->crc
         && first->pdu->func_code == second->pdu->func_code
-            ) {
+    ) {
         if (equal_sized_array(&first->pdu->data, &second->pdu->data)) {
             ret = true;
         }
@@ -157,8 +142,7 @@ equal_serial_pdu(SerialPDU first, SerialPDU second)
 }
 
 static inline uint16_t
-pdu_crc16(uint8_t address, ModbusPDU pdu)
-{
+pdu_crc16(uint8_t address, ModbusPDU pdu) {
     sized_array_t array;
     array.size = pdu->data.size + 2;
     static uint8_t bytes[256];
@@ -172,14 +156,12 @@ pdu_crc16(uint8_t address, ModbusPDU pdu)
 }
 
 static inline bool
-pdu_is_valid(SerialPDU pdu)
-{
+pdu_is_valid(SerialPDU pdu) {
     return pdu_crc16(pdu->address, pdu->pdu) == pdu->crc;
 }
 
 static inline void
-pdu_format(uint8_t address, ModbusPDU pdu, SerialPDU dest)
-{
+pdu_format(uint8_t address, ModbusPDU pdu, SerialPDU dest) {
     create_serial_pdu(address, pdu, pdu_crc16(address, pdu), dest);
 }
 

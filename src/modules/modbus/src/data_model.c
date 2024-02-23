@@ -17,6 +17,7 @@
 
 #include <string.h>
 
+#include "modbus/func_codes.h"
 #include "modbus/util.h"
 
 static data_model_t self = {0};
@@ -28,11 +29,11 @@ datamodel_create(const PrimaryTable tables, device_info_t *device_info) {
     return &self;
 }
 
-static void read(DataModel dm, uint8_t table, ModbusPDU pdu);
+static void read(DataModel dm, uint8_t table, uint16_t addr, sized_array_t *dest);
 
-static void write(DataModel dm, uint8_t table, ModbusPDU pdu);
+static void write(DataModel dm, uint8_t table, uint16_t addr, sized_array_t *dest);
 
-typedef void (*handler_t)(DataModel dm, uint8_t table, ModbusPDU pdu);
+typedef void (*handler_t)(DataModel dm, uint8_t table, uint16_t addr, sized_array_t *dest);
 
 typedef struct dm_action_t {
     handler_t handler;
@@ -144,10 +145,40 @@ device_id_handle(const DataModel base, const ModbusPDU pdu) {
 }
 
 void
+handle_read_multiple(const DataModel base, const ModbusPDU pdu) {
+    const uint16_t start_addr = UINT8_TO_UINT16(pdu->data.bytes, 0);
+    const uint16_t read_quantity = UINT8_TO_UINT16(pdu->data.bytes, 2);
+    uint16_t bytes_written = 0;
+    for (uint8_t i = 0; i < read_quantity; i++) {
+        // write to the sized array in the pdu
+        const uint16_t addr = start_addr + i;
+        const dm_action_t *action = &handlers[pdu->func_code - 1];
+        // read the value from the table
+        action->handler(base, action->table, addr, &pdu->data);
+        const uint16_t new_bytes = pdu->data.size - 2;
+        // shift the buffer by how many bytes we've written
+        pdu->data.bytes += new_bytes;
+        // keep track of the total buffer shift
+        bytes_written += new_bytes;
+    }
+    // set the pdu size to the total buffer shift
+    pdu->data.size = bytes_written + 1;
+    pdu->data.bytes -= bytes_written;
+    for (uint8_t i = 0; i < pdu->data.size; i++) {
+        pdu->data.bytes[i] = pdu->data.bytes[i + 1];
+    }
+    pdu->data.bytes[0] = bytes_written;
+}
+
+void
 datamodel_handle(const DataModel base, const ModbusPDU pdu) {
+    if (pdu->func_code < 0x05) {
+        return handle_read_multiple(base, pdu);
+    }
     if (pdu->func_code < 0x07) {
         const dm_action_t *action = &handlers[pdu->func_code - 1];
-        action->handler(base, action->table, pdu);
+        const uint16_t addr = UINT8_TO_UINT16(pdu->data.bytes, 0);
+        action->handler(base, action->table, addr, &pdu->data);
     }
     if (pdu->func_code == 0x2B) {
         device_id_handle(base, pdu);
@@ -155,22 +186,19 @@ datamodel_handle(const DataModel base, const ModbusPDU pdu) {
 }
 
 static void
-read(const DataModel dm, const uint8_t table, const ModbusPDU pdu) {
-    pdu->data.size = UINT8_TO_UINT16(pdu->data.bytes, 2) * (1 + ~(table >> 1));
+read(DataModel dm, uint8_t table, uint16_t addr, sized_array_t *dest) {
+    dest->size = UINT8_TO_UINT16(dest->bytes, 2) * (1 + ~(table >> 1));
     primary_table_read(
         &dm->tables[table],
-        UINT8_TO_UINT16(pdu->data.bytes, 0),
-        &pdu->data
+        addr,
+        dest
     );
-    uint16_t s = pdu->data.size - 2;
-    UINT16_TO_UINT8_ARRAY(pdu->data.bytes, 0, s);
 }
 
-static void
-write(const DataModel dm, const uint8_t table, const ModbusPDU pdu) {
+static void write(DataModel dm, uint8_t table, uint16_t addr, sized_array_t *dest) {
     primary_table_write(
         &dm->tables[table],
-        UINT8_TO_UINT16(pdu->data.bytes, 0),
-        &pdu->data
+        addr,
+        dest
     );
 }

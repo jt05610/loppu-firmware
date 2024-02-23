@@ -82,3 +82,15 @@ stepper_periodic_job(Stepper base)
     if (base && base->vtable && base->vtable->periodic_job)
         base->vtable->periodic_job();
 }
+
+int32_t stepper_get_tstep(Stepper base) {
+    if (base && base->vtable && base->vtable->get_tstep)
+        return base->vtable->get_tstep();
+    return 0;
+}
+
+int32_t stepper_get_stallguard(Stepper base) {
+    if (base && base->vtable && base->vtable->get_stall)
+        return base->vtable->get_stall();
+    return 0;
+}

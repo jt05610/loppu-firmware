@@ -33,27 +33,27 @@ static Axis axis;
 
 uint16_t pos;
 
-//#define FORCE_PUMP
+#define FORCE_PUMP
 
 #ifdef FORCE_PUMP
-#define SG_THRESH 255
-#define CS_THRESH 100000
+#define SG_THRESH 250
+#define CS_THRESH 10000
 #define HOME_MS MS_16
-#define HOME_VEL STEPDIR_MAX_VELOCITY / 20
+#define HOME_VEL STEPDIR_MAX_VELOCITY / 8
 #define INVERSE_DIR false
 #define STEPS_PER_REV 200
 #define MM_PER_REV 72
 #define STEPS_PER_MM (STEPS_PER_REV / MM_PER_REV)
 #define STEPS_PER_M (STEPS_PER_MM * 1000)
 #define HOME_TIMEOUT 3000
-#define TEST_VEL 50000
-#define MAX_POS 50000
+#define TEST_VEL 100000
+#define MAX_POS 40000
 #define MIN_POS 0
 #else
 #define SG_THRESH 250
 #define CS_THRESH 20000
-#define HOME_MS MS_8
-#define HOME_VEL STEPDIR_MAX_VELOCITY / 16
+#define HOME_MS MS_16
+#define HOME_VEL STEPDIR_MAX_VELOCITY / 8
 #define INVERSE_DIR true
 #define STEPS_PER_REV 200
 #define MM_PER_REV 1
@@ -115,40 +115,44 @@ void setShouldPrint() {
 
 void
 test_home() {
-    //timer_set_interval_ms(hal->timer, TIM17, setShouldPrint, 100);
     axis_home(axis);
-    while (!axis_homed(axis)) {
+    while (axis_state(axis) == AXIS_HOMING) {
         axis_update(axis);
+
     }
-    axis_update(axis);
+    axis_set_target_vel(axis, TEST_VEL);
+    axis_goto(axis, -MAX_POS);
+    axis_start(axis);
+    axis_await_stopped(axis);
+    stepdir_set_pos(stepdir, 0);
 }
 
 void
 test_goto() {
     uint16_t loops = 10;
+    timer_set_interval_ms(hal->timer, TIM17, setShouldPrint, 100);
     while (loops--) {
         axis_set_target_vel(axis, TEST_VEL);
         axis_goto(axis, MAX_POS);
-        pos = axis_current_pos(axis);
         axis_start(axis);
-        while (!stepdir_is_moving(stepdir)) {
+        while (axis_state(axis) == AXIS_MOVING) {
             axis_update(axis);
+            if (shouldRecord) {
+                shouldRecord = false;
+                print_int32(axis_current_pos(axis));
+            }
         }
-        while (stepdir_is_moving(stepdir)) {
-            pos = axis_current_pos(axis);
-            axis_update(axis);
-        }
-        axis_stop(axis);
         axis_update(axis);
-        axis_set_target_vel(axis, TEST_VEL);
         axis_goto(axis, MIN_POS);
         axis_start(axis);
-        while (!stepdir_is_moving(stepdir)) {
+        while (axis_state(axis) == AXIS_MOVING) {
             axis_update(axis);
+            if (shouldRecord) {
+                shouldRecord = false;
+                print_int32(axis_current_pos(axis));
+            }
         }
-        while (stepdir_is_moving(stepdir)) {
-            axis_update(axis);
-        }
+        axis_update(axis);
     }
 }
 
@@ -194,12 +198,10 @@ main() {
     };
     axis = axis_create(&ap);
     serial_open(hal->serial, USART1);
-    test_home();
-    axis_stop(axis);
-    test_stops_at_max();
-    axis_stop(axis);
-    test_home();
-    axis_stop(axis);
+    //stepdir_set_pos(stepdir, 0);
+    //test_home();
+    stepdir_set_pos(stepdir, 0);
     test_goto();
+    axis_stop(axis);
     //timer_stop_microsecond_timer(hal->timer, TIM16);
 }
